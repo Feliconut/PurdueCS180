@@ -1,6 +1,0 @@
-John Doe,25,111
-Jane Doe,26,222
-George Washington,67
-John Adams,90,444
-Thomas Jefferson,83,555
-James Madison,85,666

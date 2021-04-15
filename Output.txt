@@ -1,4 +1,0 @@
-Student<name=George Washington, age=67, id=333>
-Student<name=John Adams, age=90, id=444>
-Student<name=Thomas Jefferson, age=83, id=555>
-Student<name=James Madison, age=85, id=666>
