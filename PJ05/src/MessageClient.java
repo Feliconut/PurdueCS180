@@ -32,7 +32,7 @@ public class MessageClient implements Runnable {
 
     public void run() {
         //set frame
-        JFrame frame = new JFrame("main");
+        JFrame frame = new JFrame("sign-in");
         frame.setSize(600, 400);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -47,13 +47,10 @@ public class MessageClient implements Runnable {
         Panel okPanel = new Panel();
 
         //actionListener
-        ActionListener actionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == registerButton) {
-                    SwingUtilities.invokeLater(new Register());
-                    frame.dispose();
-                }
+        ActionListener actionListener = e -> {
+            if (e.getSource() == registerButton) {
+                SwingUtilities.invokeLater(new Register());
+                frame.dispose();
             }
         };
 
@@ -140,16 +137,16 @@ public class MessageClient implements Runnable {
 }
 
 class Register implements Runnable {
-    private JLabel nameLb = new JLabel("    Name");
-    private JLabel ageLb = new JLabel("     Age");
-    private JLabel userLb = new JLabel("Username");
-    private JLabel passLb = new JLabel("Password");
-    private TextField nameTf = new TextField(20);
-    private TextField ageTf = new TextField(20);
-    private  TextField userTf = new TextField(20);
-    private TextField passTf = new TextField(20);
-    private Button okBtn = new Button("OK");
-    private Button cancelBtn = new Button("Cancel");
+    private final JLabel nameLb = new JLabel("    Name");
+    private final JLabel ageLb = new JLabel("     Age");
+    private final JLabel userLb = new JLabel("Username");
+    private final JLabel passLb = new JLabel("Password");
+    private final TextField nameTf = new TextField(20);
+    private final TextField ageTf = new TextField(20);
+    private final TextField userTf = new TextField(20);
+    private final TextField passTf = new TextField(20);
+    private final Button okBtn = new Button("OK");
+    private final Button cancelBtn = new Button("Cancel");
 
     @Override
     public void run() {
@@ -200,17 +197,54 @@ class Register implements Runnable {
         //add to frame
         registerFrame.add(box);
 
-        ActionListener actionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == cancelBtn) {
-                    SwingUtilities.invokeLater(new MessageClient());
-                    registerFrame.dispose();
-                }
+        ActionListener actionListener = e -> {
+            if (e.getSource() == cancelBtn) {
+                SwingUtilities.invokeLater(new MessageClient());
+                registerFrame.dispose();
             }
         };
 
         cancelBtn.addActionListener(actionListener);
 
+    }
+}
+
+class main implements Runnable {
+    private final Button logOutBtn = new Button("Log out");
+    private final Button profileBtn = new Button("PROFILE");
+    private final Button chatBtn = new Button("CHATROOM");
+    private final Button addBtn = new Button("ADD A FRIEND");
+    private final Button startGroupBtn = new Button("START A GROUP");
+    private final Button joinGroupBtn = new Button("JOIN A GROUP");
+
+    @Override
+    public void run() {
+        //set up frame
+        JFrame mainFrame = new JFrame("Main");
+        mainFrame.setSize(600,400);
+        mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        mainFrame.setLocationRelativeTo(null);
+        mainFrame.setVisible(true);
+
+        //set up panel
+        Panel topP = new Panel();
+        topP.setLayout(new FlowLayout(FlowLayout.LEFT));
+        Panel midP = new Panel();
+
+        //add to topP
+        topP.add(logOutBtn);
+
+        //add to midP
+        midP.add(profileBtn);
+        midP.add(chatBtn);
+        midP.add(addBtn);
+        midP.add(startGroupBtn);
+        midP.add(joinGroupBtn);
+
+        //add panels to box then to frame
+        Box box = Box.createVerticalBox();
+        box.add(topP);
+        box.add(midP);
+        mainFrame.add(box);
     }
 }
