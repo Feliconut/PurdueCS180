@@ -10,6 +10,7 @@ public class ListAllMessagesRequest extends Request {
 
 
     public ListAllMessagesRequest(Array[] arrays, UUID conversattionId) {
+        super();
         this.arrays = arrays;
         this.conversattionId = conversattionId;
 

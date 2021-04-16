@@ -1,7 +1,7 @@
-import Field.Conversation;
-import Field.Credential;
-import Field.Message;
-import Field.User;
+import Exceptions.InvalidPasswordException;
+import Exceptions.UserExistsException;
+import Exceptions.UserNotFoundException;
+import Field.*;
 
 import java.util.UUID;
 
@@ -48,6 +48,24 @@ public class MessageSystem
         }
     }
 
+    public User addUser(Credential credential, Profile profile) throws UserNotFoundException, InvalidPasswordException{
+        //make sure the user not exist
+        try {
+            User user = getUser(credential.usrName);
+            throw new UserExistsException();
+        }
+        catch(UserNotFoundException | UserExistsException ignored)
+        {
+
+        }
+
+        User user = new User(credential, profile);
+        userDatabase.put(user.uuid,user);
+        return user;
+
+
+    }
+
     /**
      * Gets all message of the given conversation starting from given time.
      **/
@@ -76,10 +94,3 @@ public class MessageSystem
 
 }
 
-class UserNotFoundException extends Exception
-{
-}
-
-class InvalidPasswordException extends Exception
-{
-}

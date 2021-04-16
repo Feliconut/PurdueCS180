@@ -1,3 +1,4 @@
+import Exceptions.*;
 import Field.Credential;
 import Field.User;
 import Request.*;
@@ -14,23 +15,19 @@ public class MessageServerWorker extends Thread
     private final MessageSystem system;
     private User currentUser;
 
-    public MessageServerWorker(Socket socket, MessageSystem system)
-    {
+    public MessageServerWorker(Socket socket, MessageSystem system) {
         this.socket = socket;
         this.system = system;
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         ObjectOutputStream objectOutputStream;
         ObjectInputStream objectInputStream;
-        try
-        {
+        try {
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectInputStream = new ObjectInputStream(socket.getInputStream());
-        } catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
             return;
         }
@@ -48,50 +45,41 @@ public class MessageServerWorker extends Thread
         //TODO Use a while loop to listen to all requests and perform action/provide response.
 
 
-        while (true)
-        {
-            try
-            {
+        while (true) {
+            try {
                 Request request;
                 // Read a new request from socket.
                 request = (Request) objectInputStream.readObject();
-                Response response;
-                try
-                {
+                Response response = null;
+                try {
                     // Determine type of request, and process the request.
-                    if (request instanceof AuthenticateRequest)
-                    {
+                    if (request instanceof AuthenticateRequest) {
                         response = process((AuthenticateRequest) request);
 
-                    } else if (request instanceof PostMessageRequest)
-                    {
+                    } else if (request instanceof PostMessageRequest) {
                         response = process((PostMessageRequest) request);
-                    } else
-                    {
+                    } else {
                         response = process(request);
                     }
 
                     // exceptions are regarding handling of a specific request
-                } catch (NotLoggedInException e)
-                {
+                } catch (NotLoggedInException e) {
                     response = new Response(false, "Not Logged In", request.uuid);
-                } catch (InvalidRequestException e)
-                {
+                } catch (InvalidRequestException e) {
                     e.printStackTrace();
                     response = new Response(false, "request invalid", request.uuid);
-                } catch (UserNotFoundException e)
-                {
+                } catch (UserNotFoundException e) {
                     response = new Response(false, "user not found", request.uuid);
-                } catch (InvalidPasswordException e)
-                {
+                } catch (InvalidPasswordException e) {
                     e.printStackTrace();
                     response = new Response(false, "password incorrect", request.uuid);
+                } catch (ConversationNotFoundException | AuthorizationException | IllegalContentException | UserExistsException | InvalidUsernameException e) {
+                    e.printStackTrace();
                 }
                 objectOutputStream.writeObject(response);
 
                 // exceptions are regarding system failure
-            } catch (IOException | ClassNotFoundException e)
-            {
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
                 break;
             }
@@ -99,7 +87,9 @@ public class MessageServerWorker extends Thread
         }
     }
 
-    private Response process(Request request) throws InvalidRequestException {
+    private Response process(Request request) throws UserExistsException, InvalidUsernameException,
+            InvalidPasswordException, InvalidRequestException {
+
         throw new InvalidRequestException(request);
     }
 
@@ -113,10 +103,18 @@ public class MessageServerWorker extends Thread
 
         return new Response(true, "Login successful!", authenticateRequest.uuid);
     }
+
+    //registerRequest
+    RegisterResponse process(RegisterRequest registerRequest) throws NotLoggedInException {
+        return null;
+    }
+
+
     // Messaging
 
     //postMessageRequest
-    PostMessageResponse process(PostMessageRequest postMessageRequest) throws NotLoggedInException {
+    PostMessageResponse process(PostMessageRequest postMessageRequest) throws NotLoggedInException,
+            ConversationNotFoundException,AuthorizationException,IllegalContentException {
         //TODO
         return null;
     }
@@ -137,7 +135,7 @@ public class MessageServerWorker extends Thread
         return null;
     }
 
-    //updateMessageRequest
+    //updateMessageRequest 应该是UpdateMessageResponse 暂写成Reponse
     Response process(UpdateMessageRequest updateMessageRequest) throws NotLoggedInException {
         return null;
     }
@@ -167,6 +165,11 @@ public class MessageServerWorker extends Thread
         return null;
     }
 
+    //logOutRequest
+    Response process(LogOutRequest logOutRequest) throws NotLoggedInException{
+        return null;
+    }
+
     //listAllConversationsRequest
     Response process(ListAllConversationsRequest listAllConversationsRequest) throws NotLoggedInException {
         return null;
@@ -188,29 +191,27 @@ public class MessageServerWorker extends Thread
     }
 
 
-    //registerRequest
-    RegisterResponse process(RegisterRequest registerRequest) throws NotLoggedInException {
-        return null;
-    }
-
     //editMessageRequest
-    EditMessageResponse process(EditMessageRequest editMessageRequest) throws NotLoggedInException {
+    EditMessageResponse process(EditMessageRequest editMessageRequest) throws NotLoggedInException,
+            MessageNotFoundException, AuthorizationException, IllegalContentException{
         return null;
     }
 
     //deleteAccountRequest
-    Response process(DeleteAccountRequest deleteAccountRequest) throws NotLoggedInException {
+    Response process(DeleteAccountRequest deleteAccountRequest) throws AuthorizationException {
         return null;
     }
 
     //deleteMessageRequest
-    Response process(DeleteMessageRequest deleteMessageRequest) throws NotLoggedInException {
+    Response process(DeleteMessageRequest deleteMessageRequest) throws NotLoggedInException,
+            MessageNotFoundException, AuthorizationException{
         //TODO
         return null;
     }
 
     //getMessageHistoryRequest
-    Response process(GetMessageHistoryRequest getMessageHistoryRequest) throws NotLoggedInException {
+    Response process(GetMessageHistoryRequest getMessageHistoryRequest) throws NotLoggedInException,
+            ConversationNotFoundException{
         return null;
     }
 
@@ -234,4 +235,8 @@ public class MessageServerWorker extends Thread
         return null;
     }
 
+    //GetEventFeedResponse 还没在request里创
+//    Response process(GetEventFeedResponse getEventFeedResponse) throws NotLoggedInException{
+//        return null;
+//    }
 }

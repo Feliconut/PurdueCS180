@@ -1,4 +1,4 @@
-package Request;
+package Exceptions;
 
 public class RequestParsingException extends Exception
 {

@@ -1,3 +1,5 @@
+package Exceptions;
+
 import Request.Request;
 
 public class InvalidRequestException extends Exception
