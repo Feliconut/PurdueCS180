@@ -13,7 +13,7 @@ import java.net.Socket;
 /**
  * PJ5-MessageClient
  * This class enables connections between the client and
- * the server and display user interface.
+ * the server. It also displays the log-in user interface.
  *
  * @author Silvia Yang, lab sec OL3
  * @version April
@@ -46,20 +46,9 @@ public class MessageClient implements Runnable {
         Panel passwordPanel = new Panel();
         Panel okPanel = new Panel();
 
-        //actionListener
-        ActionListener actionListener = e -> {
-            if (e.getSource() == registerButton) {
-                SwingUtilities.invokeLater(new Register());
-                frame.dispose();
-            }
-        };
-
         //set buttons and labels
         registerButton = new Button("Register");
-        registerButton.addActionListener(actionListener);
-
         okButton = new Button("OK");
-
         titleLb = new JLabel("<html><center><font size='20'>PJ5 Messaging</font></center></html>");
         usernameLb = new JLabel("Username");
         passwordLb = new JLabel("Password");
@@ -92,6 +81,15 @@ public class MessageClient implements Runnable {
         vertical.add(okPanel);
         vertical.add(Box.createVerticalStrut(50));
         frame.add(vertical);
+
+        //actionListener
+        ActionListener actionListener = e -> {
+            if (e.getSource() == registerButton) {
+                SwingUtilities.invokeLater(new RegisterInterface());
+                frame.dispose();
+            }
+        };
+        registerButton.addActionListener(actionListener);
 
     }
 
@@ -136,7 +134,15 @@ public class MessageClient implements Runnable {
     }
 }
 
-class Register implements Runnable {
+/**
+ * PJ5-RegisterInterface
+ * This class is a interface that allows the user to register accounts
+ *
+ * @author Silvia Yang, lab sec OL3
+ * @version April
+ */
+
+class RegisterInterface implements Runnable {
     private final JLabel nameLb = new JLabel("    Name");
     private final JLabel ageLb = new JLabel("     Age");
     private final JLabel userLb = new JLabel("Username");
@@ -209,9 +215,18 @@ class Register implements Runnable {
     }
 }
 
-class main implements Runnable {
+/**
+ * PJ5-MainInterface
+ * This class is the main interface after the user logged in.
+ *
+ * @author Silvia Yang, lab sec OL3
+ * @version April
+ */
+
+class MainInterface implements Runnable {
     private final Button logOutBtn = new Button("Log out");
     private final Button profileBtn = new Button("PROFILE");
+    private Button manageProfileBtn = new Button("MANAGE PROFILE");
     private final Button chatBtn = new Button("CHATROOM");
     private final Button addBtn = new Button("ADD A FRIEND");
     private final Button startGroupBtn = new Button("START A GROUP");
@@ -236,6 +251,7 @@ class main implements Runnable {
 
         //add to midP
         midP.add(profileBtn);
+        midP.add(manageProfileBtn);
         midP.add(chatBtn);
         midP.add(addBtn);
         midP.add(startGroupBtn);
@@ -246,5 +262,19 @@ class main implements Runnable {
         box.add(topP);
         box.add(midP);
         mainFrame.add(box);
+
+        ActionListener actionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == profileBtn) {
+                    JOptionPane.showMessageDialog(mainFrame, "userProfile", "Profile",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        };
+
+        profileBtn.addActionListener(actionListener);
+
+
     }
 }
