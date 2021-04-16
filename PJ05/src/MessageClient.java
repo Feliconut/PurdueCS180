@@ -2,6 +2,8 @@ import Field.User;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -27,6 +29,7 @@ public class MessageClient implements Runnable {
     private TextField usernameTf;
     private TextField passwordTf;
 
+
     public void run() {
         //set frame
         JFrame frame = new JFrame("main");
@@ -43,9 +46,23 @@ public class MessageClient implements Runnable {
         Panel passwordPanel = new Panel();
         Panel okPanel = new Panel();
 
+        //actionListener
+        ActionListener actionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == registerButton) {
+                    SwingUtilities.invokeLater(new Register());
+                    frame.dispose();
+                }
+            }
+        };
+
         //set buttons and labels
         registerButton = new Button("Register");
+        registerButton.addActionListener(actionListener);
+
         okButton = new Button("OK");
+
         titleLb = new JLabel("<html><center><font size='20'>PJ5 Messaging</font></center></html>");
         usernameLb = new JLabel("Username");
         passwordLb = new JLabel("Password");
@@ -118,6 +135,82 @@ public class MessageClient implements Runnable {
         //TODO display main UI, popup sign-in window.
 
         //TODO query for new events every few seconds.
+
+    }
+}
+
+class Register implements Runnable {
+    private JLabel nameLb = new JLabel("    Name");
+    private JLabel ageLb = new JLabel("     Age");
+    private JLabel userLb = new JLabel("Username");
+    private JLabel passLb = new JLabel("Password");
+    private TextField nameTf = new TextField(20);
+    private TextField ageTf = new TextField(20);
+    private  TextField userTf = new TextField(20);
+    private TextField passTf = new TextField(20);
+    private Button okBtn = new Button("OK");
+    private Button cancelBtn = new Button("Cancel");
+
+    @Override
+    public void run() {
+        //set frame
+        JFrame registerFrame = new JFrame("Register");
+        registerFrame.setSize(600, 400);
+        registerFrame.setLocationRelativeTo(null);
+        registerFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        registerFrame.setVisible(true);
+
+        //set panel
+        Box box = Box.createVerticalBox();
+        Panel nameP = new Panel();
+        Panel ageP = new Panel();
+        Panel userP = new Panel();
+        Panel passP = new Panel();
+        Panel bottomP = new Panel();
+        box.add(Box.createVerticalStrut(70));
+        box.add(nameP);
+        box.add(ageP);
+        box.add(userP);
+        box.add(passP);
+        box.add(bottomP);
+        box.add(Box.createVerticalStrut(70));
+
+        //add to nameP
+        nameP.add(nameLb);
+        nameP.add(Box.createHorizontalStrut(5));
+        nameP.add(nameTf);
+
+        //add to ageP
+        ageP.add(ageLb);
+        nameP.add(Box.createHorizontalStrut(10));
+        ageP.add(ageTf);
+
+        //add to userP
+        userP.add(userLb);
+        userP.add(userTf);
+
+        //add to passP
+        passP.add(passLb);
+        passP.add(passTf);
+
+        //add to bottomP
+        bottomP.add(okBtn);
+        bottomP.add(cancelBtn);
+
+        //add to frame
+        registerFrame.add(box);
+
+        ActionListener actionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == cancelBtn) {
+                    SwingUtilities.invokeLater(new MessageClient());
+                    registerFrame.dispose();
+                }
+            }
+        };
+
+        cancelBtn.addActionListener(actionListener);
 
     }
 }
