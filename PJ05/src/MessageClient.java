@@ -1,4 +1,6 @@
+import Field.Credential;
 import Field.User;
+import Request.AuthenticateRequest;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,7 +31,10 @@ public class MessageClient implements Runnable {
     private Button okButton;
     private TextField usernameTf;
     private TextField passwordTf;
-
+    private String username;
+    private String password;
+    private static BufferedReader bfr = null;
+    private static PrintWriter pw = null;
 
     public void run() {
         //set frame
@@ -91,8 +96,17 @@ public class MessageClient implements Runnable {
             }
             if (e.getSource() == okButton) {
                 //TODO send authentication request
-                SwingUtilities.invokeLater(new MainInterface());
-                frame.dispose();
+                username = usernameTf.getText();
+                password = passwordTf.getText();
+                authenticateRequest(username, password);
+                if (authenticateResponse()) {
+                    SwingUtilities.invokeLater(new MainInterface());
+                    frame.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(frame, "response message", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+
             }
         };
         registerButton.addActionListener(actionListener);
@@ -105,8 +119,7 @@ public class MessageClient implements Runnable {
         String portString;
         int port;
         Socket socket;
-        BufferedReader bfr = null;
-        PrintWriter pw = null;
+
 
         try {
             hostname = JOptionPane.showInputDialog(null, "Please enter the hostname:",
@@ -121,7 +134,10 @@ public class MessageClient implements Runnable {
 
             if (socket.isConnected()) {
                 SwingUtilities.invokeLater(new MessageClient());
+                bfr = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                pw = new PrintWriter(socket.getOutputStream());
             }
+
 
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(null, "Invalid input!", "Connecting...",
@@ -133,12 +149,33 @@ public class MessageClient implements Runnable {
             //return;
         } //connection established
 
-
-        //TODO display main UI, popup sign-in window.
-
-        //TODO query for new events every few seconds.
-
     }
+
+    /**
+     * The method creates an authenticate request to the server
+     * @param username entered by the user
+     * @param password entered by the user
+     */
+    public void authenticateRequest(String username, String password) {
+        Credential credential = new Credential(username, password);
+        AuthenticateRequest authenticateRequest = new AuthenticateRequest(credential);
+        pw.println(authenticateRequest.toString());
+    }
+
+    /**
+     * The method reads the authenticate response
+     * @return true if passes the authentication
+     */
+    public boolean authenticateResponse() {
+        String response;
+        try {
+            response = bfr.readLine();
+        } catch (IOException e) {
+            return false;
+        }
+        return response.equals("true");
+    }
+
 }
 
 /**
@@ -216,7 +253,7 @@ class RegisterInterface implements Runnable {
                 registerFrame.dispose();
             }
             if (e.getSource() == okBtn) {
-                //TODO store the user profile
+                //TODO send a register request
                 SwingUtilities.invokeLater(new MessageClient());
                 registerFrame.dispose();
             }
@@ -241,15 +278,15 @@ class MainInterface implements Runnable {
     private final Button profileBtn = new Button("PROFILE");
     private Button manageProfileBtn = new Button("MANAGE PROFILE");
     private final Button chatBtn = new Button("CHATROOM");
-    private final Button addBtn = new Button("ADD A FRIEND");
-    private final Button startGroupBtn = new Button("START A GROUP");
-    private final Button joinGroupBtn = new Button("JOIN A GROUP");
+    //private final Button addBtn = new Button("ADD A FRIEND");
+    //private final Button startGroupBtn = new Button("START A GROUP");
+    //private final Button joinGroupBtn = new Button("JOIN A GROUP");
 
     @Override
     public void run() {
         //set up frame
         JFrame mainFrame = new JFrame("Main");
-        mainFrame.setSize(600,400);
+        mainFrame.setSize(600, 400);
         mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setVisible(true);
@@ -266,9 +303,9 @@ class MainInterface implements Runnable {
         midP.add(profileBtn);
         midP.add(manageProfileBtn);
         midP.add(chatBtn);
-        midP.add(addBtn);
-        midP.add(startGroupBtn);
-        midP.add(joinGroupBtn);
+//        midP.add(addBtn);
+//        midP.add(startGroupBtn);
+//        midP.add(joinGroupBtn);
 
         //add panels to box then to frame
         Box box = Box.createVerticalBox();
@@ -284,30 +321,97 @@ class MainInterface implements Runnable {
                             JOptionPane.INFORMATION_MESSAGE);
                 }
                 if (e.getSource() == manageProfileBtn) {
-                    //TODO start a new window that manages profile
+                    SwingUtilities.invokeLater(new ManageProfileInterface());
+                    mainFrame.dispose();
                 }
                 if (e.getSource() == chatBtn) {
                     //TODO start a chat window
                 }
-                if (e.getSource() == addBtn) {
-                    //TODO pop up window
+                if (e.getSource() == logOutBtn) {
+                    mainFrame.dispose();
                 }
-                if (e.getSource() == startGroupBtn) {
-                    //TODO start a group
-                }
-                if (e.getSource() == joinGroupBtn) {
-                    //TODO join group window
-                }
+//                if (e.getSource() == addBtn) {
+//                    //TODO pop up window
+//                }
+//                if (e.getSource() == startGroupBtn) {
+//                    //TODO start a group
+//                }
+//                if (e.getSource() == joinGroupBtn) {
+//                    //TODO join group window
+//                }
             }
         };
 
         profileBtn.addActionListener(actionListener);
         manageProfileBtn.addActionListener(actionListener);
         chatBtn.addActionListener(actionListener);
-        addBtn.addActionListener(actionListener);
-        startGroupBtn.addActionListener(actionListener);
-        joinGroupBtn.addActionListener(actionListener);
+        logOutBtn.addActionListener(actionListener);
+//        addBtn.addActionListener(actionListener);
+//        startGroupBtn.addActionListener(actionListener);
+//        joinGroupBtn.addActionListener(actionListener);
 
 
     }
 }
+
+class ManageProfileInterface implements Runnable {
+    private JLabel nameLb = new JLabel("Name");
+    private JLabel ageLb = new JLabel("age");
+    private TextField nameTf = new TextField(20);
+    private TextField ageTf = new TextField(20);
+    private Button okBtn = new Button("OK");
+    private Button cancelBtn = new Button("Cancel");
+
+    public void run() {
+        //set frame
+        JFrame profileFrame = new JFrame("Manage Profile");
+        profileFrame.setSize(600,400);
+        profileFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        profileFrame.setLocationRelativeTo(null);
+        profileFrame.setVisible(true);
+
+        //set panel
+        Box box = Box.createVerticalBox();
+        Panel nameP = new Panel();
+        Panel ageP = new Panel();
+        Panel bottomP = new Panel();
+        box.add(Box.createVerticalStrut(100));
+        box.add(nameP);
+        box.add(ageP);
+        box.add(bottomP);
+        box.add(Box.createVerticalStrut(100));
+
+        //add to name panel
+        nameP.add(nameLb);
+        nameP.add(nameTf);
+
+        //add to age panel
+        ageP.add(ageLb);
+        ageP.add(ageTf);
+
+        //add to bottom panel
+        bottomP.add(okBtn);
+        bottomP.add(cancelBtn);
+
+        //add to frame
+        profileFrame.add(box);
+
+        ActionListener actionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == okBtn) {
+                    //TODO change profile request
+                }
+                if (e.getSource() == cancelBtn) {
+                    SwingUtilities.invokeLater(new MainInterface());
+                    profileFrame.dispose();
+                }
+            }
+        };
+
+        okBtn.addActionListener(actionListener);
+        cancelBtn.addActionListener(actionListener);
+    }
+}
+
+
