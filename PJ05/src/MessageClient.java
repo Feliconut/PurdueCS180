@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.http.WebSocket;
 
 /**
  * PJ5-MessageClient
@@ -88,8 +89,14 @@ public class MessageClient implements Runnable {
                 SwingUtilities.invokeLater(new RegisterInterface());
                 frame.dispose();
             }
+            if (e.getSource() == okButton) {
+                //TODO send authentication request
+                SwingUtilities.invokeLater(new MainInterface());
+                frame.dispose();
+            }
         };
         registerButton.addActionListener(actionListener);
+        okButton.addActionListener(actionListener);
 
     }
 
@@ -208,9 +215,15 @@ class RegisterInterface implements Runnable {
                 SwingUtilities.invokeLater(new MessageClient());
                 registerFrame.dispose();
             }
+            if (e.getSource() == okBtn) {
+                //TODO store the user profile
+                SwingUtilities.invokeLater(new MessageClient());
+                registerFrame.dispose();
+            }
         };
 
         cancelBtn.addActionListener(actionListener);
+        okBtn.addActionListener(actionListener);
 
     }
 }
@@ -270,10 +283,30 @@ class MainInterface implements Runnable {
                     JOptionPane.showMessageDialog(mainFrame, "userProfile", "Profile",
                             JOptionPane.INFORMATION_MESSAGE);
                 }
+                if (e.getSource() == manageProfileBtn) {
+                    //TODO start a new window that manages profile
+                }
+                if (e.getSource() == chatBtn) {
+                    //TODO start a chat window
+                }
+                if (e.getSource() == addBtn) {
+                    //TODO pop up window
+                }
+                if (e.getSource() == startGroupBtn) {
+                    //TODO start a group
+                }
+                if (e.getSource() == joinGroupBtn) {
+                    //TODO join group window
+                }
             }
         };
 
         profileBtn.addActionListener(actionListener);
+        manageProfileBtn.addActionListener(actionListener);
+        chatBtn.addActionListener(actionListener);
+        addBtn.addActionListener(actionListener);
+        startGroupBtn.addActionListener(actionListener);
+        joinGroupBtn.addActionListener(actionListener);
 
 
     }
