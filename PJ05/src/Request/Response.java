@@ -1,15 +1,18 @@
 package Request;
 
-public class Response
+import java.util.UUID;
+
+public class Response extends Request
 {
-    public final BaseClientRequest request;
     public final boolean state;
     public final String msg;
+    public final UUID request_uuid;
 
-    public Response(boolean state, String msg, BaseClientRequest request)
+    public Response(boolean state, String msg, UUID request_uuid)
     {
-        this.request = request;
         this.state = state;
         this.msg = msg;
+        this.request_uuid = request_uuid;
     }
+
 }

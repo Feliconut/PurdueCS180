@@ -1,6 +1,8 @@
 package Field;
 
-public class Credential
+import java.io.Serializable;
+
+public class Credential implements Serializable
 {
     public final String usrName;
     public final String passwd;
@@ -11,21 +13,4 @@ public class Credential
         this.passwd = passwd;
     }
 
-    public Credential()
-    {
-        this.usrName = "undefined";
-        this.passwd = "undefined";
-    }
-
-    public static Credential parseCredential(String credentialStr)
-    {
-        //TODO
-        return null;
-    }
-
-    public String toString()
-    {
-        //TODO
-        return null;
-    }
 }

@@ -1,56 +1,28 @@
 package Field;
 
+import java.util.Date;
 import java.util.UUID;
 
 public class Message extends Storable
 {
-    public UUID uuid;
-    public UUID senderUID;
-    public UUID receiverUID;
-    public String time;
-    public String content;
+    public final UUID sender_uuid;
+    public final Date time;
+    public final String content;
 
-    public Message(UUID senderUID, String time, String content)
+
+    public Message(UUID uuid, UUID sender_uuid, Date time, String content)
     {
-        this.uuid = UUID.randomUUID();
-        this.senderUID = senderUID;
+        super(uuid);
+        this.sender_uuid = sender_uuid;
         this.time = time;
         this.content = content;
     }
 
-    public Message(UUID uuid, UUID senderUID, String time, String content)
+    public Message(UUID sender_uuid, Date time, String content)
     {
-        this.uuid = uuid;
-        this.senderUID = senderUID;
+        super(UUID.randomUUID());
+        this.sender_uuid = sender_uuid;
         this.time = time;
         this.content = content;
     }
-
-    @Override
-    public String toString()
-    {
-        return "Message{" +
-                "uuid=" + uuid +
-                ", senderUID=" + senderUID +
-                ", time='" + time + '\'' +
-                ", content='" + content + '\'' +
-                '}';
-    }
-
-    public static Message parse(String messageStr)
-    {
-        //TODO
-        return null;
-    }
-
-    public Message(String messageStr)
-    {
-        Message message = parse(messageStr);
-        assert message != null;
-        this.uuid = message.uuid;
-        this.senderUID = message.senderUID;
-        this.time = message.time;
-        this.content = message.content;
-    }
-
 }
