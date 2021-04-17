@@ -4,6 +4,7 @@ import Request.*;
 import com.sun.jdi.InternalException;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -24,9 +25,19 @@ public class MessageServerWorker extends Thread
     @Override
     public void run()
     {
+        BufferedReader reader;
+        PrintWriter writer;
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        PrintWriter writer = new PrintWriter(socket.getOutputStream());
+
+        try{
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            writer = new PrintWriter(socket.getOutputStream());
+        }
+        catch (IOException e){
+            e.printStackTrace();
+            return;
+        }
+
         //TODO Read the authentication from client. If success then proceed. If fail then let the client retry.
 //        try{
 //
@@ -40,17 +51,24 @@ public class MessageServerWorker extends Thread
 
         //TODO Use a while loop to listen to all requests and perform action/provide response.
         String requestStr = ""; // Read from the socket
-        BaseClientRequest request = BaseClientRequest.parseRequest(requestStr);
-        Response res = null;
-        if (request instanceof AuthenticateRequest)
+        BaseClientRequest request = null;
+        try
         {
-            res = authenticate((AuthenticateRequest) request);
+            request = BaseClientRequest.parseRequest(requestStr);
+            Response res = null;
+            if (request instanceof AuthenticateRequest)
+            {
+                res = authenticate((AuthenticateRequest) request);
 
-        } else
+            } else
+            {
+                res = new Response(false, "Invalid Format", request);
+            }
+            writer.println(res.toString());
+        } catch (RequestParsingException e)
         {
-            res = new Response(false, "Invalid Format", request);
+            e.printStackTrace();
         }
-        writer.println(res.toString());
 
 
     }
@@ -96,36 +114,36 @@ public class MessageServerWorker extends Thread
         return true;
     }
 
-    boolean getMessageHistory(User requester, GetMessageHistoryRequest getMessageHistoryRequest) throws NotLoggedInException
-    {
-        //TODO
-        return true;
-    }
-
-    boolean listAllMessages(User requester, ListAllMessagesRequest listAllMessagesRequest) throws NotLoggedInException
-    {
-        //TODO
-        return true;
-    }
-
-    boolean deleteMessage(User requester, DeleteMessageRequest deleteMessageRequest) throws NotLoggedInException
-    {
-        //TODO
-        return true;
-    }
-
-    // Locating Users
-
-    boolean getAllUserNames(User requester, GetAllUserNamesRequest getAllUserNamesRequest) throws NotLoggedInException
-    {
-        //TODO
-        return true;
-    }
-
-    boolean getUserProfile(User requester, GetUserProfileRequest getUserProfileRequest) throws NotLoggedInException
-    {
-        //TODO
-        return true;
-    }
+//    boolean getMessageHistory(User requester, GetMessageHistoryRequest getMessageHistoryRequest) throws NotLoggedInException
+//    {
+//        //TODO
+//        return true;
+//    }
+//
+//    boolean listAllMessages(User requester, ListAllMessagesRequest listAllMessagesRequest) throws NotLoggedInException
+//    {
+//        //TODO
+//        return true;
+//    }
+//
+//    boolean deleteMessage(User requester, DeleteMessageRequest deleteMessageRequest) throws NotLoggedInException
+//    {
+//        //TODO
+//        return true;
+//    }
+//
+//    // Locating Users
+//
+//    boolean getAllUserNames(User requester, GetAllUserNamesRequest getAllUserNamesRequest) throws NotLoggedInException
+//    {
+//        //TODO
+//        return true;
+//    }
+//
+//    boolean getUserProfile(User requester, GetUserProfileRequest getUserProfileRequest) throws NotLoggedInException
+//    {
+//        //TODO
+//        return true;
+//    }
 
 }
