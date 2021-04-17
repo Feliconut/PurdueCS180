@@ -3,7 +3,6 @@ import Field.Credential;
 import Field.Message;
 import Field.User;
 
-import java.util.ArrayList;
 import java.util.UUID;
 
 public class MessageSystem
@@ -15,20 +14,19 @@ public class MessageSystem
 
     public MessageSystem(String userFileName, String messageFileName, String conversationFileName)
     {
-        userDatabase = new Database<User>(userFileName);
-        conversationDatabase = new Database<Conversation>(conversationFileName);
-        messageDatabase = new Database<Message>(messageFileName);
+        userDatabase = new Database<>(userFileName, User.class);
+        conversationDatabase = new Database<>(conversationFileName,Conversation.class);
+        messageDatabase = new Database<>(messageFileName, Message.class);
 
     }
 
 
-
     public User getUser(String name) throws UserNotFoundException
     {
-        for (UUID uuid:userDatabase.uuids())
+        for (UUID uuid : userDatabase.uuids())
         {
             User user = userDatabase.get(uuid);
-            Credential userCredential = user.getCredential();
+            Credential userCredential = user.credential;
             if (userCredential.usrName.equals(name))
             {
                 return user;
@@ -41,7 +39,7 @@ public class MessageSystem
     {
 
         User user = getUser(credential.usrName);
-        if (user.getCredential().passwd.equals(credential.passwd))
+        if (user.credential.passwd.equals(credential.passwd))
         {
             return user;
         } else
@@ -51,30 +49,29 @@ public class MessageSystem
     }
 
     /**
-        Gets all message of the given conversation starting from given time.
+     * Gets all message of the given conversation starting from given time.
      **/
-    public ArrayList<Message> getMesssage(UUID uuid, String time)
+    public Message[] getMessage(UUID uuid, String time)
     {
         //TODO
         return null;
     }
 
-    public ArrayList<Message> getMessage(UUID uuid)
+    public Message[] getMessage(UUID uuid)
     {
         return null;
     }
-    public ArrayList<Conversation> getConversation(UUID uuid, String time)
+
+    public Conversation[] getConversation(UUID uuid, String time)
     {
         //TODO
         return null;
     }
 
-    public ArrayList<Conversation> getConversation(UUID uuid)
+    public Conversation[] getConversation(UUID uuid)
     {
         return null;
     }
-
-
 
 
 }

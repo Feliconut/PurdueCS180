@@ -1,16 +1,15 @@
 package Field;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public abstract class Storable
+public abstract class Storable implements Serializable
 {
 
-    public UUID uuid;
+    public final UUID uuid;
 
-    @Override
-    public abstract String toString();
-
-    public static Storable parse(String str){
-        return null;
+    public Storable(UUID uuid)
+    {
+        this.uuid = uuid;
     }
 }

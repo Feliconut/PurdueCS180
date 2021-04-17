@@ -1,9 +1,11 @@
 package Field;
 
-public class Profile
+import java.io.Serializable;
+
+public class Profile implements Serializable
 {
-    public String name;
-    public int age;
+    public final String name;
+    public final int age;
 
     public Profile(String name, int age)
     {
