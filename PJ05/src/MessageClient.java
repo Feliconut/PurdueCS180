@@ -152,6 +152,7 @@ public class MessageClient implements Runnable {
 
     /**
      * The method creates an authenticate request to the server
+     *
      * @param username entered by the user
      * @param password entered by the user
      */
@@ -163,6 +164,7 @@ public class MessageClient implements Runnable {
 
     /**
      * The method reads the authenticate response
+     *
      * @return true if passes the authentication
      */
     public boolean authenticateResponse() {
@@ -179,7 +181,7 @@ public class MessageClient implements Runnable {
 
 /**
  * PJ5-RegisterInterface
- * This class is a interface that allows the user to register accounts
+ * This class is an user interface that allows the user to register accounts
  *
  * @author Silvia Yang, lab sec OL3
  * @version April
@@ -266,15 +268,13 @@ class RegisterInterface implements Runnable {
 
 /**
  * PJ5-MainInterface
- * This class is the main interface after the user logged in.
+ * This class is the main user interface after the user logged in.
  *
  * @author Silvia Yang, lab sec OL3
  * @version April
  */
-
 class MainInterface implements Runnable {
     private final Button logOutBtn = new Button("Log out");
-    private final Button profileBtn = new Button("PROFILE");
     private final Button chatBtn = new Button("CHATROOM");
     private final Button startChatBtn = new Button("START CHAT");
     private final Button settingBtn = new Button("SETTING");
@@ -298,7 +298,6 @@ class MainInterface implements Runnable {
         topP.add(logOutBtn);
 
         //add to midP
-        midP.add(profileBtn);
         midP.add(chatBtn);
         midP.add(startChatBtn);
         midP.add(settingBtn);
@@ -313,10 +312,6 @@ class MainInterface implements Runnable {
         ActionListener actionListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == profileBtn) {
-                    JOptionPane.showMessageDialog(mainFrame, "userProfile", "Profile",
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
                 if (e.getSource() == settingBtn) {
                     SwingUtilities.invokeLater(new SettingInterface());
                     mainFrame.dispose();
@@ -325,7 +320,8 @@ class MainInterface implements Runnable {
                     //TODO start a chatroom window
                 }
                 if (e.getSource() == startChatBtn) {
-                    //TODO start a chat window
+                    SwingUtilities.invokeLater(new StartChatInterface());
+                    mainFrame.dispose();
                 }
                 if (e.getSource() == logOutBtn) {
                     //TODO log out request
@@ -334,7 +330,6 @@ class MainInterface implements Runnable {
             }
         };
 
-        profileBtn.addActionListener(actionListener);
         chatBtn.addActionListener(actionListener);
         startChatBtn.addActionListener(actionListener);
         logOutBtn.addActionListener(actionListener);
@@ -344,6 +339,12 @@ class MainInterface implements Runnable {
     }
 }
 
+/**
+ * PJ5-ManageProfileInterface
+ * This class is an user interface that is used to mange profile
+ * @author Silvia Yang, lab sec OL3
+ * @version April
+ */
 class ManageProfileInterface implements Runnable {
     private JLabel nameLb = new JLabel("Name");
     private JLabel ageLb = new JLabel("age");
@@ -355,7 +356,7 @@ class ManageProfileInterface implements Runnable {
     public void run() {
         //set frame
         JFrame profileFrame = new JFrame("Manage Profile");
-        profileFrame.setSize(600,400);
+        profileFrame.setSize(600, 400);
         profileFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         profileFrame.setLocationRelativeTo(null);
         profileFrame.setVisible(true);
@@ -405,16 +406,28 @@ class ManageProfileInterface implements Runnable {
     }
 }
 
+
+/**
+ * PJ5-SettingInterface
+ * This class is an user interface for user
+ * to set profile and delete account
+ *
+ * @author Silvia Yang, lab sec OL3
+ * @version April
+ */
 class SettingInterface implements Runnable {
     private Button backBtn = new Button("Back");
     private Button deleteBtn = new Button("DELETE ACCOUNT");
     private Button manageProfileBtn = new Button("MANAGE PROFILE");
+    private Button exportBtn = new Button("EXPORT CHAT HISTORY");
+    private Button profileBtn = new Button("MY PROFILE");
+
 
     @Override
     public void run() {
         //set frame
         JFrame settingFrame = new JFrame("Setting");
-        settingFrame.setSize(600,400);
+        settingFrame.setSize(600, 400);
         settingFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         settingFrame.setLocationRelativeTo(null);
         settingFrame.setVisible(true);
@@ -424,15 +437,18 @@ class SettingInterface implements Runnable {
         Panel topP = new Panel(new FlowLayout(FlowLayout.LEFT));
         Panel midP = new Panel();
         box.add(topP);
-        box.add(Box.createVerticalStrut(100));
+        box.add(Box.createVerticalStrut(50));
         box.add(midP);
+        box.add(Box.createVerticalStrut(50));
 
         //add to topP
         topP.add(backBtn);
 
         //add to midP
+        midP.add(profileBtn);
         midP.add(manageProfileBtn);
         midP.add(deleteBtn);
+        midP.add(exportBtn);
 
         //add to frame
         settingFrame.add(box);
@@ -462,11 +478,98 @@ class SettingInterface implements Runnable {
                         settingFrame.dispose();
                     }
                 }
+                if (e.getSource() == exportBtn) {
+                    //TODO export request
+                }
+                if (e.getSource() == profileBtn) {
+                    JOptionPane.showMessageDialog(settingFrame, "userProfile", "Profile",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
             }
         };
         manageProfileBtn.addActionListener(actionListener);
         backBtn.addActionListener(actionListener);
         deleteBtn.addActionListener(actionListener);
+        exportBtn.addActionListener(actionListener);
+        profileBtn.addActionListener(actionListener);
+    }
+}
+
+/**
+ * PJ5-StartChatInterface
+ * This class in an user interface that allows the
+ * user to add people to a chat
+ *
+ * @author Silvia Yang, lab sec OL3
+ * @version April
+ */
+
+class StartChatInterface implements Runnable {
+    private Button backBtn = new Button("Back");
+    private JLabel invitePromptLb = new JLabel("Invite people to chat:");
+    private JLabel invitedLb = new JLabel("No one has been invited yet!"); //need to be updated
+    private TextField searchTf = new TextField(20);
+    private Button addBtn = new Button("Add");
+    private Button startBtn = new Button("Start Chatting!");
+    @Override
+    public void run() {
+        //set frame
+        JFrame startFrame = new JFrame("Start Chat");
+        startFrame.setSize(600,400);
+        startFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        startFrame.setLocationRelativeTo(null);
+        startFrame.setVisible(true);
+
+        //set panels
+        Box box = Box.createVerticalBox();
+        Panel topP = new Panel(new FlowLayout(FlowLayout.LEFT));
+        Panel labelP = new Panel();
+        Panel updateP = new Panel();
+        Panel addP = new Panel();
+        Panel startP = new Panel();
+        box.add(topP);
+        box.add(Box.createVerticalStrut(50));
+        box.add(labelP);
+        box.add(updateP);
+        box.add(Box.createVerticalStrut(50));
+        box.add(addP);
+        box.add(startP);
+        box.add(Box.createVerticalStrut(50));
+
+        //add to panels
+        topP.add(backBtn);
+        labelP.add(invitePromptLb);
+        updateP.add(invitedLb);
+        addP.add(searchTf);
+        addP.add(addBtn);
+        startP.add(startBtn);
+
+        //add to frame
+        startFrame.add(box);
+
+        ActionListener actionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == backBtn) {
+                    SwingUtilities.invokeLater(new MainInterface());
+                    startFrame.dispose();
+                }
+                if (e.getSource() == addBtn) {
+                    //TODO add people to chat request
+                    //TODO update the invitedLb if the person is successfully added
+                    JOptionPane.showMessageDialog(startFrame, "Successfully added!",
+                            "Invitation", JOptionPane.INFORMATION_MESSAGE);
+                    //TODO if the person does not exist throw exception
+                }
+                if (e.getSource() == startBtn) {
+                    //TODO start a chatting window
+                    startFrame.dispose();
+                }
+            }
+        };
+        backBtn.addActionListener(actionListener);
+        addBtn.addActionListener(actionListener);
+        startBtn.addActionListener(actionListener);
     }
 }
 
