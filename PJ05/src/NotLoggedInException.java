@@ -1,11 +1,8 @@
-public class NotLoggedInException extends Exception
-{
-    public NotLoggedInException()
-    {
+public class NotLoggedInException extends Exception {
+    public NotLoggedInException() {
     }
 
-    public NotLoggedInException(String message)
-    {
+    public NotLoggedInException(String message) {
         super(message);
     }
 }
