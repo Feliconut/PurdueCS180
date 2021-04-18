@@ -188,8 +188,8 @@ public class MessageClient implements Runnable {
  */
 
 class RegisterInterface implements Runnable {
-    private final JLabel nameLb = new JLabel("    Name");
-    private final JLabel ageLb = new JLabel("     Age");
+    private final JLabel nameLb = new JLabel("Name");
+    private final JLabel ageLb = new JLabel("Age");
     private final JLabel userLb = new JLabel("Username");
     private final JLabel passLb = new JLabel("Password");
     private final TextField nameTf = new TextField(20);
@@ -225,12 +225,12 @@ class RegisterInterface implements Runnable {
 
         //add to nameP
         nameP.add(nameLb);
-        nameP.add(Box.createHorizontalStrut(5));
+        nameP.add(Box.createHorizontalStrut(20));
         nameP.add(nameTf);
 
         //add to ageP
         ageP.add(ageLb);
-        nameP.add(Box.createHorizontalStrut(10));
+        ageP.add(Box.createHorizontalStrut(30));
         ageP.add(ageTf);
 
         //add to userP
@@ -321,7 +321,7 @@ class MainInterface implements Runnable {
                 }
                 if (e.getSource() == startChatBtn) {
                     SwingUtilities.invokeLater(new StartChatInterface());
-                    mainFrame.dispose();
+                   // mainFrame.dispose();
                 }
                 if (e.getSource() == logOutBtn) {
                     //TODO log out request
@@ -505,7 +505,6 @@ class SettingInterface implements Runnable {
  */
 
 class StartChatInterface implements Runnable {
-    private Button backBtn = new Button("Back");
     private JLabel invitePromptLb = new JLabel("Invite people to chat:");
     private JLabel invitedLb = new JLabel("No one has been invited yet!"); //need to be updated
     private TextField searchTf = new TextField(20);
@@ -515,19 +514,17 @@ class StartChatInterface implements Runnable {
     public void run() {
         //set frame
         JFrame startFrame = new JFrame("Start Chat");
-        startFrame.setSize(600,400);
-        startFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        startFrame.setSize(400,350);
+        startFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         startFrame.setLocationRelativeTo(null);
         startFrame.setVisible(true);
 
         //set panels
         Box box = Box.createVerticalBox();
-        Panel topP = new Panel(new FlowLayout(FlowLayout.LEFT));
         Panel labelP = new Panel();
         Panel updateP = new Panel();
         Panel addP = new Panel();
         Panel startP = new Panel();
-        box.add(topP);
         box.add(Box.createVerticalStrut(50));
         box.add(labelP);
         box.add(updateP);
@@ -537,7 +534,6 @@ class StartChatInterface implements Runnable {
         box.add(Box.createVerticalStrut(50));
 
         //add to panels
-        topP.add(backBtn);
         labelP.add(invitePromptLb);
         updateP.add(invitedLb);
         addP.add(searchTf);
@@ -550,10 +546,6 @@ class StartChatInterface implements Runnable {
         ActionListener actionListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == backBtn) {
-                    SwingUtilities.invokeLater(new MainInterface());
-                    startFrame.dispose();
-                }
                 if (e.getSource() == addBtn) {
                     //TODO add people to chat request
                     //TODO update the invitedLb if the person is successfully added
@@ -563,13 +555,89 @@ class StartChatInterface implements Runnable {
                 }
                 if (e.getSource() == startBtn) {
                     //TODO start a chatting window
+                    SwingUtilities.invokeLater(new ChatWindow());
                     startFrame.dispose();
                 }
             }
         };
-        backBtn.addActionListener(actionListener);
         addBtn.addActionListener(actionListener);
         startBtn.addActionListener(actionListener);
+    }
+}
+/**
+ * PJ5-ChatWindow
+ * This class in an user interface that allows the
+ * user to chat
+ *
+ * @author Silvia Yang, lab sec OL3
+ * @version April
+ */
+
+class ChatWindow implements Runnable {
+    private JTextArea display = new JTextArea(15,40);
+    private TextField inputTf = new TextField(30);
+    private Button sendBtn = new Button("SEND");
+    private Button deleteBtn = new Button("Delete the group");
+    private Button renameBtn = new Button("Rename the group");
+    private String groupName;
+    @Override
+    public void run() {
+        //set frame
+        JFrame chatFrame = new JFrame("Chat");
+        chatFrame.setSize(400,400);
+        chatFrame.setLocationRelativeTo(null);
+        chatFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        chatFrame.setVisible(true);
+
+        //set display window
+        display.setLineWrap(true);
+        display.setEditable(false);
+        JScrollPane jsp = new JScrollPane(display);
+        jsp.setBounds(display.getX(),display.getY(),display.getWidth(),display.getHeight());
+
+        //set panels
+        Box box = Box.createVerticalBox();
+        Panel topP = new Panel(new FlowLayout(FlowLayout.LEFT));
+        Panel midP = new Panel();
+        Panel bottomP = new Panel();
+        box.add(topP);
+        box.add(midP);
+        box.add(bottomP);
+
+        //add to panels
+        topP.add(renameBtn);
+        topP.add(deleteBtn);
+        midP.add(jsp);
+        bottomP.add(inputTf);
+        bottomP.add(sendBtn);
+
+        //add to frame
+        chatFrame.add(box);
+
+        ActionListener actionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == deleteBtn) {
+                    //TODO send verification request
+                   int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to delete" +
+                            "the conversation?", "Delete", JOptionPane.OK_CANCEL_OPTION);
+                    if (answer == JOptionPane.OK_OPTION) {
+                        //TODO send delete request
+                    }
+                }
+                if (e.getSource() == renameBtn) {
+                    groupName = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
+                             "Rename", JOptionPane.PLAIN_MESSAGE);
+                    chatFrame.setTitle(groupName);
+                }
+                if (e.getSource() == sendBtn) {
+                    //TODO send message request
+                }
+            }
+        };
+        deleteBtn.addActionListener(actionListener);
+        renameBtn.addActionListener(actionListener);
+        sendBtn.addActionListener(actionListener);
     }
 }
 
