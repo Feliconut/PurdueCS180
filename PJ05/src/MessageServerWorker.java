@@ -99,16 +99,13 @@ public class MessageServerWorker extends Thread
         }
     }
 
-    private Response process(Request request) throws InvalidRequestException
-    {
+    private Response process(Request request) throws InvalidRequestException {
         throw new InvalidRequestException(request);
     }
 
-
     // Below we define all APIs.
 
-    Response process(AuthenticateRequest authenticateRequest) throws UserNotFoundException, InvalidPasswordException
-    {
+    Response process(AuthenticateRequest authenticateRequest) throws UserNotFoundException, InvalidPasswordException {
         Credential credential = authenticateRequest.credential;
 
         User user = system.getUser(credential);
@@ -118,48 +115,123 @@ public class MessageServerWorker extends Thread
     }
     // Messaging
 
-    Response process(PostMessageRequest postMessageRequest) throws NotLoggedInException
-    {
+    //postMessageRequest
+    PostMessageResponse process(PostMessageRequest postMessageRequest) throws NotLoggedInException {
         //TODO
         return null;
     }
 
-    Response process(UpdateMessageRequest updateMessageRequest) throws NotLoggedInException
-    {
+
+    //createConversationRequest
+    Response process(CreateConversationRequest createConversationRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //deleteConversationRequest
+    Response process(DeleteConversationRequest deleteConversationRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //renameConversationRequest
+    Response process(RenameConversationRequest renameConversationRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //updateMessageRequest
+    Response process(UpdateMessageRequest updateMessageRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //addUser2ConversationRequest
+    Response process(AddUser2ConversationRequest addUser2ConversationRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //removeUserFromConversationRequest
+    Response process(RemoveUserFromConversationRequest removeUserFromConversationRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //setConversationAdminRequest
+    Response process(SetConversationAdminRequest setConversationAdminRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //quitConversationRequest
+    Response process(QuitConversationRequest quitConversationRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //listAllUsersRequest
+    Response process(ListAllUsersRequest listAllUsersRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //listAllConversationsRequest
+    Response process(ListAllConversationsRequest listAllConversationsRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //getUserRequest
+    Response process(GetUserRequest getUserRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //getConversationRequest
+    Response process(GetConversationRequest getConversationRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //getMessageRequest
+    Response process(GetMessageRequest getMessageRequest) throws NotLoggedInException {
+        return null;
+    }
+
+
+    //registerRequest
+    RegisterResponse process(RegisterRequest registerRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //editMessageRequest
+    EditMessageResponse process(EditMessageRequest editMessageRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //deleteAccountRequest
+    Response process(DeleteAccountRequest deleteAccountRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //deleteMessageRequest
+    Response process(DeleteMessageRequest deleteMessageRequest) throws NotLoggedInException {
         //TODO
         return null;
     }
 
-//    Response process(GetMessageHistoryRequest getMessageHistoryRequest) throws NotLoggedInException
-//    {
-//        //TODO
-//        return null;
-//    }
-//
-//    Response process(ListAllMessagesRequest listAllMessagesRequest) throws NotLoggedInException
-//    {
-//        //TODO
-//        return null;
-//    }
-//
-//    Response process(DeleteMessageRequest deleteMessageRequest) throws NotLoggedInException
-//    {
-//        //TODO
-//        return null;
-//    }
-//
-//    // Locating Users
-//
-//    Response process(GetAllUserNamesRequest getAllUserNamesRequest) throws NotLoggedInException
-//    {
-//        //TODO
-//        return null;
-//    }
-//
-//    Response process(GetUserProfileRequest getUserProfileRequest) throws NotLoggedInException
-//    {
-//        //TODO
-//        return null;
-//    }
+    //getMessageHistoryRequest
+    Response process(GetMessageHistoryRequest getMessageHistoryRequest) throws NotLoggedInException {
+        return null;
+    }
+
+    //listAllMessagesRequest
+    Response process(ListAllMessagesRequest listAllMessagesRequest) throws NotLoggedInException {
+        //TODO
+        return null;
+    }
+
+    // Locating Users
+
+    //getAllUserNamesRequest
+    Response process(GetAllUserNamesRequest getAllUserNamesRequest) throws NotLoggedInException {
+        //TODO
+        return null;
+    }
+
+    //getUserProfileRequest
+    Response process(GetUserProfileRequest getUserProfileRequest) throws NotLoggedInException {
+        //TODO
+        return null;
+    }
 
 }
