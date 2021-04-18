@@ -95,7 +95,6 @@ public class MessageClient implements Runnable {
                 frame.dispose();
             }
             if (e.getSource() == okButton) {
-                //TODO send authentication request
                 username = usernameTf.getText();
                 password = passwordTf.getText();
                 authenticateRequest(username, password);
@@ -276,11 +275,10 @@ class RegisterInterface implements Runnable {
 class MainInterface implements Runnable {
     private final Button logOutBtn = new Button("Log out");
     private final Button profileBtn = new Button("PROFILE");
-    private Button manageProfileBtn = new Button("MANAGE PROFILE");
     private final Button chatBtn = new Button("CHATROOM");
-    //private final Button addBtn = new Button("ADD A FRIEND");
-    //private final Button startGroupBtn = new Button("START A GROUP");
-    //private final Button joinGroupBtn = new Button("JOIN A GROUP");
+    private final Button startChatBtn = new Button("START CHAT");
+    private final Button settingBtn = new Button("SETTING");
+
 
     @Override
     public void run() {
@@ -301,11 +299,10 @@ class MainInterface implements Runnable {
 
         //add to midP
         midP.add(profileBtn);
-        midP.add(manageProfileBtn);
         midP.add(chatBtn);
-//        midP.add(addBtn);
-//        midP.add(startGroupBtn);
-//        midP.add(joinGroupBtn);
+        midP.add(startChatBtn);
+        midP.add(settingBtn);
+
 
         //add panels to box then to frame
         Box box = Box.createVerticalBox();
@@ -320,35 +317,28 @@ class MainInterface implements Runnable {
                     JOptionPane.showMessageDialog(mainFrame, "userProfile", "Profile",
                             JOptionPane.INFORMATION_MESSAGE);
                 }
-                if (e.getSource() == manageProfileBtn) {
-                    SwingUtilities.invokeLater(new ManageProfileInterface());
+                if (e.getSource() == settingBtn) {
+                    SwingUtilities.invokeLater(new SettingInterface());
                     mainFrame.dispose();
                 }
                 if (e.getSource() == chatBtn) {
+                    //TODO start a chatroom window
+                }
+                if (e.getSource() == startChatBtn) {
                     //TODO start a chat window
                 }
                 if (e.getSource() == logOutBtn) {
+                    //TODO log out request
                     mainFrame.dispose();
                 }
-//                if (e.getSource() == addBtn) {
-//                    //TODO pop up window
-//                }
-//                if (e.getSource() == startGroupBtn) {
-//                    //TODO start a group
-//                }
-//                if (e.getSource() == joinGroupBtn) {
-//                    //TODO join group window
-//                }
             }
         };
 
         profileBtn.addActionListener(actionListener);
-        manageProfileBtn.addActionListener(actionListener);
         chatBtn.addActionListener(actionListener);
+        startChatBtn.addActionListener(actionListener);
         logOutBtn.addActionListener(actionListener);
-//        addBtn.addActionListener(actionListener);
-//        startGroupBtn.addActionListener(actionListener);
-//        joinGroupBtn.addActionListener(actionListener);
+        settingBtn.addActionListener(actionListener);
 
 
     }
@@ -387,6 +377,7 @@ class ManageProfileInterface implements Runnable {
 
         //add to age panel
         ageP.add(ageLb);
+        ageP.add(Box.createHorizontalStrut(5));
         ageP.add(ageTf);
 
         //add to bottom panel
@@ -403,7 +394,7 @@ class ManageProfileInterface implements Runnable {
                     //TODO change profile request
                 }
                 if (e.getSource() == cancelBtn) {
-                    SwingUtilities.invokeLater(new MainInterface());
+                    SwingUtilities.invokeLater(new SettingInterface());
                     profileFrame.dispose();
                 }
             }
@@ -411,6 +402,71 @@ class ManageProfileInterface implements Runnable {
 
         okBtn.addActionListener(actionListener);
         cancelBtn.addActionListener(actionListener);
+    }
+}
+
+class SettingInterface implements Runnable {
+    private Button backBtn = new Button("Back");
+    private Button deleteBtn = new Button("DELETE ACCOUNT");
+    private Button manageProfileBtn = new Button("MANAGE PROFILE");
+
+    @Override
+    public void run() {
+        //set frame
+        JFrame settingFrame = new JFrame("Setting");
+        settingFrame.setSize(600,400);
+        settingFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        settingFrame.setLocationRelativeTo(null);
+        settingFrame.setVisible(true);
+
+        //set panel
+        Box box = Box.createVerticalBox();
+        Panel topP = new Panel(new FlowLayout(FlowLayout.LEFT));
+        Panel midP = new Panel();
+        box.add(topP);
+        box.add(Box.createVerticalStrut(100));
+        box.add(midP);
+
+        //add to topP
+        topP.add(backBtn);
+
+        //add to midP
+        midP.add(manageProfileBtn);
+        midP.add(deleteBtn);
+
+        //add to frame
+        settingFrame.add(box);
+
+        ActionListener actionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == backBtn) {
+                    SwingUtilities.invokeLater(new MainInterface());
+                    settingFrame.dispose();
+                }
+                if (e.getSource() == manageProfileBtn) {
+                    SwingUtilities.invokeLater(new ManageProfileInterface());
+                    settingFrame.dispose();
+                }
+                if (e.getSource() == deleteBtn) {
+                    int answer = JOptionPane.showConfirmDialog(settingFrame,
+                            "Are you sure to delete your account? " +
+                                    "All account information will be deleted" +
+                                    "and cannot be recovered.",
+                            "Delete Account", JOptionPane.OK_CANCEL_OPTION);
+                    if (answer == JOptionPane.OK_OPTION) {
+                        //TODO sent delete account request
+                        JOptionPane.showMessageDialog(settingFrame,
+                                "Successfully deleted!", "Delete Account",
+                                JOptionPane.INFORMATION_MESSAGE);
+                        settingFrame.dispose();
+                    }
+                }
+            }
+        };
+        manageProfileBtn.addActionListener(actionListener);
+        backBtn.addActionListener(actionListener);
+        deleteBtn.addActionListener(actionListener);
     }
 }
 
