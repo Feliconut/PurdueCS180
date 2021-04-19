@@ -1,12 +1,11 @@
 package Exceptions;
 
-import Field.User;
+public class InvalidPasswordException extends RequestFailedException {
 
-public class InvalidPasswordException extends Exception {
+    public InvalidPasswordException() {
+    }
 
-    public InvalidPasswordException(){}
-
-    public InvalidPasswordException(String message){
+    public InvalidPasswordException(String message) {
         super(message);
     }
 

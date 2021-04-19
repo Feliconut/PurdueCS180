@@ -1,13 +1,10 @@
 package Exceptions;
 
-public class RequestParsingException extends Exception
-{
-    public RequestParsingException()
-    {
+public class RequestParsingException extends RequestFailedException {
+    public RequestParsingException() {
     }
 
-    public RequestParsingException(String message)
-    {
+    public RequestParsingException(String message) {
         super(message);
     }
 }

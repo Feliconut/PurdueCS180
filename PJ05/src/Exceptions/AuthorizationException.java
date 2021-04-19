@@ -1,10 +1,10 @@
 package Exceptions;
 
-public class AuthorizationException extends Exception{
-    public AuthorizationException(){
+public class AuthorizationException extends RequestFailedException {
+    public AuthorizationException() {
     }
 
-    public AuthorizationException(String message){
+    public AuthorizationException(String message) {
         super(message);
     }
 }
