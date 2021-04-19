@@ -9,6 +9,7 @@ public class GetUserRequest extends Request{
     public final UUID uuid;
 
     public GetUserRequest(Credential credential, UUID uuid) {
+        super();
         this.credential = credential;
         this.uuid = uuid;
     }

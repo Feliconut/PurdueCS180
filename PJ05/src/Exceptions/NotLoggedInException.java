@@ -1,4 +1,6 @@
-public class NotLoggedInException extends Exception {
+package Exceptions;
+
+public class NotLoggedInException extends RequestFailedException {
     public NotLoggedInException() {
     }
 

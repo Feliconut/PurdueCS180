@@ -7,6 +7,7 @@ public class ListAllUsersRequest extends Request{
 
 
     public ListAllUsersRequest(UUID uuid) {
+        super();
         this.uuid = uuid;
     }
 }

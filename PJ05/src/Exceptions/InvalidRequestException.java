@@ -1,6 +1,8 @@
+package Exceptions;
+
 import Request.Request;
 
-public class InvalidRequestException extends Exception {
+public class InvalidRequestException extends RequestFailedException {
     Request request;
 
     public InvalidRequestException() {
@@ -10,7 +12,8 @@ public class InvalidRequestException extends Exception {
         super(message);
     }
 
-    public InvalidRequestException(Request request) {
+    public InvalidRequestException(Request request)
+    {
         this.request = request;
     }
 }

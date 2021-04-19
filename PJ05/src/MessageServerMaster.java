@@ -11,6 +11,7 @@ public class MessageServerMaster {
         //TODO starts the server, listens to new connects, and start a thread for each new client.
 
 
+
         ServerSocket serverSocket = new ServerSocket(9866);
         try {
             while (true) {
@@ -28,4 +29,3 @@ public class MessageServerMaster {
 
 
 }
-

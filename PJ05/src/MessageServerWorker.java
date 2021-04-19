@@ -1,3 +1,4 @@
+import Exceptions.*;
 import Field.Credential;
 import Field.User;
 import Request.*;
@@ -7,7 +8,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-public class MessageServerWorker extends Thread {
+public class MessageServerWorker extends Thread
+{
 
     private final Socket socket;
     private final MessageSystem system;
@@ -48,7 +50,7 @@ public class MessageServerWorker extends Thread {
                 Request request;
                 // Read a new request from socket.
                 request = (Request) objectInputStream.readObject();
-                Response response;
+                Response response = null;
                 try {
                     // Determine type of request, and process the request.
                     if (request instanceof AuthenticateRequest) {
@@ -71,6 +73,8 @@ public class MessageServerWorker extends Thread {
                 } catch (InvalidPasswordException e) {
                     e.printStackTrace();
                     response = new Response(false, "password incorrect", request.uuid);
+                } catch (ConversationNotFoundException | AuthorizationException | IllegalContentException | UserExistsException | InvalidUsernameException e) {
+                    e.printStackTrace();
                 }
                 objectOutputStream.writeObject(response);
 
@@ -83,7 +87,9 @@ public class MessageServerWorker extends Thread {
         }
     }
 
-    private Response process(Request request) throws InvalidRequestException {
+    private Response process(Request request) throws UserExistsException, InvalidUsernameException,
+            InvalidPasswordException, InvalidRequestException {
+
         throw new InvalidRequestException(request);
     }
 
@@ -97,10 +103,18 @@ public class MessageServerWorker extends Thread {
 
         return new Response(true, "Login successful!", authenticateRequest.uuid);
     }
+
+    //registerRequest
+    RegisterResponse process(RegisterRequest registerRequest) throws NotLoggedInException {
+        return null;
+    }
+
+
     // Messaging
 
     //postMessageRequest
-    PostMessageResponse process(PostMessageRequest postMessageRequest) throws NotLoggedInException {
+    PostMessageResponse process(PostMessageRequest postMessageRequest) throws NotLoggedInException,
+            ConversationNotFoundException,AuthorizationException,IllegalContentException {
         //TODO
         return null;
     }
@@ -121,7 +135,7 @@ public class MessageServerWorker extends Thread {
         return null;
     }
 
-    //updateMessageRequest
+    //updateMessageRequest 应该是UpdateMessageResponse 暂写成Reponse
     Response process(UpdateMessageRequest updateMessageRequest) throws NotLoggedInException {
         return null;
     }
@@ -151,6 +165,11 @@ public class MessageServerWorker extends Thread {
         return null;
     }
 
+    //logOutRequest
+    Response process(LogOutRequest logOutRequest) throws NotLoggedInException{
+        return null;
+    }
+
     //listAllConversationsRequest
     Response process(ListAllConversationsRequest listAllConversationsRequest) throws NotLoggedInException {
         return null;
@@ -172,29 +191,27 @@ public class MessageServerWorker extends Thread {
     }
 
 
-    //registerRequest
-    RegisterResponse process(RegisterRequest registerRequest) throws NotLoggedInException {
-        return null;
-    }
-
     //editMessageRequest
-    EditMessageResponse process(EditMessageRequest editMessageRequest) throws NotLoggedInException {
+    EditMessageResponse process(EditMessageRequest editMessageRequest) throws NotLoggedInException,
+            MessageNotFoundException, AuthorizationException, IllegalContentException{
         return null;
     }
 
     //deleteAccountRequest
-    Response process(DeleteAccountRequest deleteAccountRequest) throws NotLoggedInException {
+    Response process(DeleteAccountRequest deleteAccountRequest) throws AuthorizationException {
         return null;
     }
 
     //deleteMessageRequest
-    Response process(DeleteMessageRequest deleteMessageRequest) throws NotLoggedInException {
+    Response process(DeleteMessageRequest deleteMessageRequest) throws NotLoggedInException,
+            MessageNotFoundException, AuthorizationException{
         //TODO
         return null;
     }
 
     //getMessageHistoryRequest
-    Response process(GetMessageHistoryRequest getMessageHistoryRequest) throws NotLoggedInException {
+    Response process(GetMessageHistoryRequest getMessageHistoryRequest) throws NotLoggedInException,
+            ConversationNotFoundException{
         return null;
     }
 
@@ -218,4 +235,8 @@ public class MessageServerWorker extends Thread {
         return null;
     }
 
+    //GetEventFeedResponse 还没在request里创
+//    Response process(GetEventFeedResponse getEventFeedResponse) throws NotLoggedInException{
+//        return null;
+//    }
 }
