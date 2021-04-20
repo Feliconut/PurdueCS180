@@ -34,7 +34,6 @@ public class MessageClient implements Runnable {
 
     public static void main(String[] args) {
         new ClientWorker().connectToSocket();
-        SwingUtilities.invokeLater(new MessageClient());
     }
 
 }
