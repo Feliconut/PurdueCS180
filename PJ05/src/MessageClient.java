@@ -1,19 +1,18 @@
-import Field.Credential;
-import Field.User;
+import Exceptions.*;
+import Field.*;
 import Request.AuthenticateRequest;
+import Request.*;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
-import javax.swing.plaf.basic.BasicBorders;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.net.http.WebSocket;
+import java.util.ResourceBundle;
+import java.util.UUID;
 
 /**
  * PJ5-MessageClient
@@ -25,158 +24,15 @@ import java.net.http.WebSocket;
  */
 
 public class MessageClient implements Runnable {
-    private User user;
-    private Button registerButton;
-    private JLabel titleLb;
-    private JLabel usernameLb;
-    private JLabel passwordLb;
-    private Button okButton;
-    private TextField usernameTf;
-    private TextField passwordTf;
-    private String username;
-    private String password;
     private static BufferedReader bfr = null;
     private static PrintWriter pw = null;
 
     public void run() {
-        //set frame
-        JFrame frame = new JFrame("sign-in");
-        frame.setSize(600, 400);
-        frame.setLocationRelativeTo(null);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-
-        //set panels
-        Box vertical = Box.createVerticalBox();
-        Panel topPanel = new Panel(new FlowLayout(FlowLayout.RIGHT));
-        Panel titlePanel = new Panel();
-        Panel userPanel = new Panel();
-        Panel passwordPanel = new Panel();
-        Panel okPanel = new Panel();
-
-        //set buttons and labels
-        registerButton = new Button("Register");
-        okButton = new Button("OK");
-        titleLb = new JLabel("<html><center><font size='20'>PJ5 Messaging</font></center></html>");
-        usernameLb = new JLabel("Username");
-        passwordLb = new JLabel("Password");
-        usernameTf = new TextField(20);
-        passwordTf = new TextField(20);
-
-        //add to top panel
-        topPanel.add(registerButton);
-
-        //add to title panel
-        titlePanel.add(titleLb);
-
-        //add to username panel
-        userPanel.add(usernameLb);
-        userPanel.add(usernameTf);
-
-        //add to password panel
-        passwordPanel.add(passwordLb);
-        passwordPanel.add(passwordTf);
-
-        //add to ok panel
-        okPanel.add(okButton);
-
-        // add to frame
-        vertical.add(topPanel);
-        vertical.add(Box.createVerticalStrut(50));
-        vertical.add(titlePanel);
-        vertical.add(userPanel);
-        vertical.add(passwordPanel);
-        vertical.add(okPanel);
-        vertical.add(Box.createVerticalStrut(50));
-        frame.add(vertical);
-
-        //actionListener
-        ActionListener actionListener = e -> {
-            if (e.getSource() == registerButton) {
-                SwingUtilities.invokeLater(new RegisterInterface());
-                frame.dispose();
-            }
-            if (e.getSource() == okButton) {
-                username = usernameTf.getText();
-                password = passwordTf.getText();
-                authenticateRequest(username, password);
-                if (authenticateResponse()) {
-                    SwingUtilities.invokeLater(new MainInterface());
-                    frame.dispose();
-                } else {
-                    JOptionPane.showMessageDialog(frame, "response message", "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                }
-
-            }
-        };
-        registerButton.addActionListener(actionListener);
-        okButton.addActionListener(actionListener);
-
+        new SignInWindow();
     }
 
     public static void main(String[] args) {
-        String hostname;
-        String portString;
-        int port;
-        Socket socket;
-
-
-        try {
-            hostname = JOptionPane.showInputDialog(null, "Please enter the hostname:",
-                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
-
-            portString = JOptionPane.showInputDialog(null, "Please enter the port number:",
-                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
-
-            port = Integer.parseInt(portString);
-
-            socket = new Socket(hostname, port);
-
-            if (socket.isConnected()) {
-                SwingUtilities.invokeLater(new MessageClient());
-                bfr = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                pw = new PrintWriter(socket.getOutputStream());
-            }
-
-
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Invalid input!", "Connecting...",
-                    JOptionPane.ERROR_MESSAGE);
-            //return;
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Connection failed!", "Connecting...",
-                    JOptionPane.ERROR_MESSAGE);
-            //return;
-        } //connection established
-
-    }
-
-    /**
-     * The method creates an authenticate request to the server
-     *
-     * @param username entered by the user
-     * @param password entered by the user
-     */
-    public void authenticateRequest(String username, String password) {
-        Credential credential = new Credential(username, password);
-        AuthenticateRequest authenticateRequest = new AuthenticateRequest(credential);
-        pw.println(authenticateRequest.toString());
-    }
-
-    /**
-     * The method reads the authenticate response
-     *
-     * @return true if passes the authentication
-     */
-    public boolean authenticateResponse() {
-        String response;
-        try {
-            response = bfr.readLine();
-        } catch (IOException e) {
-            return false;
-        }
-        return response.equals("true");
+        new ClientWorker().connectToSocket();
     }
 
 }
@@ -188,8 +44,7 @@ public class MessageClient implements Runnable {
  * @author Silvia Yang, lab sec OL3
  * @version April
  */
-
-class RegisterInterface implements Runnable {
+class RegisterWindow {
     private final JLabel nameLb = new JLabel("Name");
     private final JLabel ageLb = new JLabel("Age");
     private final JLabel userLb = new JLabel("Username");
@@ -201,8 +56,8 @@ class RegisterInterface implements Runnable {
     private final Button okBtn = new Button("OK");
     private final Button cancelBtn = new Button("Cancel");
 
-    @Override
-    public void run() {
+
+    public RegisterWindow() {
         //set frame
         JFrame registerFrame = new JFrame("Register");
         registerFrame.setSize(600, 400);
@@ -250,15 +105,24 @@ class RegisterInterface implements Runnable {
         //add to frame
         registerFrame.add(box);
 
+        ClientWorker clientWorker = new ClientWorker(this);
         ActionListener actionListener = e -> {
             if (e.getSource() == cancelBtn) {
-                SwingUtilities.invokeLater(new MessageClient());
+                new SignInWindow();
                 registerFrame.dispose();
             }
             if (e.getSource() == okBtn) {
-                //TODO send a register request
-                SwingUtilities.invokeLater(new MessageClient());
-                registerFrame.dispose();
+                UUID uid = clientWorker.register();
+                if (uid != null) {
+                    new SignInWindow();
+                    registerFrame.dispose();
+                } else {
+                    ageTf.setText(null);
+                    nameTf.setText(null);
+                    userTf.setText(null);
+                    passTf.setText(null);
+                }
+
             }
         };
 
@@ -266,6 +130,23 @@ class RegisterInterface implements Runnable {
         okBtn.addActionListener(actionListener);
 
     }
+
+    public String getUsername() {
+        return userTf.getText();
+    }
+
+    public String getPassword() {
+        return passTf.getText();
+    }
+
+    public String getName() {
+        return nameTf.getText();
+    }
+
+    public String getAgeString() {
+        return ageTf.getText();
+    }
+
 }
 
 /**
@@ -275,12 +156,10 @@ class RegisterInterface implements Runnable {
  * @author Silvia Yang, lab sec OL3
  * @version April
  */
-class MainInterface implements Runnable {
+class MainWindow {
     private final Button logOutBtn = new Button("LOG OUT");
-    private final Button chatBtn = new Button("CHATROOM");
-    private final Button startChatBtn = new Button("START CHAT");
     private final Button settingBtn = new Button("SETTING");
-    private JLabel chatroomLb = new JLabel("Chat Rooms:");
+    private JLabel chatroomLb = new JLabel("Chat Rooms");
     private JLabel newChatLb = new JLabel("Start a new chat");
     private JLabel invitePromptLb = new JLabel("Invite people to chat:");
     private JLabel invitedLb = new JLabel("No one has been invited yet!"); //need to be updated
@@ -288,8 +167,8 @@ class MainInterface implements Runnable {
     private Button addBtn = new Button("Add");
     private Button startBtn = new Button("Start Chatting!");
 
-    @Override
-    public void run() {
+
+    public MainWindow() {
         //set up frame
         JFrame mainFrame = new JFrame("Main");
         mainFrame.setSize(600, 400);
@@ -349,40 +228,36 @@ class MainInterface implements Runnable {
         //add panels to frame
         mainFrame.add(vBoxOut);
 
-        ActionListener actionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == settingBtn) {
-                    SwingUtilities.invokeLater(new SettingInterface());
+        ClientWorker clientWorker = new ClientWorker(this);
+        ActionListener actionListener = e -> {
+            if (e.getSource() == settingBtn) {
+                new SettingWindow();
+                mainFrame.dispose();
+            }
+            if (e.getSource() == logOutBtn) {
+                int answer = JOptionPane.showConfirmDialog(mainFrame,
+                        "Are you sure to log out?",
+                        "log out", JOptionPane.OK_CANCEL_OPTION);
+                if (answer == JOptionPane.OK_OPTION) {
+                    clientWorker.logOut();
                     mainFrame.dispose();
+                    JOptionPane.showMessageDialog(null,
+                            "Log out successfully!",
+                            "Log out", JOptionPane.INFORMATION_MESSAGE);
                 }
-                if (e.getSource() == chatBtn) {
-                    //TODO start a chatroom window
-                }
-                if (e.getSource() == startChatBtn) {
-                    SwingUtilities.invokeLater(new StartChatInterface());
-                    // mainFrame.dispose();
-                }
-                if (e.getSource() == logOutBtn) {
-                    //TODO log out request
-                    mainFrame.dispose();
-                }
-                if (e.getSource() == addBtn) {
-                    //TODO add people to chat request
-                    //TODO update the invitedLb if the person is successfully added
-                    JOptionPane.showMessageDialog(mainFrame, "Successfully added!",
-                            "Invitation", JOptionPane.INFORMATION_MESSAGE);
-                    //TODO if the person does not exist throw exception
-                }
-                if (e.getSource() == startBtn) {
-                    //TODO start a chatting window
-                    SwingUtilities.invokeLater(new ChatWindow());
-                }
+            }
+            if (e.getSource() == addBtn) {
+                //TODO add people to chat request
+                //TODO update the invitedLb if the person is successfully added
+                JOptionPane.showMessageDialog(mainFrame, "Successfully added!",
+                        "Invitation", JOptionPane.INFORMATION_MESSAGE);
+                //TODO if the person does not exist throw exception
+            }
+            if (e.getSource() == startBtn) {
+                new ChatWindow();
             }
         };
 
-        chatBtn.addActionListener(actionListener);
-        startChatBtn.addActionListener(actionListener);
         logOutBtn.addActionListener(actionListener);
         settingBtn.addActionListener(actionListener);
         addBtn.addActionListener(actionListener);
@@ -398,7 +273,7 @@ class MainInterface implements Runnable {
  * @author Silvia Yang, lab sec OL3
  * @version April
  */
-class ManageProfileInterface implements Runnable {
+class ManageProfileWindow {
     private JLabel nameLb = new JLabel("Name");
     private JLabel ageLb = new JLabel("age");
     private TextField nameTf = new TextField(20);
@@ -406,7 +281,7 @@ class ManageProfileInterface implements Runnable {
     private Button okBtn = new Button("OK");
     private Button cancelBtn = new Button("Cancel");
 
-    public void run() {
+    public ManageProfileWindow() {
         //set frame
         JFrame profileFrame = new JFrame("Manage Profile");
         profileFrame.setSize(600, 400);
@@ -448,7 +323,7 @@ class ManageProfileInterface implements Runnable {
                     //TODO change profile request
                 }
                 if (e.getSource() == cancelBtn) {
-                    SwingUtilities.invokeLater(new SettingInterface());
+                    new SettingWindow();
                     profileFrame.dispose();
                 }
             }
@@ -468,16 +343,14 @@ class ManageProfileInterface implements Runnable {
  * @author Silvia Yang, lab sec OL3
  * @version April
  */
-class SettingInterface implements Runnable {
+class SettingWindow {
     private Button backBtn = new Button("Back");
     private Button deleteBtn = new Button("DELETE ACCOUNT");
     private Button manageProfileBtn = new Button("MANAGE PROFILE");
     private Button exportBtn = new Button("EXPORT CHAT HISTORY");
     private Button profileBtn = new Button("MY PROFILE");
 
-
-    @Override
-    public void run() {
+    public SettingWindow() {
         //set frame
         JFrame settingFrame = new JFrame("Setting");
         settingFrame.setSize(600, 400);
@@ -506,38 +379,43 @@ class SettingInterface implements Runnable {
         //add to frame
         settingFrame.add(box);
 
-        ActionListener actionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == backBtn) {
-                    SwingUtilities.invokeLater(new MainInterface());
+        ClientWorker clientWorker = new ClientWorker(this);
+        ActionListener actionListener = e -> {
+            if (e.getSource() == backBtn) {
+                new MainWindow();
+                settingFrame.dispose();
+            }
+            if (e.getSource() == manageProfileBtn) {
+                new ManageProfileWindow();
+                settingFrame.dispose();
+            }
+            if (e.getSource() == deleteBtn) {
+                int answer = JOptionPane.showConfirmDialog(settingFrame,
+                        "Are you sure to delete your account? " +
+                                "All account information will be deleted" +
+                                "which cannot be recovered.",
+                        "Delete Account", JOptionPane.OK_CANCEL_OPTION);
+
+                if (answer == JOptionPane.OK_OPTION) {
+                    clientWorker.deleteAccount();
                     settingFrame.dispose();
-                }
-                if (e.getSource() == manageProfileBtn) {
-                    SwingUtilities.invokeLater(new ManageProfileInterface());
-                    settingFrame.dispose();
-                }
-                if (e.getSource() == deleteBtn) {
-                    int answer = JOptionPane.showConfirmDialog(settingFrame,
-                            "Are you sure to delete your account? " +
-                                    "All account information will be deleted" +
-                                    "and cannot be recovered.",
-                            "Delete Account", JOptionPane.OK_CANCEL_OPTION);
-                    if (answer == JOptionPane.OK_OPTION) {
-                        //TODO sent delete account request
-                        JOptionPane.showMessageDialog(settingFrame,
-                                "Successfully deleted!", "Delete Account",
-                                JOptionPane.INFORMATION_MESSAGE);
-                        settingFrame.dispose();
-                    }
-                }
-                if (e.getSource() == exportBtn) {
-                    //TODO export request
-                }
-                if (e.getSource() == profileBtn) {
-                    JOptionPane.showMessageDialog(settingFrame, "userProfile", "Profile",
+                    JOptionPane.showMessageDialog(null,
+                            "Successfully deleted!", "Delete Account",
                             JOptionPane.INFORMATION_MESSAGE);
                 }
+            }
+            if (e.getSource() == exportBtn) {
+                //TODO export request
+            }
+
+            if (e.getSource() == profileBtn) {
+                Profile profile = clientWorker.getProfile();
+                String name = profile.name;
+                int age = profile.age;
+                String message = String.format("Name: %s\n" +
+                        "Age: %d\n", name, age);
+                JOptionPane.showMessageDialog(settingFrame, message, "Profile",
+                        JOptionPane.INFORMATION_MESSAGE);
             }
         };
         manageProfileBtn.addActionListener(actionListener);
@@ -548,47 +426,6 @@ class SettingInterface implements Runnable {
     }
 }
 
-/**
- * PJ5-StartChatInterface
- * This class in an user interface that allows the
- * user to add people to a chat
- *
- * @author Silvia Yang, lab sec OL3
- * @version April
- */
-
-class StartChatInterface implements Runnable {
-
-
-    @Override
-    public void run() {
-        //set frame
-        JFrame startFrame = new JFrame("Start Chat");
-        startFrame.setSize(400, 350);
-        startFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        startFrame.setLocationRelativeTo(null);
-        startFrame.setVisible(true);
-
-        //set panels
-        Box box = Box.createVerticalBox();
-
-        box.add(Box.createVerticalStrut(50));
-
-        //add to panels
-
-
-        //add to frame
-        startFrame.add(box);
-
-        ActionListener actionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        };
-
-    }
-}
 
 /**
  * PJ5-ChatWindow
@@ -599,7 +436,7 @@ class StartChatInterface implements Runnable {
  * @version April
  */
 
-class ChatWindow implements Runnable {
+class ChatWindow {
     private JTextArea display = new JTextArea(15, 40);
     private TextField inputTf = new TextField(30);
     private Button sendBtn = new Button("SEND");
@@ -607,8 +444,8 @@ class ChatWindow implements Runnable {
     private Button renameBtn = new Button("Rename the group");
     private String groupName;
 
-    @Override
-    public void run() {
+
+    public ChatWindow() {
         //set frame
         JFrame chatFrame = new JFrame("Chat");
         chatFrame.setSize(400, 400);
@@ -665,6 +502,351 @@ class ChatWindow implements Runnable {
         deleteBtn.addActionListener(actionListener);
         renameBtn.addActionListener(actionListener);
         sendBtn.addActionListener(actionListener);
+    }
+}
+
+class SignInWindow {
+    private Button registerButton;
+    private JLabel titleLb;
+    private JLabel usernameLb;
+    private JLabel passwordLb;
+    private Button okButton;
+    private TextField usernameTf;
+    private TextField passwordTf;
+    private String username;
+    private String password;
+    private ClientWorker clientWorker;
+
+    public SignInWindow() {
+        //set frame
+        JFrame frame = new JFrame("sign-in");
+        frame.setSize(600, 400);
+        frame.setLocationRelativeTo(null);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+
+        //set panels
+        Box vertical = Box.createVerticalBox();
+        Panel topPanel = new Panel(new FlowLayout(FlowLayout.RIGHT));
+        Panel titlePanel = new Panel();
+        Panel userPanel = new Panel();
+        Panel passwordPanel = new Panel();
+        Panel okPanel = new Panel();
+
+        //set buttons and labels
+        registerButton = new Button("Register");
+        okButton = new Button("OK");
+        titleLb = new JLabel("<html><center><font size='20'>PJ5 Messaging</font></center></html>");
+        usernameLb = new JLabel("Username");
+        passwordLb = new JLabel("Password");
+        usernameTf = new TextField(20);
+        passwordTf = new TextField(20);
+
+        //add to top panel
+        topPanel.add(registerButton);
+
+        //add to title panel
+        titlePanel.add(titleLb);
+
+        //add to username panel
+        userPanel.add(usernameLb);
+        userPanel.add(usernameTf);
+
+        //add to password panel
+        passwordPanel.add(passwordLb);
+        passwordPanel.add(passwordTf);
+
+        //add to ok panel
+        okPanel.add(okButton);
+
+        // add to frame
+        vertical.add(topPanel);
+        vertical.add(Box.createVerticalStrut(50));
+        vertical.add(titlePanel);
+        vertical.add(userPanel);
+        vertical.add(passwordPanel);
+        vertical.add(okPanel);
+        vertical.add(Box.createVerticalStrut(50));
+        frame.add(vertical);
+
+        clientWorker = new ClientWorker(this);
+        //actionListener
+        ActionListener actionListener = e -> {
+            if (e.getSource() == registerButton) {
+                new RegisterWindow();
+                frame.dispose();
+            }
+            if (e.getSource() == okButton) {
+                if (clientWorker.signIn()) {
+                    new MainWindow();
+                    frame.dispose();
+                } else {
+                    usernameTf.setText(null);
+                    passwordTf.setText(null);
+                }
+            }
+        };
+        registerButton.addActionListener(actionListener);
+        okButton.addActionListener(actionListener);
+    }
+
+    public String getUsername() {
+        return usernameTf.getText();
+    }
+
+    public String getPassword() {
+        return passwordTf.getText();
+    }
+}
+
+class ClientWorker {
+    private SignInWindow signInWindow;
+    private RegisterWindow registerWindow;
+    private ManageProfileWindow manageProfileWindow;
+    private MainWindow mainWindow;
+    private ChatWindow chatWindow;
+    private SettingWindow settingWindow;
+    private MessageClient messageClient;
+    private static Socket socket;
+    private User user;
+    private Credential credential;
+    private Profile profile;
+    private UUID uuid;
+
+    public ClientWorker() {
+
+    }
+
+    public ClientWorker(SignInWindow signInWindow) {
+        this.signInWindow = signInWindow;
+    }
+
+    public ClientWorker(RegisterWindow registerWindow) {
+        this.registerWindow = registerWindow;
+    }
+
+    public ClientWorker(ManageProfileWindow manageProfileWindow) {
+        this.manageProfileWindow = manageProfileWindow;
+    }
+
+    public ClientWorker(MainWindow mainWindow) {
+        this.mainWindow = mainWindow;
+    }
+
+    public ClientWorker(ChatWindow chatWindow) {
+        this.chatWindow = chatWindow;
+    }
+
+    public ClientWorker(SettingWindow settingWindow) {
+        this.settingWindow = settingWindow;
+    }
+
+    public ClientWorker(MessageClient messageClient) {
+        this.messageClient = messageClient;
+    }
+
+    /**
+     * The method is used to send requests
+     *
+     * @param request some kind of request used
+     * @param socket  the socket that connects the client and server
+     * @return a response
+     * @throws IOException
+     * @throws RequestParsingException
+     * @throws RequestFailedException
+     */
+    public static Response send(Request request, Socket socket) throws IOException, RequestParsingException,
+            RequestFailedException {
+        Response response;
+        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+
+        oos.writeObject(request);
+        oos.flush();
+        oos.close();
+
+        try {
+            response = (Response) ois.readObject();
+        } catch (ClassNotFoundException | ClassCastException e) {
+            e.printStackTrace();
+            throw new RequestParsingException();
+        }
+
+        if (response.state) {
+            return response;
+        } else {
+            throw new RequestFailedException();
+        }
+//        else {
+//            if (response.exception != null) {
+//                throw (RequestFailedException) response.exception;
+//            } else {
+//                throw new RequestFailedException();
+//            }
+//        }
+    }
+
+
+    /**
+     * The method sends an authenticate request and receives
+     * a response
+     * @return true if the user passed the authentication, false
+     * if the user is not registered or entered wrong password
+     */
+    public boolean signIn() {
+        String username = signInWindow.getUsername();
+        String password = signInWindow.getPassword();
+
+        try {
+            credential = new Credential(username,password);
+            AuthenticateRequest authenticateRequest = new AuthenticateRequest(credential);
+            Response response = send(authenticateRequest, socket);
+            uuid = response.uuid;
+            return true;
+
+        } catch (UserNotFoundException | InvalidPasswordException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+        } catch (RequestParsingException e) {
+            e.printStackTrace();
+
+        } catch (RequestFailedException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+
+    /**
+     * The method sends a register request to the server and receives a
+     * registerResponse that contains the user's uuid.
+     *
+     * @return return UUID if the success, else return null.
+     */
+    public UUID register() {
+        RegisterResponse response;
+        String username = registerWindow.getUsername();
+        String password = registerWindow.getPassword();
+        String name = registerWindow.getName();
+        try {
+            Credential credential = new Credential(username, password);
+
+            Profile profile = new Profile(name, Integer.parseInt(registerWindow.getAgeString()));
+
+            RegisterRequest registerRequest = new RegisterRequest(credential, profile);
+
+            response = (RegisterResponse) send(registerRequest, socket);
+
+            UUID my_uuid = response.uuid;
+
+            JOptionPane.showMessageDialog(null, "Registered successfully",
+                    "Register", JOptionPane.INFORMATION_MESSAGE);
+            return my_uuid;
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+
+        } catch (RequestParsingException | UserExistsException |
+                InvalidUsernameException | InvalidPasswordException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+
+        } catch (RequestFailedException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    /**
+     * Used to connect to the server
+     */
+    public void connectToSocket() {
+        String hostname;
+        String portString;
+        int port;
+
+        try {
+            hostname = JOptionPane.showInputDialog(null, "Please enter the hostname:",
+                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
+            if (hostname == null) {
+                return;
+            }
+
+            portString = JOptionPane.showInputDialog(null, "Please enter the port number:",
+                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
+            if (portString == null) {
+                return;
+            }
+            port = Integer.parseInt(portString);
+
+            socket = new Socket(hostname, port);
+
+            if (socket.isConnected()) {
+                SwingUtilities.invokeLater(new MessageClient());
+            }
+
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Invalid input!", "Connecting...",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Connection failed!", "Connecting...",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        } //connection established
+    }
+
+    /**
+     * send a logout request
+     */
+    public void logOut() {
+        LogOutRequest logOutRequest = new LogOutRequest();
+        try {
+            send(logOutRequest, socket);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Profile getProfile() {
+       GetUserRequest getUserRequest = new GetUserRequest(credential,uuid);
+//        try {
+//            user = (GetUserResponse)send(getUserRequest,socket);
+//            profile = user.profile;
+//            return profile;
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (RequestFailedException e) {
+//            e.printStackTrace();
+//        }
+        return null;
+    }
+
+    public void deleteAccount() {
+        DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(credential);
+        try {
+            send(deleteAccountRequest, socket);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+        }
     }
 }
 
