@@ -24,7 +24,6 @@ import java.util.UUID;
  */
 
 public class MessageClient implements Runnable {
-    private User user;
     private static BufferedReader bfr = null;
     private static PrintWriter pw = null;
 
@@ -229,28 +228,33 @@ class MainWindow {
         //add panels to frame
         mainFrame.add(vBoxOut);
 
-        ActionListener actionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == settingBtn) {
-                    new SettingWindow();
+        ClientWorker clientWorker = new ClientWorker(this);
+        ActionListener actionListener = e -> {
+            if (e.getSource() == settingBtn) {
+                new SettingWindow();
+                mainFrame.dispose();
+            }
+            if (e.getSource() == logOutBtn) {
+                int answer = JOptionPane.showConfirmDialog(mainFrame,
+                        "Are you sure to log out?",
+                        "log out", JOptionPane.OK_CANCEL_OPTION);
+                if (answer == JOptionPane.OK_OPTION) {
+                    clientWorker.logOut();
                     mainFrame.dispose();
+                    JOptionPane.showMessageDialog(null,
+                            "Log out successfully!",
+                            "Log out", JOptionPane.INFORMATION_MESSAGE);
                 }
-                if (e.getSource() == logOutBtn) {
-                    //TODO log out request
-                    mainFrame.dispose();
-                }
-                if (e.getSource() == addBtn) {
-                    //TODO add people to chat request
-                    //TODO update the invitedLb if the person is successfully added
-                    JOptionPane.showMessageDialog(mainFrame, "Successfully added!",
-                            "Invitation", JOptionPane.INFORMATION_MESSAGE);
-                    //TODO if the person does not exist throw exception
-                }
-                if (e.getSource() == startBtn) {
-                    //TODO start a chatting window
-                    new ChatWindow();
-                }
+            }
+            if (e.getSource() == addBtn) {
+                //TODO add people to chat request
+                //TODO update the invitedLb if the person is successfully added
+                JOptionPane.showMessageDialog(mainFrame, "Successfully added!",
+                        "Invitation", JOptionPane.INFORMATION_MESSAGE);
+                //TODO if the person does not exist throw exception
+            }
+            if (e.getSource() == startBtn) {
+                new ChatWindow();
             }
         };
 
@@ -375,38 +379,43 @@ class SettingWindow {
         //add to frame
         settingFrame.add(box);
 
-        ActionListener actionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == backBtn) {
-                    new MainWindow();
+        ClientWorker clientWorker = new ClientWorker(this);
+        ActionListener actionListener = e -> {
+            if (e.getSource() == backBtn) {
+                new MainWindow();
+                settingFrame.dispose();
+            }
+            if (e.getSource() == manageProfileBtn) {
+                new ManageProfileWindow();
+                settingFrame.dispose();
+            }
+            if (e.getSource() == deleteBtn) {
+                int answer = JOptionPane.showConfirmDialog(settingFrame,
+                        "Are you sure to delete your account? " +
+                                "All account information will be deleted" +
+                                "which cannot be recovered.",
+                        "Delete Account", JOptionPane.OK_CANCEL_OPTION);
+
+                if (answer == JOptionPane.OK_OPTION) {
+                    clientWorker.deleteAccount();
                     settingFrame.dispose();
-                }
-                if (e.getSource() == manageProfileBtn) {
-                    new ManageProfileWindow();
-                    settingFrame.dispose();
-                }
-                if (e.getSource() == deleteBtn) {
-                    int answer = JOptionPane.showConfirmDialog(settingFrame,
-                            "Are you sure to delete your account? " +
-                                    "All account information will be deleted" +
-                                    "and cannot be recovered.",
-                            "Delete Account", JOptionPane.OK_CANCEL_OPTION);
-                    if (answer == JOptionPane.OK_OPTION) {
-                        //TODO sent delete account request
-                        JOptionPane.showMessageDialog(settingFrame,
-                                "Successfully deleted!", "Delete Account",
-                                JOptionPane.INFORMATION_MESSAGE);
-                        settingFrame.dispose();
-                    }
-                }
-                if (e.getSource() == exportBtn) {
-                    //TODO export request
-                }
-                if (e.getSource() == profileBtn) {
-                    JOptionPane.showMessageDialog(settingFrame, "userProfile", "Profile",
+                    JOptionPane.showMessageDialog(null,
+                            "Successfully deleted!", "Delete Account",
                             JOptionPane.INFORMATION_MESSAGE);
                 }
+            }
+            if (e.getSource() == exportBtn) {
+                //TODO export request
+            }
+
+            if (e.getSource() == profileBtn) {
+                Profile profile = clientWorker.getProfile();
+                String name = profile.name;
+                int age = profile.age;
+                String message = String.format("Name: %s\n" +
+                        "Age: %d\n", name, age);
+                JOptionPane.showMessageDialog(settingFrame, message, "Profile",
+                        JOptionPane.INFORMATION_MESSAGE);
             }
         };
         manageProfileBtn.addActionListener(actionListener);
@@ -599,6 +608,10 @@ class ClientWorker {
     private SettingWindow settingWindow;
     private MessageClient messageClient;
     private static Socket socket;
+    private User user;
+    private Credential credential;
+    private Profile profile;
+    private UUID uuid;
 
     public ClientWorker() {
 
@@ -673,6 +686,7 @@ class ClientWorker {
 //        }
     }
 
+
     /**
      * The method sends an authenticate request and receives
      * a response
@@ -684,25 +698,29 @@ class ClientWorker {
         String password = signInWindow.getPassword();
 
         try {
-            AuthenticateRequest authenticateRequest = new AuthenticateRequest(new Credential(username, password));
-            send(authenticateRequest, socket);
+            credential = new Credential(username,password);
+            AuthenticateRequest authenticateRequest = new AuthenticateRequest(credential);
+            Response response = send(authenticateRequest, socket);
+            uuid = response.uuid;
             return true;
+
         } catch (UserNotFoundException | InvalidPasswordException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
-            return false;
+
         } catch (RequestParsingException e) {
             e.printStackTrace();
-            return false;
+
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
                     JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
-            return false;
+
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
         }
+
+        return false;
     }
 
 
@@ -790,6 +808,45 @@ class ClientWorker {
                     JOptionPane.ERROR_MESSAGE);
             return;
         } //connection established
+    }
+
+    /**
+     * send a logout request
+     */
+    public void logOut() {
+        LogOutRequest logOutRequest = new LogOutRequest();
+        try {
+            send(logOutRequest, socket);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Profile getProfile() {
+       GetUserRequest getUserRequest = new GetUserRequest(credential,uuid);
+//        try {
+//            user = (GetUserResponse)send(getUserRequest,socket);
+//            profile = user.profile;
+//            return profile;
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (RequestFailedException e) {
+//            e.printStackTrace();
+//        }
+        return null;
+    }
+
+    public void deleteAccount() {
+        DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(credential);
+        try {
+            send(deleteAccountRequest, socket);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+        }
     }
 }
 
