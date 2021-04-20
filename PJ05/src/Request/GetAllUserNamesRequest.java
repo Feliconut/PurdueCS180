@@ -1,4 +1,4 @@
 package Request;
 
-public class GetAllUserNamesRequest {
+public class GetAllUserNamesRequest extends Request {
 }

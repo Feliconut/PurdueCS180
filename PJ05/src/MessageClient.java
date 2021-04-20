@@ -1,12 +1,10 @@
 import Field.User;
 
-public class MessageClient
-{
+public class MessageClient {
 
     private User user;
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
 
         //TODO use calculator client code, establish connection
 

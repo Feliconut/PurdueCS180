@@ -2,11 +2,11 @@ package Request;
 
 import java.util.UUID;
 
-public class GetMessageRequest extends Request{
-    public final UUID uuid;
+public class GetMessageRequest extends Request {
+    public final UUID message_uuid;
 
     public GetMessageRequest(UUID uuid) {
         super();
-        this.uuid = uuid;
+        this.message_uuid = uuid;
     }
 }

@@ -8,11 +8,13 @@ public class MessageServerMaster {
 
         //Starts the system.
         MessageSystem messageSystem = new MessageSystem("users.txt", "messages.txt", "conversations.txt");
-        //TODO starts the server, listens to new connects, and start a thread for each new client.
 
 
-
+        // port number
         ServerSocket serverSocket = new ServerSocket(9866);
+
+        // keep create new thread if there are user needs to log in to system.
+        //disadvantage: needs a lot memory
         try {
             while (true) {
                 Socket socket;
@@ -23,9 +25,5 @@ public class MessageServerMaster {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
-
-
 }

@@ -1,14 +1,14 @@
 package Request;
 
-import Field.Credential;
+import java.util.UUID;
 
 public class DeleteMessageRequest extends Request {
 
-    public final Credential credential;
+    public final UUID message_uuid;
 
-    public DeleteMessageRequest(Credential credential) {
+    public DeleteMessageRequest(UUID message_uuid) {
         super();
-        this.credential = credential;
+        this.message_uuid = message_uuid;
     }
 
 

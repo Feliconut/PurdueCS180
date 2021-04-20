@@ -1,9 +1,7 @@
 package Exceptions;
 
-import Field.User;
-
 public class UserExistsException extends RequestFailedException {
-    User user;
+
 
     public UserExistsException() {
     }
@@ -12,7 +10,5 @@ public class UserExistsException extends RequestFailedException {
         super(message);
     }
 
-    public UserExistsException(User user) {
-        this.user = user;
-    }
+
 }

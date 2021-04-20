@@ -4,13 +4,13 @@ import java.util.UUID;
 
 public class EditMessageRequest extends Request {
 
-    public final UUID uuid;
+    public final UUID messsage_uuid;
     public final String content;
 
 
-    public EditMessageRequest(UUID uuid, String content) {
+    public EditMessageRequest(UUID messsage_uuid, String content) {
         super();
-        this.uuid = uuid;
+        this.messsage_uuid = messsage_uuid;
         this.content = content;
     }
 }

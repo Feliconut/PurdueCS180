@@ -3,7 +3,7 @@ package Request;
 import java.util.Date;
 import java.util.UUID;
 
-public class PostMessageResponse extends Response{
+public class PostMessageResponse extends Response {
     public final Date date;
 
 

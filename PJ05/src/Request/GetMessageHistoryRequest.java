@@ -1,22 +1,17 @@
 package Request;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.UUID;
 
 public class GetMessageHistoryRequest extends Request {
-    public final Array[] arrays;
-    public final UUID conversattionId;
+
+    public final UUID conversation_uuId;
 
 
-    public GetMessageHistoryRequest(Array[] arrays, UUID conversattionId) {
+    public GetMessageHistoryRequest(UUID conversattionId) {
         super();
-        this.arrays = arrays;
-        this.conversattionId = conversattionId;
+        this.conversation_uuId = conversattionId;
 
     }
-
-
 
 
 }

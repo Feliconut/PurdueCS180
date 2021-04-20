@@ -1,18 +1,13 @@
 package Request;
 
-import Field.Conversation;
-
 import java.util.UUID;
 
-// definition incomplete
-public class DeleteConversationRequest extends Request{
-    public final Conversation conversation;
-    public final UUID uuid;
+public class DeleteConversationRequest extends Request {
 
+    public final UUID conversation_uuid;
 
-    public DeleteConversationRequest(Conversation conversation, UUID uuid) {
+    public DeleteConversationRequest(UUID conversation_uuid) {
         super();
-        this.conversation = conversation;
-        this.uuid = uuid;
+        this.conversation_uuid = conversation_uuid;
     }
 }

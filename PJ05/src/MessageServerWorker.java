@@ -1,5 +1,7 @@
 import Exceptions.*;
 import Field.Credential;
+import Field.Message;
+import Field.Profile;
 import Field.User;
 import Request.*;
 
@@ -7,9 +9,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.UUID;
 
-public class MessageServerWorker extends Thread
-{
+public class MessageServerWorker extends Thread {
 
     private final Socket socket;
     private final MessageSystem system;
@@ -31,50 +33,68 @@ public class MessageServerWorker extends Thread
             e.printStackTrace();
             return;
         }
-        //TODO Read the authentication from client. If success then proceed. If fail then let the client retry.
-//        try{
-//
-//            BaseClientRequest request = BaseClientRequest.parseRequest("");
-//            currentUser = API.authenticate((AuthenticateRequest) request);
-//        }
-//        catch (Exception e)
-//        {
-//
-//        }
-
-        //TODO Use a while loop to listen to all requests and perform action/provide response.
-
 
         while (true) {
             try {
                 Request request;
                 // Read a new request from socket.
                 request = (Request) objectInputStream.readObject();
-                Response response = null;
+                Response response;
                 try {
                     // Determine type of request, and process the request.
+
+
                     if (request instanceof AuthenticateRequest) {
                         response = process((AuthenticateRequest) request);
-
+                    } else if (request instanceof AddUser2ConversationRequest) {
+                        response = process((AddUser2ConversationRequest) request);
+                    } else if (request instanceof CreateConversationRequest) {
+                        response = process((CreateConversationRequest) request);
+                    } else if (request instanceof DeleteAccountRequest) {
+                        response = process((DeleteAccountRequest) request);
+                    } else if (request instanceof DeleteConversationRequest) {
+                        response = process((DeleteConversationRequest) request);
+                    } else if (request instanceof DeleteMessageRequest) {
+                        response = process((DeleteMessageRequest) request);
+                    } else if (request instanceof EditMessageRequest) {
+                        response = process((EditMessageRequest) request);
+                    } else if (request instanceof GetAllUserNamesRequest) {
+                        response = process((GetAllUserNamesRequest) request);
+                    } else if (request instanceof GetConversationRequest) {
+                        response = process((GetConversationRequest) request);
+                    } else if (request instanceof GetMessageRequest) {
+                        response = process((GetMessageRequest) request);
+                    } else if (request instanceof GetMessageHistoryRequest) {
+                        response = process((GetMessageHistoryRequest) request);
+                    } else if (request instanceof GetUserRequest) {
+                        response = process((GetUserRequest) request);
+                    } else if (request instanceof ListAllConversationsRequest) {
+                        response = process((ListAllConversationsRequest) request);
+                    } else if (request instanceof ListAllMessagesRequest) {
+                        response = process((ListAllMessagesRequest) request);
+                    } else if (request instanceof ListAllUsersRequest) {
+                        response = process((ListAllUsersRequest) request);
+                    } else if (request instanceof LogOutRequest) {
+                        response = process((LogOutRequest) request);
                     } else if (request instanceof PostMessageRequest) {
                         response = process((PostMessageRequest) request);
+                    } else if (request instanceof QuitConversationRequest) {
+                        response = process((QuitConversationRequest) request);
+                    } else if (request instanceof RegisterRequest) {
+                        response = process((RegisterRequest) request);
+                    } else if (request instanceof RemoveUserFromConversationRequest) {
+                        response = process((RemoveUserFromConversationRequest) request);
+                    } else if (request instanceof SetConversationAdminRequest) {
+                        response = process((SetConversationAdminRequest) request);
+                    } else if (request instanceof UpdateMessageRequest) {
+                        response = process((UpdateMessageRequest) request);
                     } else {
                         response = process(request);
                     }
 
                     // exceptions are regarding handling of a specific request
-                } catch (NotLoggedInException e) {
-                    response = new Response(false, "Not Logged In", request.uuid);
-                } catch (InvalidRequestException e) {
-                    e.printStackTrace();
-                    response = new Response(false, "request invalid", request.uuid);
-                } catch (UserNotFoundException e) {
-                    response = new Response(false, "user not found", request.uuid);
-                } catch (InvalidPasswordException e) {
-                    e.printStackTrace();
-                    response = new Response(false, "password incorrect", request.uuid);
-                } catch (ConversationNotFoundException | AuthorizationException | IllegalContentException | UserExistsException | InvalidUsernameException e) {
-                    e.printStackTrace();
+                } catch (RequestFailedException e) {
+                    response = new Response(false, "", request.uuid, e);
                 }
                 objectOutputStream.writeObject(response);
 
@@ -87,36 +107,80 @@ public class MessageServerWorker extends Thread
         }
     }
 
-    private Response process(Request request) throws UserExistsException, InvalidUsernameException,
-            InvalidPasswordException, InvalidRequestException {
+    private Response process(Request request) throws
+            RequestFailedException {
 
-        throw new InvalidRequestException(request);
+        throw new RequestFailedException();
     }
 
     // Below we define all APIs.
 
-    Response process(AuthenticateRequest authenticateRequest) throws UserNotFoundException, InvalidPasswordException {
+    //log in
+    //authenticateRequest. To test user's login circumstances.
+    Response process(AuthenticateRequest authenticateRequest) throws UserNotFoundException, InvalidPasswordException,
+            InvalidUsernameException {
         Credential credential = authenticateRequest.credential;
 
         User user = system.getUser(credential);
         currentUser = user;
-
         return new Response(true, "Login successful!", authenticateRequest.uuid);
+
+    }
+
+    //logOutRequest
+    Response process(LogOutRequest logOutRequest) throws NotLoggedInException {
+
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else {
+            currentUser = null;
+            return new Response(true, "Logout successfully!", logOutRequest.uuid);
+        }
     }
 
     //registerRequest
-    RegisterResponse process(RegisterRequest registerRequest) throws NotLoggedInException {
-        return null;
+    RegisterResponse process(RegisterRequest registerRequest) throws UserExistsException,
+            InvalidUsernameException, InvalidPasswordException {
+
+        User new_user = system.addUser(registerRequest.credential, registerRequest.profile);
+        return new RegisterResponse(true, "Register success", registerRequest.uuid, new_user.uuid);
+
+    }
+
+    //deleteAccountRequest
+    Response process(DeleteAccountRequest deleteAccountRequest) throws AuthorizationException, UserNotFoundException {
+        UUID uuid = deleteAccountRequest.uuid;
+
+        Profile profile = system.deleteUser(uuid);
+
+        return new Response(true, "Delete successfully", deleteAccountRequest.uuid);
     }
 
 
-    // Messaging
+    //deleteMessageRequest
+    Response process(DeleteMessageRequest deleteMessageRequest) throws NotLoggedInException,
+            MessageNotFoundException, AuthorizationException {
+
+        UUID uuid = deleteMessageRequest.uuid;
+
+        Message message = system.deleteMessage(uuid);
+        return new Response(true, "Delete message successfully", deleteMessageRequest.uuid);
+    }
+
+    //deleteConversationRequest
+    Response process(DeleteConversationRequest deleteConversationRequest) throws NotLoggedInException, ConversationNotFoundException {
+        UUID uuid = deleteConversationRequest.uuid;
+        //Conversation conversation = system.deleteConversation(deleteConversationRequest.conversation, deleteConversationRequest.uuid);
+
+        return new Response(true, "", deleteConversationRequest.uuid);
+    }
 
     //postMessageRequest
     PostMessageResponse process(PostMessageRequest postMessageRequest) throws NotLoggedInException,
-            ConversationNotFoundException,AuthorizationException,IllegalContentException {
-        //TODO
-        return null;
+            ConversationNotFoundException, AuthorizationException, IllegalContentException {
+
+
+        return new PostMessageResponse(true, "", postMessageRequest.uuid, postMessageRequest.message.time);
     }
 
 
@@ -125,18 +189,14 @@ public class MessageServerWorker extends Thread
         return null;
     }
 
-    //deleteConversationRequest
-    Response process(DeleteConversationRequest deleteConversationRequest) throws NotLoggedInException {
-        return null;
-    }
 
     //renameConversationRequest
     Response process(RenameConversationRequest renameConversationRequest) throws NotLoggedInException {
         return null;
     }
 
-    //updateMessageRequest 应该是UpdateMessageResponse 暂写成Reponse
-    Response process(UpdateMessageRequest updateMessageRequest) throws NotLoggedInException {
+    //updateMessageRequest
+    UpdateMessageResponse process(UpdateMessageRequest updateMessageRequest) throws NotLoggedInException {
         return null;
     }
 
@@ -165,10 +225,6 @@ public class MessageServerWorker extends Thread
         return null;
     }
 
-    //logOutRequest
-    Response process(LogOutRequest logOutRequest) throws NotLoggedInException{
-        return null;
-    }
 
     //listAllConversationsRequest
     Response process(ListAllConversationsRequest listAllConversationsRequest) throws NotLoggedInException {
@@ -193,25 +249,14 @@ public class MessageServerWorker extends Thread
 
     //editMessageRequest
     EditMessageResponse process(EditMessageRequest editMessageRequest) throws NotLoggedInException,
-            MessageNotFoundException, AuthorizationException, IllegalContentException{
+            MessageNotFoundException, AuthorizationException, IllegalContentException {
         return null;
     }
 
-    //deleteAccountRequest
-    Response process(DeleteAccountRequest deleteAccountRequest) throws AuthorizationException {
-        return null;
-    }
-
-    //deleteMessageRequest
-    Response process(DeleteMessageRequest deleteMessageRequest) throws NotLoggedInException,
-            MessageNotFoundException, AuthorizationException{
-        //TODO
-        return null;
-    }
 
     //getMessageHistoryRequest
     Response process(GetMessageHistoryRequest getMessageHistoryRequest) throws NotLoggedInException,
-            ConversationNotFoundException{
+            ConversationNotFoundException {
         return null;
     }
 
@@ -229,13 +274,8 @@ public class MessageServerWorker extends Thread
         return null;
     }
 
-    //getUserProfileRequest
-    Response process(GetUserProfileRequest getUserProfileRequest) throws NotLoggedInException {
-        //TODO
-        return null;
-    }
 
-    //GetEventFeedResponse 还没在request里创
+//    //GetEventFeedResponse
 //    Response process(GetEventFeedResponse getEventFeedResponse) throws NotLoggedInException{
 //        return null;
 //    }

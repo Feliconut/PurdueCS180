@@ -1,18 +1,15 @@
 package Request;
 
-import Field.Credential;
-import Field.Profile;
-
 import java.util.UUID;
 
-public class AddUser2ConversationRequest extends Request{
+public class AddUser2ConversationRequest extends Request {
 
-    public final UUID uuid;
-    public final Credential credential;
+    public final UUID user_uuid;
+    public final UUID conversation_uuid;
 
-    public AddUser2ConversationRequest(UUID uuid, Credential credential) {
+    public AddUser2ConversationRequest(UUID user_uuid, UUID conversation_uuid) {
         super();
-        this.uuid = uuid;
-        this.credential = credential;
+        this.user_uuid = user_uuid;
+        this.conversation_uuid = conversation_uuid;
     }
 }
