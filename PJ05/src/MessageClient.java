@@ -34,6 +34,7 @@ public class MessageClient implements Runnable {
 
     public static void main(String[] args) {
         new ClientWorker().connectToSocket();
+        SwingUtilities.invokeLater(new MessageClient());
     }
 
 }
@@ -752,6 +753,9 @@ class ClientWorker {
     }
 
 
+    /**
+     * Used to connect to the server
+     */
     public void connectToSocket() {
         String hostname;
         String portString;
