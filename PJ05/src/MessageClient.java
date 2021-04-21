@@ -2,6 +2,7 @@ import Exceptions.*;
 import Field.*;
 import Request.AuthenticateRequest;
 import Request.*;
+
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
@@ -101,7 +102,7 @@ class Window {
         vertical.add(Box.createVerticalStrut(50));
         frame.add(vertical);
 
-       // clientWorker = new ClientWorker(this);
+        // clientWorker = new ClientWorker(this);
         //actionListener
         ActionListener actionListener = e -> {
             if (e.getSource() == registerButtonSign) {
@@ -122,222 +123,228 @@ class Window {
     }
 
 
-        private final JLabel rgNameLb = new JLabel("Name");
-        private final JLabel rgAgeLb = new JLabel("Age");
-        private final JLabel rgUserLb = new JLabel("Username");
-        private final JLabel rgPassLb = new JLabel("Password");
-        private final TextField rgNameTf = new TextField(20);
-        private final TextField rgAgeTf = new TextField(20);
-        private final TextField rgUserTf = new TextField(20);
-        private final TextField rgPassTf = new TextField(20);
-        private final Button rgOkBtn = new Button("OK");
-        private final Button rgCancelBtn = new Button("Cancel");
+    private final JLabel rgNameLb = new JLabel("Name");
+    private final JLabel rgAgeLb = new JLabel("Age");
+    private final JLabel rgUserLb = new JLabel("Username");
+    private final JLabel rgPassLb = new JLabel("Password");
+    private final TextField rgNameTf = new TextField(20);
+    private final TextField rgAgeTf = new TextField(20);
+    private final TextField rgUserTf = new TextField(20);
+    private final TextField rgPassTf = new TextField(20);
+    private final Button rgOkBtn = new Button("OK");
+    private final Button rgCancelBtn = new Button("Cancel");
 
 
-        public void registerWindow() {
-            //set frame
-            JFrame registerFrame = new JFrame("Register");
-            registerFrame.setSize(600, 400);
-            registerFrame.setLocationRelativeTo(null);
-            registerFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            registerFrame.setVisible(true);
+    public void registerWindow() {
+        //set frame
+        JFrame registerFrame = new JFrame("Register");
+        registerFrame.setSize(600, 400);
+        registerFrame.setLocationRelativeTo(null);
+        registerFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        registerFrame.setVisible(true);
 
-            //set panel
-            Box box = Box.createVerticalBox();
-            Panel nameP = new Panel();
-            Panel ageP = new Panel();
-            Panel userP = new Panel();
-            Panel passP = new Panel();
-            Panel bottomP = new Panel();
-            box.add(Box.createVerticalStrut(70));
-            box.add(nameP);
-            box.add(ageP);
-            box.add(userP);
-            box.add(passP);
-            box.add(bottomP);
-            box.add(Box.createVerticalStrut(70));
+        //set panel
+        Box box = Box.createVerticalBox();
+        Panel nameP = new Panel();
+        Panel ageP = new Panel();
+        Panel userP = new Panel();
+        Panel passP = new Panel();
+        Panel bottomP = new Panel();
+        box.add(Box.createVerticalStrut(70));
+        box.add(nameP);
+        box.add(ageP);
+        box.add(userP);
+        box.add(passP);
+        box.add(bottomP);
+        box.add(Box.createVerticalStrut(70));
 
-            //add to nameP
-            nameP.add(rgNameLb);
-            nameP.add(Box.createHorizontalStrut(20));
-            nameP.add(rgNameTf);
+        //add to nameP
+        nameP.add(rgNameLb);
+        nameP.add(Box.createHorizontalStrut(20));
+        nameP.add(rgNameTf);
 
-            //add to ageP
-            ageP.add(rgAgeLb);
-            ageP.add(Box.createHorizontalStrut(30));
-            ageP.add(rgAgeTf);
+        //add to ageP
+        ageP.add(rgAgeLb);
+        ageP.add(Box.createHorizontalStrut(30));
+        ageP.add(rgAgeTf);
 
-            //add to userP
-            userP.add(rgUserLb);
-            userP.add(rgUserTf);
+        //add to userP
+        userP.add(rgUserLb);
+        userP.add(rgUserTf);
 
-            //add to passP
-            passP.add(rgPassLb);
-            passP.add(rgPassTf);
+        //add to passP
+        passP.add(rgPassLb);
+        passP.add(rgPassTf);
 
-            //add to bottomP
-            bottomP.add(rgOkBtn);
-            bottomP.add(rgCancelBtn);
+        //add to bottomP
+        bottomP.add(rgOkBtn);
+        bottomP.add(rgCancelBtn);
 
-            //add to frame
-            registerFrame.add(box);
+        //add to frame
+        registerFrame.add(box);
 
-            //ClientWorker clientWorker = new ClientWorker(this);
-            ActionListener actionListener = e -> {
-                if (e.getSource() == rgCancelBtn) {
+        //ClientWorker clientWorker = new ClientWorker(this);
+        ActionListener actionListener = e -> {
+            if (e.getSource() == rgCancelBtn) {
+                registerFrame.dispose();
+            }
+            if (e.getSource() == rgOkBtn) {
+                UUID uid = clientWorker.register();
+                if (uid != null) {
                     registerFrame.dispose();
+                } else {
+                    rgAgeTf.setText(null);
+                    rgNameTf.setText(null);
+                    rgUserTf.setText(null);
+                    rgPassTf.setText(null);
                 }
-                if (e.getSource() == rgOkBtn) {
-                    UUID uid = clientWorker.register();
-                    if (uid != null) {
-                        registerFrame.dispose();
-                    } else {
-                        rgAgeTf.setText(null);
-                        rgNameTf.setText(null);
-                        rgUserTf.setText(null);
-                        rgPassTf.setText(null);
-                    }
 
-                }
-            };
+            }
+        };
 
-            rgCancelBtn.addActionListener(actionListener);
-            rgOkBtn.addActionListener(actionListener);
+        rgCancelBtn.addActionListener(actionListener);
+        rgOkBtn.addActionListener(actionListener);
 
+    }
+
+
+    private final Button logOutBtnM = new Button("LOG OUT");
+    private final Button settingBtnM = new Button("SETTING");
+    private JLabel chatroomLbM = new JLabel("Chat Rooms");
+    private JLabel newChatLbM = new JLabel("Start a new chat");
+    private JLabel invitePromptLbM = new JLabel("Invite people to chat:");
+    private JLabel invitedLbM = new JLabel("No one has been invited yet!"); //need to be updated
+    private TextField searchTfM = new TextField(20);
+    private Button addBtnM = new Button("Add");
+    private Button startBtnM = new Button("Start Chatting!");
+    private UUID[] my_ConversationList;
+    private DefaultListModel <UUID> conversationModel = new DefaultListModel<>();
+    JList<UUID> list;
+
+
+    public void mainWindow() {
+        //set up frame
+        JFrame mainFrame = new JFrame("Main");
+        mainFrame.setSize(600, 400);
+        mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        mainFrame.setLocationRelativeTo(null);
+        mainFrame.setVisible(true);
+        Box vBoxOut = Box.createVerticalBox();
+
+        //set up top panel
+        Panel topP = new Panel();
+        topP.setLayout(new FlowLayout(FlowLayout.LEFT));
+        topP.add(logOutBtnM);
+        topP.add(settingBtnM);
+        vBoxOut.add(topP);
+
+        //set up middle panel
+        Box hBox = Box.createHorizontalBox();
+        Panel chatroomP = new Panel();
+        Panel newChatP = new Panel();
+        hBox.add(chatroomP);
+        hBox.add(newChatP);
+        vBoxOut.add(hBox);
+        vBoxOut.add(Box.createVerticalStrut(50));
+
+        //set up the conversation list
+        my_ConversationList = clientWorker.getAllConversation();
+        for (int i = 0; i < my_ConversationList.length; i++) {
+            conversationModel.addElement(my_ConversationList[i]);
         }
+        list = new JList<>(conversationModel);
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+        //add to chatroomP
+        Panel chatroomLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
+        chatroomLbP.add(chatroomLbM);
+        chatroomP.add(chatroomLbP);
+        JScrollPane jsp = new JScrollPane(list);
+        jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        chatroomP.add(jsp);
 
-        private final Button logOutBtnM = new Button("LOG OUT");
-        private final Button settingBtnM = new Button("SETTING");
-        private JLabel chatroomLbM = new JLabel("Chat Rooms");
-        private JLabel newChatLbM = new JLabel("Start a new chat");
-        private JLabel invitePromptLbM = new JLabel("Invite people to chat:");
-        private JLabel invitedLbM = new JLabel("No one has been invited yet!"); //need to be updated
-        private TextField searchTfM = new TextField(20);
-        private Button addBtnM = new Button("Add");
-        private Button startBtnM = new Button("Start Chatting!");
+        //add to newChatP
+        Box vBoxInRight = Box.createVerticalBox();
+        newChatP.add(vBoxInRight);
+        Panel newChatLbP = new Panel(new FlowLayout(FlowLayout.CENTER));
+        newChatLbP.add(newChatLbM);
+        vBoxInRight.add(newChatLbP);
+        Panel labelP = new Panel();
+        Panel updateP = new Panel();
+        Panel addP = new Panel();
+        Panel startP = new Panel();
+        vBoxInRight.add(Box.createVerticalStrut(10));
+        vBoxInRight.add(labelP);
+        vBoxInRight.add(updateP);
+        vBoxInRight.add(Box.createVerticalStrut(50));
+        vBoxInRight.add(addP);
+        vBoxInRight.add(startP);
+        labelP.add(invitePromptLbM);
+        updateP.add(invitedLbM);
+        addP.add(searchTfM);
+        addP.add(addBtnM);
+        startP.add(startBtnM);
 
+        //add panels to frame
+        mainFrame.add(vBoxOut);
 
-        public void mainWindow() {
-            //set up frame
-            JFrame mainFrame = new JFrame("Main");
-            mainFrame.setSize(600, 400);
-            mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            mainFrame.setLocationRelativeTo(null);
-            mainFrame.setVisible(true);
-            Box vBoxOut = Box.createVerticalBox();
+        //if the list is clicked twice open up the selected conversation
+        //if the list is right-clicked pop up delete message
+        list.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    //TODO get selected conversation
+                }
 
-            //set up top panel
-            Panel topP = new Panel();
-            topP.setLayout(new FlowLayout(FlowLayout.LEFT));
-            topP.add(logOutBtnM);
-            topP.add(settingBtnM);
-            vBoxOut.add(topP);
+                if (e.getButton() == MouseEvent.BUTTON3) {
+                    int answer = JOptionPane.showConfirmDialog(null,
+                            "Delete selected conversation from your list?",
+                            "Delete", JOptionPane.YES_NO_OPTION);
 
-            //set up middle panel
-            Box hBox = Box.createHorizontalBox();
-            Panel chatroomP = new Panel();
-            Panel newChatP = new Panel();
-            hBox.add(chatroomP);
-            hBox.add(newChatP);
-            vBoxOut.add(hBox);
-            vBoxOut.add(Box.createVerticalStrut(50));
-
-            //add to chatroomP
-            JList list = new JList();
-            list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            //TODO get all the conversation and add to the list
-//        String[] listdata = new String[12];
-//        for (int i = 0; i <listdata.length ; i++) {
-//            listdata[i] = String.format("This is %d",i);
-//        }
-//        list.setListData(listdata);
-            Panel chatroomLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
-            chatroomLbP.add(chatroomLbM);
-            chatroomP.add(chatroomLbP);
-            JScrollPane jsp = new JScrollPane(list);
-            jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-            chatroomP.add(jsp);
-
-            //add to newChatP
-            Box vBoxInRight = Box.createVerticalBox();
-            newChatP.add(vBoxInRight);
-            Panel newChatLbP = new Panel(new FlowLayout(FlowLayout.CENTER));
-            newChatLbP.add(newChatLbM);
-            vBoxInRight.add(newChatLbP);
-            Panel labelP = new Panel();
-            Panel updateP = new Panel();
-            Panel addP = new Panel();
-            Panel startP = new Panel();
-            vBoxInRight.add(Box.createVerticalStrut(10));
-            vBoxInRight.add(labelP);
-            vBoxInRight.add(updateP);
-            vBoxInRight.add(Box.createVerticalStrut(50));
-            vBoxInRight.add(addP);
-            vBoxInRight.add(startP);
-            labelP.add(invitePromptLbM);
-            updateP.add(invitedLbM);
-            addP.add(searchTfM);
-            addP.add(addBtnM);
-            startP.add(startBtnM);
-
-            //add panels to frame
-            mainFrame.add(vBoxOut);
-
-            //if the list is clicked twice open up the selected conversation
-            //if the list is right-clicked pop up delete message
-            list.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    if (e.getClickCount() == 2) {
-                        System.out.println(list.getSelectedValue());
-                    }
-                    if (e.getButton() == MouseEvent.BUTTON3) {
-                        int answer = JOptionPane.showConfirmDialog(null,
-                                "Delete + Groupname?","Delete",
-                                JOptionPane.YES_NO_OPTION);
-                        if (answer == JOptionPane.YES_OPTION) {
-                            //TODO send delete conversation request
-                        }
+                    if (answer == JOptionPane.YES_OPTION) {
+                        clientWorker.deleteConversation(list.getSelectedValue());
+                        conversationModel.remove(list.getSelectedIndex());
                     }
                 }
-            });
+            }
+        });
 
-            ActionListener actionListener = e -> {
-                if (e.getSource() == settingBtnM) {
-                    settingWindow();
+        ActionListener actionListener = e -> {
+            if (e.getSource() == settingBtnM) {
+                settingWindow();
+                mainFrame.dispose();
+            }
+            if (e.getSource() == logOutBtnM) {
+                int answer = JOptionPane.showConfirmDialog(mainFrame,
+                        "Are you sure to log out?",
+                        "log out", JOptionPane.OK_CANCEL_OPTION);
+                if (answer == JOptionPane.OK_OPTION) {
+                    clientWorker.logOut();
                     mainFrame.dispose();
+                    JOptionPane.showMessageDialog(null,
+                            "Log out successfully!",
+                            "Log out", JOptionPane.INFORMATION_MESSAGE);
                 }
-                if (e.getSource() == logOutBtnM) {
-                    int answer = JOptionPane.showConfirmDialog(mainFrame,
-                            "Are you sure to log out?",
-                            "log out", JOptionPane.OK_CANCEL_OPTION);
-                    if (answer == JOptionPane.OK_OPTION) {
-                        clientWorker.logOut();
-                        mainFrame.dispose();
-                        JOptionPane.showMessageDialog(null,
-                                "Log out successfully!",
-                                "Log out", JOptionPane.INFORMATION_MESSAGE);
-                    }
-                }
-                if (e.getSource() == addBtnM) {
-                    //TODO add people to chat request
-                    //TODO update the invitedLb if the person is successfully added
-                    JOptionPane.showMessageDialog(mainFrame, "Successfully added!",
-                            "Invitation", JOptionPane.INFORMATION_MESSAGE);
-                    //TODO if the person does not exist throw exception
-                }
-                if (e.getSource() == startBtnM) {
-                    chatWindow();
-                }
-            };
+            }
+            if (e.getSource() == addBtnM) {
+                //TODO add people to chat request
+                //TODO update the invitedLb if the person is successfully added
+                JOptionPane.showMessageDialog(mainFrame, "Successfully added!",
+                        "Invitation", JOptionPane.INFORMATION_MESSAGE);
+                //TODO if the person does not exist throw exception
+            }
+            if (e.getSource() == startBtnM) {
+                chatWindow();
+            }
+        };
 
-            logOutBtnM.addActionListener(actionListener);
-            settingBtnM.addActionListener(actionListener);
-            addBtnM.addActionListener(actionListener);
-            startBtnM.addActionListener(actionListener);
+        logOutBtnM.addActionListener(actionListener);
+        settingBtnM.addActionListener(actionListener);
+        addBtnM.addActionListener(actionListener);
+        startBtnM.addActionListener(actionListener);
 
-        }
+    }
 
     private Button backBtnSetting = new Button("Back");
     private Button deleteBtnSetting = new Button("DELETE ACCOUNT");
@@ -479,73 +486,73 @@ class Window {
         cancelBtnProfile.addActionListener(actionListener);
     }
 
-        private JTextArea displayChat = new JTextArea(15, 40);
-        private TextField inputTfChat = new TextField(30);
-        private Button sendBtnChat = new Button("SEND");
-        private Button deleteBtnChat = new Button("Delete the group");
-        private Button renameBtnChat = new Button("Rename the group");
-        private String groupNameChat;
+    private JTextArea displayChat = new JTextArea(15, 40);
+    private TextField inputTfChat = new TextField(30);
+    private Button sendBtnChat = new Button("SEND");
+    private Button deleteBtnChat = new Button("Delete the group");
+    private Button renameBtnChat = new Button("Rename the group");
+    private String groupNameChat;
 
-        public void chatWindow() {
-            //set frame
-            JFrame chatFrame = new JFrame("Chat");
-            chatFrame.setSize(400, 400);
-            chatFrame.setLocationRelativeTo(null);
-            chatFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-            chatFrame.setVisible(true);
+    public void chatWindow() {
+        //set frame
+        JFrame chatFrame = new JFrame("Chat");
+        chatFrame.setSize(400, 400);
+        chatFrame.setLocationRelativeTo(null);
+        chatFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        chatFrame.setVisible(true);
 
-            //set display window
-            displayChat.setLineWrap(true);
-            displayChat.setEditable(false);
-            JScrollPane jsp = new JScrollPane(displayChat);
-            jsp.setBounds(displayChat.getX(), displayChat.getY(),
-                    displayChat.getWidth(), displayChat.getHeight());
+        //set display window
+        displayChat.setLineWrap(true);
+        displayChat.setEditable(false);
+        JScrollPane jsp = new JScrollPane(displayChat);
+        jsp.setBounds(displayChat.getX(), displayChat.getY(),
+                displayChat.getWidth(), displayChat.getHeight());
 
-            //set panels
-            Box box = Box.createVerticalBox();
-            Panel topP = new Panel(new FlowLayout(FlowLayout.LEFT));
-            Panel midP = new Panel();
-            Panel bottomP = new Panel();
-            box.add(topP);
-            box.add(midP);
-            box.add(bottomP);
+        //set panels
+        Box box = Box.createVerticalBox();
+        Panel topP = new Panel(new FlowLayout(FlowLayout.LEFT));
+        Panel midP = new Panel();
+        Panel bottomP = new Panel();
+        box.add(topP);
+        box.add(midP);
+        box.add(bottomP);
 
-            //add to panels
-            topP.add(renameBtnChat);
-            topP.add(deleteBtnChat);
-            midP.add(jsp);
-            bottomP.add(inputTfChat);
-            bottomP.add(sendBtnChat);
+        //add to panels
+        topP.add(renameBtnChat);
+        topP.add(deleteBtnChat);
+        midP.add(jsp);
+        bottomP.add(inputTfChat);
+        bottomP.add(sendBtnChat);
 
-            //add to frame
-            chatFrame.add(box);
+        //add to frame
+        chatFrame.add(box);
 
 
-            ActionListener actionListener = new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (e.getSource() == deleteBtnChat) {
-                        //TODO send verification request
-                        int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to delete" +
-                                "the conversation?", "Delete", JOptionPane.OK_CANCEL_OPTION);
-                        if (answer == JOptionPane.OK_OPTION) {
-                            //TODO send delete request
-                        }
-                    }
-                    if (e.getSource() == renameBtnChat) {
-                        groupNameChat = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
-                                "Rename", JOptionPane.PLAIN_MESSAGE);
-                        chatFrame.setTitle(groupNameChat);
-                    }
-                    if (e.getSource() == sendBtnChat) {
-                        //TODO send message request
+        ActionListener actionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == deleteBtnChat) {
+                    //TODO send verification request
+                    int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to delete" +
+                            "the conversation?", "Delete", JOptionPane.OK_CANCEL_OPTION);
+                    if (answer == JOptionPane.OK_OPTION) {
+                        //TODO send delete request
                     }
                 }
-            };
-            deleteBtnChat.addActionListener(actionListener);
-            renameBtnChat.addActionListener(actionListener);
-            sendBtnChat.addActionListener(actionListener);
-        }
+                if (e.getSource() == renameBtnChat) {
+                    groupNameChat = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
+                            "Rename", JOptionPane.PLAIN_MESSAGE);
+                    chatFrame.setTitle(groupNameChat);
+                }
+                if (e.getSource() == sendBtnChat) {
+                    //TODO send message request
+                }
+            }
+        };
+        deleteBtnChat.addActionListener(actionListener);
+        renameBtnChat.addActionListener(actionListener);
+        sendBtnChat.addActionListener(actionListener);
+    }
 
 
     public String getSignInUsername() {
@@ -777,8 +784,8 @@ class ClientWorker {
         Response response;
         GetUserRequest getUserRequest = new GetUserRequest(uuid);
         try {
-            response = send(getUserRequest,socket);
-            profile =((GetUserResponse)response).user.profile;
+            response = send(getUserRequest, socket);
+            profile = ((GetUserResponse) response).user.profile;
             return profile;
         } catch (IOException e) {
             e.printStackTrace();
@@ -801,6 +808,43 @@ class ClientWorker {
         } catch (RequestFailedException e) {
             e.printStackTrace();
         }
+    }
+
+    public UUID[] getAllConversation() {
+        ListAllConversationsRequest listAllConversationsRequest = new ListAllConversationsRequest();
+        ListAllConversationsResponse response;
+        UUID[] empty_conversations = new UUID[1];
+        empty_conversations[0] = new UUID(0L, 0L);
+        try {
+            response = (ListAllConversationsResponse) send(listAllConversationsRequest, socket);
+            return response.conversation_uuids;
+
+        } catch (NotLoggedInException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+        }
+        return empty_conversations;
+    }
+
+    public void deleteConversation(UUID conversation_uuid) {
+        DeleteConversationRequest dr = new DeleteConversationRequest(conversation_uuid);
+        try {
+            send(dr, socket);
+            JOptionPane.showMessageDialog(null, "Successfully deleted",
+                    "Delete Conversation", JOptionPane.INFORMATION_MESSAGE);
+        } catch (NotLoggedInException | ConversationNotFoundException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+        }
+
     }
 }
 
