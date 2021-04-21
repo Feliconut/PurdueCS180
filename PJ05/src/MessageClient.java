@@ -7,6 +7,8 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.*;
 import java.net.Socket;
 import java.net.http.WebSocket;
@@ -137,7 +139,7 @@ class Window {
             JFrame registerFrame = new JFrame("Register");
             registerFrame.setSize(600, 400);
             registerFrame.setLocationRelativeTo(null);
-            registerFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            registerFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             registerFrame.setVisible(true);
 
             //set panel
@@ -214,7 +216,7 @@ class Window {
         private TextField searchTfM = new TextField(20);
         private Button addBtnM = new Button("Add");
         private Button startBtnM = new Button("Start Chatting!");
-        //ClientWorker clientWorker = new ClientWorker(this);
+
 
         public void mainWindow() {
             //set up frame
@@ -242,14 +244,20 @@ class Window {
             vBoxOut.add(Box.createVerticalStrut(50));
 
             //add to chatroomP
-            Box vBoxInLeft = Box.createVerticalBox();
-            chatroomP.add(vBoxInLeft);
+            JList list = new JList();
+            list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            //TODO get all the conversation and add to the list
+//        String[] listdata = new String[12];
+//        for (int i = 0; i <listdata.length ; i++) {
+//            listdata[i] = String.format("This is %d",i);
+//        }
+//        list.setListData(listdata);
             Panel chatroomLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
-            chatroomLbM.setBorder(new LineBorder(Color.gray));
             chatroomLbP.add(chatroomLbM);
-            vBoxInLeft.add(chatroomLbP);
-            Panel conversationP = new Panel();
-            vBoxInLeft.add(conversationP);
+            chatroomP.add(chatroomLbP);
+            JScrollPane jsp = new JScrollPane(list);
+            jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+            chatroomP.add(jsp);
 
             //add to newChatP
             Box vBoxInRight = Box.createVerticalBox();
@@ -275,6 +283,25 @@ class Window {
 
             //add panels to frame
             mainFrame.add(vBoxOut);
+
+            //if the list is clicked twice open up the selected conversation
+            //if the list is right-clicked pop up delete message
+            list.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 2) {
+                        System.out.println(list.getSelectedValue());
+                    }
+                    if (e.getButton() == MouseEvent.BUTTON3) {
+                        int answer = JOptionPane.showConfirmDialog(null,
+                                "Delete + Groupname?","Delete",
+                                JOptionPane.YES_NO_OPTION);
+                        if (answer == JOptionPane.YES_OPTION) {
+                            //TODO send delete conversation request
+                        }
+                    }
+                }
+            });
 
             ActionListener actionListener = e -> {
                 if (e.getSource() == settingBtnM) {
@@ -492,6 +519,7 @@ class Window {
 
             //add to frame
             chatFrame.add(box);
+
 
             ActionListener actionListener = new ActionListener() {
                 @Override
