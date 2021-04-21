@@ -2,7 +2,6 @@ import Exceptions.*;
 import Field.*;
 import Request.AuthenticateRequest;
 import Request.*;
-
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
@@ -28,7 +27,7 @@ public class MessageClient implements Runnable {
     private static PrintWriter pw = null;
 
     public void run() {
-        new SignInWindow();
+        new Window();
     }
 
     public static void main(String[] args) {
@@ -37,251 +36,371 @@ public class MessageClient implements Runnable {
 
 }
 
-/**
- * PJ5-RegisterInterface
- * This class is an user interface that allows the user to register accounts
- *
- * @author Silvia Yang, lab sec OL3
- * @version April
- */
-class RegisterWindow {
-    private final JLabel nameLb = new JLabel("Name");
-    private final JLabel ageLb = new JLabel("Age");
-    private final JLabel userLb = new JLabel("Username");
-    private final JLabel passLb = new JLabel("Password");
-    private final TextField nameTf = new TextField(20);
-    private final TextField ageTf = new TextField(20);
-    private final TextField userTf = new TextField(20);
-    private final TextField passTf = new TextField(20);
-    private final Button okBtn = new Button("OK");
-    private final Button cancelBtn = new Button("Cancel");
 
+class Window {
+    private Button registerButtonSign;
+    private JLabel titleLbSign;
+    private JLabel usernameLbSign;
+    private JLabel passwordLbSign;
+    private Button okButtonSign;
+    private TextField usernameTfSign;
+    private TextField passwordTfSign;
+    private ClientWorker clientWorker = new ClientWorker(this);
 
-    public RegisterWindow() {
+    public Window() {
         //set frame
-        JFrame registerFrame = new JFrame("Register");
-        registerFrame.setSize(600, 400);
-        registerFrame.setLocationRelativeTo(null);
-        registerFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        registerFrame.setVisible(true);
+        JFrame frame = new JFrame("sign-in");
+        frame.setSize(600, 400);
+        frame.setLocationRelativeTo(null);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+
+        //set panels
+        Box vertical = Box.createVerticalBox();
+        Panel topPanel = new Panel(new FlowLayout(FlowLayout.RIGHT));
+        Panel titlePanel = new Panel();
+        Panel userPanel = new Panel();
+        Panel passwordPanel = new Panel();
+        Panel okPanel = new Panel();
+
+        //set buttons and labels
+        registerButtonSign = new Button("Register");
+        okButtonSign = new Button("OK");
+        titleLbSign = new JLabel("<html><center><font size='20'>PJ5 Messaging</font></center></html>");
+        usernameLbSign = new JLabel("Username");
+        passwordLbSign = new JLabel("Password");
+        usernameTfSign = new TextField(20);
+        passwordTfSign = new TextField(20);
+
+        //add to top panel
+        topPanel.add(registerButtonSign);
+
+        //add to title panel
+        titlePanel.add(titleLbSign);
+
+        //add to username panel
+        userPanel.add(usernameLbSign);
+        userPanel.add(usernameTfSign);
+
+        //add to password panel
+        passwordPanel.add(passwordLbSign);
+        passwordPanel.add(passwordTfSign);
+
+        //add to ok panel
+        okPanel.add(okButtonSign);
+
+        // add to frame
+        vertical.add(topPanel);
+        vertical.add(Box.createVerticalStrut(50));
+        vertical.add(titlePanel);
+        vertical.add(userPanel);
+        vertical.add(passwordPanel);
+        vertical.add(okPanel);
+        vertical.add(Box.createVerticalStrut(50));
+        frame.add(vertical);
+
+       // clientWorker = new ClientWorker(this);
+        //actionListener
+        ActionListener actionListener = e -> {
+            if (e.getSource() == registerButtonSign) {
+                registerWindow();
+            }
+            if (e.getSource() == okButtonSign) {
+                if (clientWorker.signIn()) {
+                    mainWindow();
+                    frame.dispose();
+                } else {
+                    usernameTfSign.setText(null);
+                    passwordTfSign.setText(null);
+                }
+            }
+        };
+        registerButtonSign.addActionListener(actionListener);
+        okButtonSign.addActionListener(actionListener);
+    }
+
+
+        private final JLabel rgNameLb = new JLabel("Name");
+        private final JLabel rgAgeLb = new JLabel("Age");
+        private final JLabel rgUserLb = new JLabel("Username");
+        private final JLabel rgPassLb = new JLabel("Password");
+        private final TextField rgNameTf = new TextField(20);
+        private final TextField rgAgeTf = new TextField(20);
+        private final TextField rgUserTf = new TextField(20);
+        private final TextField rgPassTf = new TextField(20);
+        private final Button rgOkBtn = new Button("OK");
+        private final Button rgCancelBtn = new Button("Cancel");
+
+
+        public void registerWindow() {
+            //set frame
+            JFrame registerFrame = new JFrame("Register");
+            registerFrame.setSize(600, 400);
+            registerFrame.setLocationRelativeTo(null);
+            registerFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            registerFrame.setVisible(true);
+
+            //set panel
+            Box box = Box.createVerticalBox();
+            Panel nameP = new Panel();
+            Panel ageP = new Panel();
+            Panel userP = new Panel();
+            Panel passP = new Panel();
+            Panel bottomP = new Panel();
+            box.add(Box.createVerticalStrut(70));
+            box.add(nameP);
+            box.add(ageP);
+            box.add(userP);
+            box.add(passP);
+            box.add(bottomP);
+            box.add(Box.createVerticalStrut(70));
+
+            //add to nameP
+            nameP.add(rgNameLb);
+            nameP.add(Box.createHorizontalStrut(20));
+            nameP.add(rgNameTf);
+
+            //add to ageP
+            ageP.add(rgAgeLb);
+            ageP.add(Box.createHorizontalStrut(30));
+            ageP.add(rgAgeTf);
+
+            //add to userP
+            userP.add(rgUserLb);
+            userP.add(rgUserTf);
+
+            //add to passP
+            passP.add(rgPassLb);
+            passP.add(rgPassTf);
+
+            //add to bottomP
+            bottomP.add(rgOkBtn);
+            bottomP.add(rgCancelBtn);
+
+            //add to frame
+            registerFrame.add(box);
+
+            //ClientWorker clientWorker = new ClientWorker(this);
+            ActionListener actionListener = e -> {
+                if (e.getSource() == rgCancelBtn) {
+                    registerFrame.dispose();
+                }
+                if (e.getSource() == rgOkBtn) {
+                    UUID uid = clientWorker.register();
+                    if (uid != null) {
+                        registerFrame.dispose();
+                    } else {
+                        rgAgeTf.setText(null);
+                        rgNameTf.setText(null);
+                        rgUserTf.setText(null);
+                        rgPassTf.setText(null);
+                    }
+
+                }
+            };
+
+            rgCancelBtn.addActionListener(actionListener);
+            rgOkBtn.addActionListener(actionListener);
+
+        }
+
+
+        private final Button logOutBtnM = new Button("LOG OUT");
+        private final Button settingBtnM = new Button("SETTING");
+        private JLabel chatroomLbM = new JLabel("Chat Rooms");
+        private JLabel newChatLbM = new JLabel("Start a new chat");
+        private JLabel invitePromptLbM = new JLabel("Invite people to chat:");
+        private JLabel invitedLbM = new JLabel("No one has been invited yet!"); //need to be updated
+        private TextField searchTfM = new TextField(20);
+        private Button addBtnM = new Button("Add");
+        private Button startBtnM = new Button("Start Chatting!");
+        //ClientWorker clientWorker = new ClientWorker(this);
+
+        public void mainWindow() {
+            //set up frame
+            JFrame mainFrame = new JFrame("Main");
+            mainFrame.setSize(600, 400);
+            mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+            mainFrame.setLocationRelativeTo(null);
+            mainFrame.setVisible(true);
+            Box vBoxOut = Box.createVerticalBox();
+
+            //set up top panel
+            Panel topP = new Panel();
+            topP.setLayout(new FlowLayout(FlowLayout.LEFT));
+            topP.add(logOutBtnM);
+            topP.add(settingBtnM);
+            vBoxOut.add(topP);
+
+            //set up middle panel
+            Box hBox = Box.createHorizontalBox();
+            Panel chatroomP = new Panel();
+            Panel newChatP = new Panel();
+            hBox.add(chatroomP);
+            hBox.add(newChatP);
+            vBoxOut.add(hBox);
+            vBoxOut.add(Box.createVerticalStrut(50));
+
+            //add to chatroomP
+            Box vBoxInLeft = Box.createVerticalBox();
+            chatroomP.add(vBoxInLeft);
+            Panel chatroomLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
+            chatroomLbM.setBorder(new LineBorder(Color.gray));
+            chatroomLbP.add(chatroomLbM);
+            vBoxInLeft.add(chatroomLbP);
+            Panel conversationP = new Panel();
+            vBoxInLeft.add(conversationP);
+
+            //add to newChatP
+            Box vBoxInRight = Box.createVerticalBox();
+            newChatP.add(vBoxInRight);
+            Panel newChatLbP = new Panel(new FlowLayout(FlowLayout.CENTER));
+            newChatLbP.add(newChatLbM);
+            vBoxInRight.add(newChatLbP);
+            Panel labelP = new Panel();
+            Panel updateP = new Panel();
+            Panel addP = new Panel();
+            Panel startP = new Panel();
+            vBoxInRight.add(Box.createVerticalStrut(10));
+            vBoxInRight.add(labelP);
+            vBoxInRight.add(updateP);
+            vBoxInRight.add(Box.createVerticalStrut(50));
+            vBoxInRight.add(addP);
+            vBoxInRight.add(startP);
+            labelP.add(invitePromptLbM);
+            updateP.add(invitedLbM);
+            addP.add(searchTfM);
+            addP.add(addBtnM);
+            startP.add(startBtnM);
+
+            //add panels to frame
+            mainFrame.add(vBoxOut);
+
+            ActionListener actionListener = e -> {
+                if (e.getSource() == settingBtnM) {
+                    settingWindow();
+                    mainFrame.dispose();
+                }
+                if (e.getSource() == logOutBtnM) {
+                    int answer = JOptionPane.showConfirmDialog(mainFrame,
+                            "Are you sure to log out?",
+                            "log out", JOptionPane.OK_CANCEL_OPTION);
+                    if (answer == JOptionPane.OK_OPTION) {
+                        clientWorker.logOut();
+                        mainFrame.dispose();
+                        JOptionPane.showMessageDialog(null,
+                                "Log out successfully!",
+                                "Log out", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+                if (e.getSource() == addBtnM) {
+                    //TODO add people to chat request
+                    //TODO update the invitedLb if the person is successfully added
+                    JOptionPane.showMessageDialog(mainFrame, "Successfully added!",
+                            "Invitation", JOptionPane.INFORMATION_MESSAGE);
+                    //TODO if the person does not exist throw exception
+                }
+                if (e.getSource() == startBtnM) {
+                    chatWindow();
+                }
+            };
+
+            logOutBtnM.addActionListener(actionListener);
+            settingBtnM.addActionListener(actionListener);
+            addBtnM.addActionListener(actionListener);
+            startBtnM.addActionListener(actionListener);
+
+        }
+
+    private Button backBtnSetting = new Button("Back");
+    private Button deleteBtnSetting = new Button("DELETE ACCOUNT");
+    private Button manageProfileBtnSetting = new Button("MANAGE PROFILE");
+    private Button exportBtnSetting = new Button("EXPORT CHAT HISTORY");
+    private Button profileBtnSetting = new Button("MY PROFILE");
+
+    public void settingWindow() {
+        //set frame
+        JFrame settingFrame = new JFrame("Setting");
+        settingFrame.setSize(600, 400);
+        settingFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        settingFrame.setLocationRelativeTo(null);
+        settingFrame.setVisible(true);
 
         //set panel
         Box box = Box.createVerticalBox();
-        Panel nameP = new Panel();
-        Panel ageP = new Panel();
-        Panel userP = new Panel();
-        Panel passP = new Panel();
-        Panel bottomP = new Panel();
-        box.add(Box.createVerticalStrut(70));
-        box.add(nameP);
-        box.add(ageP);
-        box.add(userP);
-        box.add(passP);
-        box.add(bottomP);
-        box.add(Box.createVerticalStrut(70));
+        Panel topP = new Panel(new FlowLayout(FlowLayout.LEFT));
+        Panel midP = new Panel();
+        box.add(topP);
+        box.add(Box.createVerticalStrut(50));
+        box.add(midP);
+        box.add(Box.createVerticalStrut(50));
 
-        //add to nameP
-        nameP.add(nameLb);
-        nameP.add(Box.createHorizontalStrut(20));
-        nameP.add(nameTf);
+        //add to topP
+        topP.add(backBtnSetting);
 
-        //add to ageP
-        ageP.add(ageLb);
-        ageP.add(Box.createHorizontalStrut(30));
-        ageP.add(ageTf);
-
-        //add to userP
-        userP.add(userLb);
-        userP.add(userTf);
-
-        //add to passP
-        passP.add(passLb);
-        passP.add(passTf);
-
-        //add to bottomP
-        bottomP.add(okBtn);
-        bottomP.add(cancelBtn);
+        //add to midP
+        midP.add(profileBtnSetting);
+        midP.add(manageProfileBtnSetting);
+        midP.add(deleteBtnSetting);
+        midP.add(exportBtnSetting);
 
         //add to frame
-        registerFrame.add(box);
+        settingFrame.add(box);
 
-        ClientWorker clientWorker = new ClientWorker(this);
+        // ClientWorker clientWorker = new ClientWorker(this);
         ActionListener actionListener = e -> {
-            if (e.getSource() == cancelBtn) {
-                new SignInWindow();
-                registerFrame.dispose();
+            if (e.getSource() == backBtnSetting) {
+                mainWindow();
+                settingFrame.dispose();
             }
-            if (e.getSource() == okBtn) {
-                UUID uid = clientWorker.register();
-                if (uid != null) {
-                    new SignInWindow();
-                    registerFrame.dispose();
-                } else {
-                    ageTf.setText(null);
-                    nameTf.setText(null);
-                    userTf.setText(null);
-                    passTf.setText(null);
-                }
-
+            if (e.getSource() == manageProfileBtnSetting) {
+                manageProfileWindow();
+                settingFrame.dispose();
             }
-        };
+            if (e.getSource() == deleteBtnSetting) {
+                int answer = JOptionPane.showConfirmDialog(settingFrame,
+                        "Are you sure to delete your account? " +
+                                "All account information will be deleted" +
+                                "which cannot be recovered.",
+                        "Delete Account", JOptionPane.OK_CANCEL_OPTION);
 
-        cancelBtn.addActionListener(actionListener);
-        okBtn.addActionListener(actionListener);
-
-    }
-
-    public String getUsername() {
-        return userTf.getText();
-    }
-
-    public String getPassword() {
-        return passTf.getText();
-    }
-
-    public String getName() {
-        return nameTf.getText();
-    }
-
-    public String getAgeString() {
-        return ageTf.getText();
-    }
-
-}
-
-/**
- * PJ5-MainInterface
- * This class is the main user interface after the user logged in.
- *
- * @author Silvia Yang, lab sec OL3
- * @version April
- */
-class MainWindow {
-    private final Button logOutBtn = new Button("LOG OUT");
-    private final Button settingBtn = new Button("SETTING");
-    private JLabel chatroomLb = new JLabel("Chat Rooms");
-    private JLabel newChatLb = new JLabel("Start a new chat");
-    private JLabel invitePromptLb = new JLabel("Invite people to chat:");
-    private JLabel invitedLb = new JLabel("No one has been invited yet!"); //need to be updated
-    private TextField searchTf = new TextField(20);
-    private Button addBtn = new Button("Add");
-    private Button startBtn = new Button("Start Chatting!");
-
-
-    public MainWindow() {
-        //set up frame
-        JFrame mainFrame = new JFrame("Main");
-        mainFrame.setSize(600, 400);
-        mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        mainFrame.setLocationRelativeTo(null);
-        mainFrame.setVisible(true);
-        Box vBoxOut = Box.createVerticalBox();
-
-        //set up top panel
-        Panel topP = new Panel();
-        topP.setLayout(new FlowLayout(FlowLayout.LEFT));
-        topP.add(logOutBtn);
-        topP.add(settingBtn);
-        vBoxOut.add(topP);
-
-        //set up middle panel
-        Box hBox = Box.createHorizontalBox();
-        Panel chatroomP = new Panel();
-        Panel newChatP = new Panel();
-        hBox.add(chatroomP);
-        hBox.add(newChatP);
-        vBoxOut.add(hBox);
-        vBoxOut.add(Box.createVerticalStrut(50));
-
-        //add to chatroomP
-        Box vBoxInLeft = Box.createVerticalBox();
-        chatroomP.add(vBoxInLeft);
-        Panel chatroomLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
-        chatroomLb.setBorder(new LineBorder(Color.gray));
-        chatroomLbP.add(chatroomLb);
-        vBoxInLeft.add(chatroomLbP);
-        Panel conversationP = new Panel();
-        vBoxInLeft.add(conversationP);
-
-        //add to newChatP
-        Box vBoxInRight = Box.createVerticalBox();
-        newChatP.add(vBoxInRight);
-        Panel newChatLbP = new Panel(new FlowLayout(FlowLayout.CENTER));
-        newChatLbP.add(newChatLb);
-        vBoxInRight.add(newChatLbP);
-        Panel labelP = new Panel();
-        Panel updateP = new Panel();
-        Panel addP = new Panel();
-        Panel startP = new Panel();
-        vBoxInRight.add(Box.createVerticalStrut(10));
-        vBoxInRight.add(labelP);
-        vBoxInRight.add(updateP);
-        vBoxInRight.add(Box.createVerticalStrut(50));
-        vBoxInRight.add(addP);
-        vBoxInRight.add(startP);
-        labelP.add(invitePromptLb);
-        updateP.add(invitedLb);
-        addP.add(searchTf);
-        addP.add(addBtn);
-        startP.add(startBtn);
-
-        //add panels to frame
-        mainFrame.add(vBoxOut);
-
-        ClientWorker clientWorker = new ClientWorker(this);
-        ActionListener actionListener = e -> {
-            if (e.getSource() == settingBtn) {
-                new SettingWindow();
-                mainFrame.dispose();
-            }
-            if (e.getSource() == logOutBtn) {
-                int answer = JOptionPane.showConfirmDialog(mainFrame,
-                        "Are you sure to log out?",
-                        "log out", JOptionPane.OK_CANCEL_OPTION);
                 if (answer == JOptionPane.OK_OPTION) {
-                    clientWorker.logOut();
-                    mainFrame.dispose();
+                    clientWorker.deleteAccount();
+                    settingFrame.dispose();
                     JOptionPane.showMessageDialog(null,
-                            "Log out successfully!",
-                            "Log out", JOptionPane.INFORMATION_MESSAGE);
+                            "Successfully deleted!", "Delete Account",
+                            JOptionPane.INFORMATION_MESSAGE);
                 }
             }
-            if (e.getSource() == addBtn) {
-                //TODO add people to chat request
-                //TODO update the invitedLb if the person is successfully added
-                JOptionPane.showMessageDialog(mainFrame, "Successfully added!",
-                        "Invitation", JOptionPane.INFORMATION_MESSAGE);
-                //TODO if the person does not exist throw exception
+            if (e.getSource() == exportBtnSetting) {
+                //TODO export request
             }
-            if (e.getSource() == startBtn) {
-                new ChatWindow();
+
+            if (e.getSource() == profileBtnSetting) {
+                Profile profile = clientWorker.getProfile();
+                String name = profile.name;
+                int age = profile.age;
+                String message = String.format("Name: %s\n" +
+                        "Age: %d\n", name, age);
+                JOptionPane.showMessageDialog(settingFrame, message, "Profile",
+                        JOptionPane.INFORMATION_MESSAGE);
             }
         };
-
-        logOutBtn.addActionListener(actionListener);
-        settingBtn.addActionListener(actionListener);
-        addBtn.addActionListener(actionListener);
-        startBtn.addActionListener(actionListener);
-
+        manageProfileBtnSetting.addActionListener(actionListener);
+        backBtnSetting.addActionListener(actionListener);
+        deleteBtnSetting.addActionListener(actionListener);
+        exportBtnSetting.addActionListener(actionListener);
+        profileBtnSetting.addActionListener(actionListener);
     }
-}
 
-/**
- * PJ5-ManageProfileInterface
- * This class is an user interface that is used to mange profile
- *
- * @author Silvia Yang, lab sec OL3
- * @version April
- */
-class ManageProfileWindow {
-    private JLabel nameLb = new JLabel("Name");
-    private JLabel ageLb = new JLabel("age");
-    private TextField nameTf = new TextField(20);
-    private TextField ageTf = new TextField(20);
-    private Button okBtn = new Button("OK");
-    private Button cancelBtn = new Button("Cancel");
+    private JLabel nameLbProfile = new JLabel("Name");
+    private JLabel ageLbProfile = new JLabel("age");
+    private TextField nameTfProfile = new TextField(20);
+    private TextField ageTfProfile = new TextField(20);
+    private Button okBtnProfile = new Button("OK");
+    private Button cancelBtnProfile = new Button("Cancel");
 
-    public ManageProfileWindow() {
+    public void manageProfileWindow() {
         //set frame
         JFrame profileFrame = new JFrame("Manage Profile");
         profileFrame.setSize(600, 400);
@@ -301,17 +420,17 @@ class ManageProfileWindow {
         box.add(Box.createVerticalStrut(100));
 
         //add to name panel
-        nameP.add(nameLb);
-        nameP.add(nameTf);
+        nameP.add(nameLbProfile);
+        nameP.add(nameTfProfile);
 
         //add to age panel
-        ageP.add(ageLb);
+        ageP.add(ageLbProfile);
         ageP.add(Box.createHorizontalStrut(5));
-        ageP.add(ageTf);
+        ageP.add(ageTfProfile);
 
         //add to bottom panel
-        bottomP.add(okBtn);
-        bottomP.add(cancelBtn);
+        bottomP.add(okBtnProfile);
+        bottomP.add(cancelBtnProfile);
 
         //add to frame
         profileFrame.add(box);
@@ -319,294 +438,116 @@ class ManageProfileWindow {
         ActionListener actionListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == okBtn) {
+                if (e.getSource() == okBtnProfile) {
                     //TODO change profile request
                 }
-                if (e.getSource() == cancelBtn) {
-                    new SettingWindow();
+                if (e.getSource() == cancelBtnProfile) {
+                    settingWindow();
                     profileFrame.dispose();
                 }
             }
         };
 
-        okBtn.addActionListener(actionListener);
-        cancelBtn.addActionListener(actionListener);
+        okBtnProfile.addActionListener(actionListener);
+        cancelBtnProfile.addActionListener(actionListener);
     }
-}
 
+        private JTextArea displayChat = new JTextArea(15, 40);
+        private TextField inputTfChat = new TextField(30);
+        private Button sendBtnChat = new Button("SEND");
+        private Button deleteBtnChat = new Button("Delete the group");
+        private Button renameBtnChat = new Button("Rename the group");
+        private String groupNameChat;
 
-/**
- * PJ5-SettingInterface
- * This class is an user interface for user
- * to set profile and delete account
- *
- * @author Silvia Yang, lab sec OL3
- * @version April
- */
-class SettingWindow {
-    private Button backBtn = new Button("Back");
-    private Button deleteBtn = new Button("DELETE ACCOUNT");
-    private Button manageProfileBtn = new Button("MANAGE PROFILE");
-    private Button exportBtn = new Button("EXPORT CHAT HISTORY");
-    private Button profileBtn = new Button("MY PROFILE");
+        public void chatWindow() {
+            //set frame
+            JFrame chatFrame = new JFrame("Chat");
+            chatFrame.setSize(400, 400);
+            chatFrame.setLocationRelativeTo(null);
+            chatFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+            chatFrame.setVisible(true);
 
-    public SettingWindow() {
-        //set frame
-        JFrame settingFrame = new JFrame("Setting");
-        settingFrame.setSize(600, 400);
-        settingFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        settingFrame.setLocationRelativeTo(null);
-        settingFrame.setVisible(true);
+            //set display window
+            displayChat.setLineWrap(true);
+            displayChat.setEditable(false);
+            JScrollPane jsp = new JScrollPane(displayChat);
+            jsp.setBounds(displayChat.getX(), displayChat.getY(),
+                    displayChat.getWidth(), displayChat.getHeight());
 
-        //set panel
-        Box box = Box.createVerticalBox();
-        Panel topP = new Panel(new FlowLayout(FlowLayout.LEFT));
-        Panel midP = new Panel();
-        box.add(topP);
-        box.add(Box.createVerticalStrut(50));
-        box.add(midP);
-        box.add(Box.createVerticalStrut(50));
+            //set panels
+            Box box = Box.createVerticalBox();
+            Panel topP = new Panel(new FlowLayout(FlowLayout.LEFT));
+            Panel midP = new Panel();
+            Panel bottomP = new Panel();
+            box.add(topP);
+            box.add(midP);
+            box.add(bottomP);
 
-        //add to topP
-        topP.add(backBtn);
+            //add to panels
+            topP.add(renameBtnChat);
+            topP.add(deleteBtnChat);
+            midP.add(jsp);
+            bottomP.add(inputTfChat);
+            bottomP.add(sendBtnChat);
 
-        //add to midP
-        midP.add(profileBtn);
-        midP.add(manageProfileBtn);
-        midP.add(deleteBtn);
-        midP.add(exportBtn);
+            //add to frame
+            chatFrame.add(box);
 
-        //add to frame
-        settingFrame.add(box);
-
-        ClientWorker clientWorker = new ClientWorker(this);
-        ActionListener actionListener = e -> {
-            if (e.getSource() == backBtn) {
-                new MainWindow();
-                settingFrame.dispose();
-            }
-            if (e.getSource() == manageProfileBtn) {
-                new ManageProfileWindow();
-                settingFrame.dispose();
-            }
-            if (e.getSource() == deleteBtn) {
-                int answer = JOptionPane.showConfirmDialog(settingFrame,
-                        "Are you sure to delete your account? " +
-                                "All account information will be deleted" +
-                                "which cannot be recovered.",
-                        "Delete Account", JOptionPane.OK_CANCEL_OPTION);
-
-                if (answer == JOptionPane.OK_OPTION) {
-                    clientWorker.deleteAccount();
-                    settingFrame.dispose();
-                    JOptionPane.showMessageDialog(null,
-                            "Successfully deleted!", "Delete Account",
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-            if (e.getSource() == exportBtn) {
-                //TODO export request
-            }
-
-            if (e.getSource() == profileBtn) {
-                Profile profile = clientWorker.getProfile();
-                String name = profile.name;
-                int age = profile.age;
-                String message = String.format("Name: %s\n" +
-                        "Age: %d\n", name, age);
-                JOptionPane.showMessageDialog(settingFrame, message, "Profile",
-                        JOptionPane.INFORMATION_MESSAGE);
-            }
-        };
-        manageProfileBtn.addActionListener(actionListener);
-        backBtn.addActionListener(actionListener);
-        deleteBtn.addActionListener(actionListener);
-        exportBtn.addActionListener(actionListener);
-        profileBtn.addActionListener(actionListener);
-    }
-}
-
-
-/**
- * PJ5-ChatWindow
- * This class in an user interface that allows the
- * user to chat
- *
- * @author Silvia Yang, lab sec OL3
- * @version April
- */
-
-class ChatWindow {
-    private JTextArea display = new JTextArea(15, 40);
-    private TextField inputTf = new TextField(30);
-    private Button sendBtn = new Button("SEND");
-    private Button deleteBtn = new Button("Delete the group");
-    private Button renameBtn = new Button("Rename the group");
-    private String groupName;
-
-
-    public ChatWindow() {
-        //set frame
-        JFrame chatFrame = new JFrame("Chat");
-        chatFrame.setSize(400, 400);
-        chatFrame.setLocationRelativeTo(null);
-        chatFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        chatFrame.setVisible(true);
-
-        //set display window
-        display.setLineWrap(true);
-        display.setEditable(false);
-        JScrollPane jsp = new JScrollPane(display);
-        jsp.setBounds(display.getX(), display.getY(), display.getWidth(), display.getHeight());
-
-        //set panels
-        Box box = Box.createVerticalBox();
-        Panel topP = new Panel(new FlowLayout(FlowLayout.LEFT));
-        Panel midP = new Panel();
-        Panel bottomP = new Panel();
-        box.add(topP);
-        box.add(midP);
-        box.add(bottomP);
-
-        //add to panels
-        topP.add(renameBtn);
-        topP.add(deleteBtn);
-        midP.add(jsp);
-        bottomP.add(inputTf);
-        bottomP.add(sendBtn);
-
-        //add to frame
-        chatFrame.add(box);
-
-        ActionListener actionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == deleteBtn) {
-                    //TODO send verification request
-                    int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to delete" +
-                            "the conversation?", "Delete", JOptionPane.OK_CANCEL_OPTION);
-                    if (answer == JOptionPane.OK_OPTION) {
-                        //TODO send delete request
+            ActionListener actionListener = new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (e.getSource() == deleteBtnChat) {
+                        //TODO send verification request
+                        int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to delete" +
+                                "the conversation?", "Delete", JOptionPane.OK_CANCEL_OPTION);
+                        if (answer == JOptionPane.OK_OPTION) {
+                            //TODO send delete request
+                        }
+                    }
+                    if (e.getSource() == renameBtnChat) {
+                        groupNameChat = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
+                                "Rename", JOptionPane.PLAIN_MESSAGE);
+                        chatFrame.setTitle(groupNameChat);
+                    }
+                    if (e.getSource() == sendBtnChat) {
+                        //TODO send message request
                     }
                 }
-                if (e.getSource() == renameBtn) {
-                    groupName = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
-                            "Rename", JOptionPane.PLAIN_MESSAGE);
-                    chatFrame.setTitle(groupName);
-                }
-                if (e.getSource() == sendBtn) {
-                    //TODO send message request
-                }
-            }
-        };
-        deleteBtn.addActionListener(actionListener);
-        renameBtn.addActionListener(actionListener);
-        sendBtn.addActionListener(actionListener);
-    }
-}
+            };
+            deleteBtnChat.addActionListener(actionListener);
+            renameBtnChat.addActionListener(actionListener);
+            sendBtnChat.addActionListener(actionListener);
+        }
 
-class SignInWindow {
-    private Button registerButton;
-    private JLabel titleLb;
-    private JLabel usernameLb;
-    private JLabel passwordLb;
-    private Button okButton;
-    private TextField usernameTf;
-    private TextField passwordTf;
-    private String username;
-    private String password;
-    private ClientWorker clientWorker;
 
-    public SignInWindow() {
-        //set frame
-        JFrame frame = new JFrame("sign-in");
-        frame.setSize(600, 400);
-        frame.setLocationRelativeTo(null);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-
-        //set panels
-        Box vertical = Box.createVerticalBox();
-        Panel topPanel = new Panel(new FlowLayout(FlowLayout.RIGHT));
-        Panel titlePanel = new Panel();
-        Panel userPanel = new Panel();
-        Panel passwordPanel = new Panel();
-        Panel okPanel = new Panel();
-
-        //set buttons and labels
-        registerButton = new Button("Register");
-        okButton = new Button("OK");
-        titleLb = new JLabel("<html><center><font size='20'>PJ5 Messaging</font></center></html>");
-        usernameLb = new JLabel("Username");
-        passwordLb = new JLabel("Password");
-        usernameTf = new TextField(20);
-        passwordTf = new TextField(20);
-
-        //add to top panel
-        topPanel.add(registerButton);
-
-        //add to title panel
-        titlePanel.add(titleLb);
-
-        //add to username panel
-        userPanel.add(usernameLb);
-        userPanel.add(usernameTf);
-
-        //add to password panel
-        passwordPanel.add(passwordLb);
-        passwordPanel.add(passwordTf);
-
-        //add to ok panel
-        okPanel.add(okButton);
-
-        // add to frame
-        vertical.add(topPanel);
-        vertical.add(Box.createVerticalStrut(50));
-        vertical.add(titlePanel);
-        vertical.add(userPanel);
-        vertical.add(passwordPanel);
-        vertical.add(okPanel);
-        vertical.add(Box.createVerticalStrut(50));
-        frame.add(vertical);
-
-        clientWorker = new ClientWorker(this);
-        //actionListener
-        ActionListener actionListener = e -> {
-            if (e.getSource() == registerButton) {
-                new RegisterWindow();
-                frame.dispose();
-            }
-            if (e.getSource() == okButton) {
-                if (clientWorker.signIn()) {
-                    new MainWindow();
-                    frame.dispose();
-                } else {
-                    usernameTf.setText(null);
-                    passwordTf.setText(null);
-                }
-            }
-        };
-        registerButton.addActionListener(actionListener);
-        okButton.addActionListener(actionListener);
+    public String getSignInUsername() {
+        return usernameTfSign.getText();
     }
 
-    public String getUsername() {
-        return usernameTf.getText();
+    public String getSignInPassword() {
+        return passwordTfSign.getText();
     }
 
-    public String getPassword() {
-        return passwordTf.getText();
+    public String getRgUsername() {
+        return rgUserTf.getText();
     }
+
+    public String getRgPassword() {
+        return rgPassTf.getText();
+    }
+
+    public String getRgName() {
+        return rgNameTf.getText();
+    }
+
+    public String getRgAgeString() {
+        return rgAgeTf.getText();
+    }
+
 }
 
 class ClientWorker {
-    private SignInWindow signInWindow;
-    private RegisterWindow registerWindow;
-    private ManageProfileWindow manageProfileWindow;
-    private MainWindow mainWindow;
-    private ChatWindow chatWindow;
-    private SettingWindow settingWindow;
-    private MessageClient messageClient;
+    private Window window;
     private static Socket socket;
     private User user;
     private Credential credential;
@@ -617,32 +558,8 @@ class ClientWorker {
 
     }
 
-    public ClientWorker(SignInWindow signInWindow) {
-        this.signInWindow = signInWindow;
-    }
-
-    public ClientWorker(RegisterWindow registerWindow) {
-        this.registerWindow = registerWindow;
-    }
-
-    public ClientWorker(ManageProfileWindow manageProfileWindow) {
-        this.manageProfileWindow = manageProfileWindow;
-    }
-
-    public ClientWorker(MainWindow mainWindow) {
-        this.mainWindow = mainWindow;
-    }
-
-    public ClientWorker(ChatWindow chatWindow) {
-        this.chatWindow = chatWindow;
-    }
-
-    public ClientWorker(SettingWindow settingWindow) {
-        this.settingWindow = settingWindow;
-    }
-
-    public ClientWorker(MessageClient messageClient) {
-        this.messageClient = messageClient;
+    public ClientWorker(Window window) {
+        this.window = window;
     }
 
     /**
@@ -674,31 +591,30 @@ class ClientWorker {
 
         if (response.state) {
             return response;
+
         } else {
-            throw new RequestFailedException();
+            if (response.exception != null) {
+                throw response.exception;
+            } else {
+                throw new RequestFailedException();
+            }
         }
-//        else {
-//            if (response.exception != null) {
-//                throw (RequestFailedException) response.exception;
-//            } else {
-//                throw new RequestFailedException();
-//            }
-//        }
     }
 
 
     /**
      * The method sends an authenticate request and receives
      * a response
+     *
      * @return true if the user passed the authentication, false
      * if the user is not registered or entered wrong password
      */
     public boolean signIn() {
-        String username = signInWindow.getUsername();
-        String password = signInWindow.getPassword();
+        String username = window.getSignInUsername();
+        String password = window.getSignInPassword();
 
         try {
-            credential = new Credential(username,password);
+            credential = new Credential(username, password);
             AuthenticateRequest authenticateRequest = new AuthenticateRequest(credential);
             Response response = send(authenticateRequest, socket);
             uuid = response.uuid;
@@ -732,15 +648,15 @@ class ClientWorker {
      */
     public UUID register() {
         RegisterResponse response;
-        String username = registerWindow.getUsername();
-        String password = registerWindow.getPassword();
-        String name = registerWindow.getName();
+        String username = window.getRgUsername();
+        String password = window.getRgPassword();
+        String name = window.getRgName();
         try {
-            Credential credential = new Credential(username, password);
+            Credential rgCredential = new Credential(username, password);
 
-            Profile profile = new Profile(name, Integer.parseInt(registerWindow.getAgeString()));
+            Profile rgProfile = new Profile(name, Integer.parseInt(window.getRgAgeString()));
 
-            RegisterRequest registerRequest = new RegisterRequest(credential, profile);
+            RegisterRequest registerRequest = new RegisterRequest(rgCredential, rgProfile);
 
             response = (RegisterResponse) send(registerRequest, socket);
 
@@ -824,20 +740,30 @@ class ClientWorker {
         }
     }
 
+
+    /**
+     * @return send a getUserRequest and return the user's profile
+     * return null if exceptions occur
+     */
     public Profile getProfile() {
-       GetUserRequest getUserRequest = new GetUserRequest(credential,uuid);
-//        try {
-//            user = (GetUserResponse)send(getUserRequest,socket);
-//            profile = user.profile;
-//            return profile;
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (RequestFailedException e) {
-//            e.printStackTrace();
-//        }
+        Response response;
+        GetUserRequest getUserRequest = new GetUserRequest(uuid);
+        try {
+            response = send(getUserRequest,socket);
+            profile =((GetUserResponse)response).user.profile;
+            return profile;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
+
+    /**
+     * send a delete account request
+     */
     public void deleteAccount() {
         DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(credential);
         try {
