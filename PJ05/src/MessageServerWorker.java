@@ -59,7 +59,7 @@ public class MessageServerWorker extends Thread {
                     } else if (request instanceof EditMessageRequest) {
                         response = process((EditMessageRequest) request);
                     } else if (request instanceof GetAllUserNamesRequest) {
-                        response = process((GetAllUserNamesRequest) request);
+                        response = process(request);
                     } else if (request instanceof GetConversationRequest) {
                         response = process((GetConversationRequest) request);
                     } else if (request instanceof GetMessageRequest) {
@@ -87,7 +87,7 @@ public class MessageServerWorker extends Thread {
                     } else if (request instanceof SetConversationAdminRequest) {
                         response = process((SetConversationAdminRequest) request);
                     } else if (request instanceof UpdateMessageRequest) {
-                        response = process((UpdateMessageRequest) request);
+                        response = process(request);
                     } else {
                         response = process(request);
                     }
@@ -157,6 +157,20 @@ public class MessageServerWorker extends Thread {
     }
 
 
+    //postMessageRequest
+    PostMessageResponse process(PostMessageRequest postMessageRequest) throws NotLoggedInException,
+            ConversationNotFoundException, AuthorizationException, IllegalContentException {
+
+
+        return new PostMessageResponse(true, "", postMessageRequest.uuid, postMessageRequest.message.time);
+    }
+
+    //editMessageRequest
+    EditMessageResponse process(EditMessageRequest editMessageRequest) throws NotLoggedInException,
+            MessageNotFoundException, AuthorizationException, IllegalContentException {
+        return null;
+    }
+
     //deleteMessageRequest
     Response process(DeleteMessageRequest deleteMessageRequest) throws NotLoggedInException,
             MessageNotFoundException, AuthorizationException {
@@ -167,6 +181,12 @@ public class MessageServerWorker extends Thread {
         return new Response(true, "Delete message successfully", deleteMessageRequest.uuid);
     }
 
+    //createConversationRequest
+    Response process(CreateConversationRequest createConversationRequest) throws NotLoggedInException,
+            InvalidConversationNameException, UserNotFoundException {
+        return null;
+    }
+
     //deleteConversationRequest
     Response process(DeleteConversationRequest deleteConversationRequest) throws NotLoggedInException, ConversationNotFoundException {
         UUID uuid = deleteConversationRequest.uuid;
@@ -175,48 +195,33 @@ public class MessageServerWorker extends Thread {
         return new Response(true, "", deleteConversationRequest.uuid);
     }
 
-    //postMessageRequest
-    PostMessageResponse process(PostMessageRequest postMessageRequest) throws NotLoggedInException,
-            ConversationNotFoundException, AuthorizationException, IllegalContentException {
-
-
-        return new PostMessageResponse(true, "", postMessageRequest.uuid, postMessageRequest.message.time);
-    }
-
-
-    //createConversationRequest
-    Response process(CreateConversationRequest createConversationRequest) throws NotLoggedInException {
-        return null;
-    }
-
-
     //renameConversationRequest
-    Response process(RenameConversationRequest renameConversationRequest) throws NotLoggedInException {
-        return null;
-    }
-
-    //updateMessageRequest
-    UpdateMessageResponse process(UpdateMessageRequest updateMessageRequest) throws NotLoggedInException {
+    Response process(RenameConversationRequest renameConversationRequest) throws NotLoggedInException, UserNotFoundException,
+            ConversationNotFoundException, InvalidConversationNameException {
         return null;
     }
 
     //addUser2ConversationRequest
-    Response process(AddUser2ConversationRequest addUser2ConversationRequest) throws NotLoggedInException {
+    Response process(AddUser2ConversationRequest addUser2ConversationRequest) throws NotLoggedInException,
+            UserNotFoundException, ConversationNotFoundException, AuthorizationException {
         return null;
     }
 
     //removeUserFromConversationRequest
-    Response process(RemoveUserFromConversationRequest removeUserFromConversationRequest) throws NotLoggedInException {
+    //"There is a more general exception, 'Exceptions.RequestFailedException', in the throws list already. "
+    Response process(RemoveUserFromConversationRequest removeUserFromConversationRequest) throws
+            RequestFailedException {
         return null;
     }
 
     //setConversationAdminRequest
-    Response process(SetConversationAdminRequest setConversationAdminRequest) throws NotLoggedInException {
+    Response process(SetConversationAdminRequest setConversationAdminRequest) throws NotLoggedInException, UserNotFoundException,
+            ConversationNotFoundException, AuthorizationException {
         return null;
     }
 
     //quitConversationRequest
-    Response process(QuitConversationRequest quitConversationRequest) throws NotLoggedInException {
+    Response process(QuitConversationRequest quitConversationRequest) throws NotLoggedInException, ConversationNotFoundException {
         return null;
     }
 
@@ -225,34 +230,30 @@ public class MessageServerWorker extends Thread {
         return null;
     }
 
-
     //listAllConversationsRequest
     Response process(ListAllConversationsRequest listAllConversationsRequest) throws NotLoggedInException {
         return null;
     }
 
+    //listAllMessagesRequest
+    Response process(ListAllMessagesRequest listAllMessagesRequest) throws NotLoggedInException, ConversationNotFoundException {
+        return null;
+    }
+
     //getUserRequest
-    Response process(GetUserRequest getUserRequest) throws NotLoggedInException {
+    Response process(GetUserRequest getUserRequest) throws NotLoggedInException, UserNotFoundException {
         return null;
     }
 
     //getConversationRequest
-    Response process(GetConversationRequest getConversationRequest) throws NotLoggedInException {
+    Response process(GetConversationRequest getConversationRequest) throws NotLoggedInException, ConversationNotFoundException {
         return null;
     }
 
     //getMessageRequest
-    Response process(GetMessageRequest getMessageRequest) throws NotLoggedInException {
+    Response process(GetMessageRequest getMessageRequest) throws NotLoggedInException, MessageNotFoundException {
         return null;
     }
-
-
-    //editMessageRequest
-    EditMessageResponse process(EditMessageRequest editMessageRequest) throws NotLoggedInException,
-            MessageNotFoundException, AuthorizationException, IllegalContentException {
-        return null;
-    }
-
 
     //getMessageHistoryRequest
     Response process(GetMessageHistoryRequest getMessageHistoryRequest) throws NotLoggedInException,
@@ -260,23 +261,24 @@ public class MessageServerWorker extends Thread {
         return null;
     }
 
-    //listAllMessagesRequest
-    Response process(ListAllMessagesRequest listAllMessagesRequest) throws NotLoggedInException {
-        //TODO
+    //GetEventFeedResponse
+    Response process(GetEventFeedResponse getEventFeedResponse) throws NotLoggedInException {
         return null;
     }
 
-    // Locating Users
-
-    //getAllUserNamesRequest
-    Response process(GetAllUserNamesRequest getAllUserNamesRequest) throws NotLoggedInException {
-        //TODO
-        return null;
-    }
-
-
-//    //GetEventFeedResponse
-//    Response process(GetEventFeedResponse getEventFeedResponse) throws NotLoggedInException{
+// 没在documentation里找到
+//
+//    //updateMessageRequest
+//    UpdateMessageResponse process(UpdateMessageRequest updateMessageRequest) throws NotLoggedInException {
+//        return null;
+//    }
+//
+//
+//
+//    // Locating Users
+//
+//    //getAllUserNamesRequest
+//    Response process(GetAllUserNamesRequest getAllUserNamesRequest) throws NotLoggedInException {
 //        return null;
 //    }
 }
