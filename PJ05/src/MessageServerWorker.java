@@ -161,7 +161,6 @@ public class MessageServerWorker extends Thread {
     PostMessageResponse process(PostMessageRequest postMessageRequest) throws NotLoggedInException,
             ConversationNotFoundException, AuthorizationException, IllegalContentException {
 
-
         return new PostMessageResponse(true, "", postMessageRequest.uuid, postMessageRequest.message.time);
     }
 
@@ -262,23 +261,7 @@ public class MessageServerWorker extends Thread {
     }
 
     //GetEventFeedResponse
-    Response process(GetEventFeedResponse getEventFeedResponse) throws NotLoggedInException {
+    GetEventFeedResponse process(GetEventFeedRequest getEventFeedRequest) throws NotLoggedInException {
         return null;
     }
-
-// 没在documentation里找到
-//
-//    //updateMessageRequest
-//    UpdateMessageResponse process(UpdateMessageRequest updateMessageRequest) throws NotLoggedInException {
-//        return null;
-//    }
-//
-//
-//
-//    // Locating Users
-//
-//    //getAllUserNamesRequest
-//    Response process(GetAllUserNamesRequest getAllUserNamesRequest) throws NotLoggedInException {
-//        return null;
-//    }
 }
