@@ -1,16 +1,13 @@
 package Request;
 
-import Field.Credential;
 
 import java.util.UUID;
 
-public class GetUserRequest extends Request{
-    public final Credential credential;
-    public final UUID uuid;
+public class GetUserRequest extends Request {
 
-    public GetUserRequest(Credential credential, UUID uuid) {
-        super();
-        this.credential = credential;
-        this.uuid = uuid;
+    public final UUID user_uuid;
+
+    public GetUserRequest(UUID user_uuid) {
+        this.user_uuid = user_uuid;
     }
 }

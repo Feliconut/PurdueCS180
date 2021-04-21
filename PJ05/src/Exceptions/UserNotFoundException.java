@@ -1,9 +1,7 @@
 package Exceptions;
 
-import Field.User;
-
 public class UserNotFoundException extends RequestFailedException {
-    User user;
+
 
     public UserNotFoundException() {
     }
@@ -12,7 +10,4 @@ public class UserNotFoundException extends RequestFailedException {
         super(message);
     }
 
-    public UserNotFoundException(User user) {
-        this.user = user;
-    }
 }

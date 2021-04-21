@@ -2,7 +2,7 @@ package Request;
 
 import Field.Credential;
 
-public class DeleteAccountRequest extends Request{
+public class DeleteAccountRequest extends Request {
     public final Credential credential;
 
 

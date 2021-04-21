@@ -1,16 +1,14 @@
 package Exceptions;
 
-import Field.User;
 
 public class InvalidUsernameException extends RequestFailedException {
-    User user;
 
     public InvalidUsernameException() {
 
     }
 
-    public InvalidUsernameException(User user) {
-        this.user = user;
+    public InvalidUsernameException(String message) {
+        super(message);
     }
 }
-//        this.user.credential.usrName = user.credential.usrName;
+
