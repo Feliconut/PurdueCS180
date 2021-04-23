@@ -23,7 +23,7 @@ public class DatabaseTest {
     @Test
     public void write() {
         try {
-            // write
+            // write & put
             User user1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             User user2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
             User user3 = new User(new Credential("std3", "0123"), new Profile("student3", 19));
@@ -45,12 +45,14 @@ public class DatabaseTest {
             assertTrue(Arrays.asList(db2.uuids().toArray()).contains(user1.uuid));
             assertTrue(Arrays.asList(db2.uuids().toArray()).contains(user2.uuid));
             assertTrue(Arrays.asList(db2.uuids().toArray()).contains(user3.uuid));
+            // remove
+            db1.remove(user1.uuid);
+            assertFalse(db1.containsKey(user1.uuid));
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Exception occurs.");
             fail();
         }
     }
-
 
 }
