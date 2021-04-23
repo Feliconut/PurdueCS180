@@ -1,15 +1,27 @@
 package Field;
 
 import java.io.Serializable;
+import java.util.Objects;
 
-public class Profile implements Serializable
-{
+public class Profile implements Serializable {
     public final String name;
     public final int age;
 
-    public Profile(String name, int age)
-    {
+    public Profile(String name, int age) {
         this.name = name;
         this.age = age;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Profile)) return false;
+        Profile profile = (Profile) o;
+        return age == profile.age && name.equals(profile.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, age);
     }
 }
