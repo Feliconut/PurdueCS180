@@ -68,5 +68,9 @@ public class Database<V extends Storable>
         return map.keySet();
     }
 
+    public V remove(UUID uuid) {
+        return map.remove(uuid);
+    }
+
 
 }
