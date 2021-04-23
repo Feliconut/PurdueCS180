@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Date;
 import java.util.UUID;
 
 public class MessageServerWorker extends Thread {
@@ -159,15 +160,29 @@ public class MessageServerWorker extends Thread {
 
     //postMessageRequest
     PostMessageResponse process(PostMessageRequest postMessageRequest) throws NotLoggedInException,
-            ConversationNotFoundException, AuthorizationException, IllegalContentException {
+            ConversationNotFoundException, AuthorizationException, IllegalContentException, MessageNotFoundException {
 
-        return new PostMessageResponse(true, "", postMessageRequest.uuid, postMessageRequest.message.time);
+        //打算搞简单一点 handout没说权限这个事
+        Message post_message = system.getMessage(postMessageRequest.uuid);
+        String message = String.valueOf(postMessageRequest.message);
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else if (message.length() > 1000) {
+            throw new IllegalContentException();
+        } else if (post_message == null) {
+            throw new MessageNotFoundException();
+        } else {
+            return new PostMessageResponse(true, "", postMessageRequest.uuid, postMessageRequest.message.time);
+
+        }
     }
 
     //editMessageRequest
     EditMessageResponse process(EditMessageRequest editMessageRequest) throws NotLoggedInException,
             MessageNotFoundException, AuthorizationException, IllegalContentException {
-        return null;
+
+
+        return new EditMessageResponse(true, "", editMessageRequest.uuid, editMessageRequest.);
     }
 
     //deleteMessageRequest
