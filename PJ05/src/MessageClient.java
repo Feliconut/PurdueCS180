@@ -5,12 +5,11 @@ import Request.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.*;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -292,7 +291,9 @@ class Window {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    //TODO get selected conversation
+                    Conversation conversation = clientWorker.getConversation(list.getSelectedValue());
+                    chatWindow(conversation);
+                    clientWorker.importCurrentHistory();
                 }
 
                 if (e.getClickCount() == 1) {
@@ -305,9 +306,10 @@ class Window {
                             "Delete", JOptionPane.YES_NO_OPTION);
 
                     if (answer == JOptionPane.YES_OPTION) {
-                        clientWorker.deleteConversation(list.getSelectedValue());
-                        conversationModel.remove(list.getSelectedIndex());
-                        groupInfoLb.setText(null);
+                        if (clientWorker.deleteConversation(list.getSelectedValue())) {
+                            conversationModel.remove(list.getSelectedIndex());
+                            groupInfoLb.setText(null);
+                        }
                     }
                 }
             }
@@ -331,14 +333,16 @@ class Window {
                 }
             }
             if (e.getSource() == startBtnM) {
-                clientWorker.createConversation(groupNameTfM.getText());
-                chatWindow();
+                Conversation conversation = clientWorker.createConversation(groupNameTfM.getText());
+                UUID newConversation_uuid = conversation.uuid;
+                conversationModel.addElement(newConversation_uuid);
+                chatWindow(conversation);
+
             }
         };
 
         logOutBtnM.addActionListener(actionListener);
         settingBtnM.addActionListener(actionListener);
-        //addBtnM.addActionListener(actionListener);
         startBtnM.addActionListener(actionListener);
 
     }
@@ -346,7 +350,7 @@ class Window {
     private Button backBtnSetting = new Button("Back");
     private Button deleteBtnSetting = new Button("DELETE ACCOUNT");
     private Button manageProfileBtnSetting = new Button("MANAGE PROFILE");
-    private Button exportBtnSetting = new Button("EXPORT CHAT HISTORY");
+    //private Button exportBtnSetting = new Button("EXPORT CHAT HISTORY");
     private Button profileBtnSetting = new Button("MY PROFILE");
 
     public void settingWindow() {
@@ -373,7 +377,7 @@ class Window {
         midP.add(profileBtnSetting);
         midP.add(manageProfileBtnSetting);
         midP.add(deleteBtnSetting);
-        midP.add(exportBtnSetting);
+        //midP.add(exportBtnSetting);
 
         //add to frame
         settingFrame.add(box);
@@ -396,16 +400,17 @@ class Window {
                         "Delete Account", JOptionPane.OK_CANCEL_OPTION);
 
                 if (answer == JOptionPane.OK_OPTION) {
-                    clientWorker.deleteAccount();
-                    settingFrame.dispose();
-                    JOptionPane.showMessageDialog(null,
-                            "Successfully deleted!", "Delete Account",
-                            JOptionPane.INFORMATION_MESSAGE);
+                    if (clientWorker.deleteAccount()) {
+                        settingFrame.dispose();
+                        JOptionPane.showMessageDialog(null,
+                                "Successfully deleted!", "Delete Account",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    }
                 }
             }
-            if (e.getSource() == exportBtnSetting) {
-                //TODO export request
-            }
+//            if (e.getSource() == exportBtnSetting) {
+//
+//            }
 
             if (e.getSource() == profileBtnSetting) {
                 Profile profile = clientWorker.getMyProfile();
@@ -420,7 +425,7 @@ class Window {
         manageProfileBtnSetting.addActionListener(actionListener);
         backBtnSetting.addActionListener(actionListener);
         deleteBtnSetting.addActionListener(actionListener);
-        exportBtnSetting.addActionListener(actionListener);
+        //exportBtnSetting.addActionListener(actionListener);
         profileBtnSetting.addActionListener(actionListener);
     }
 
@@ -490,8 +495,9 @@ class Window {
     private Button renameBtnChat = new Button("Rename the group");
     private String groupNameChat;
     private Button addUserToChatBtn = new Button("Invite");
+    private Button exportBtnChat = new Button("Export");
 
-    public void chatWindow() {
+    public void chatWindow(Conversation currentConversation) {
         //set frame
         JFrame chatFrame = new JFrame("Chat");
         chatFrame.setSize(400, 400);
@@ -519,37 +525,56 @@ class Window {
         topP.add(addUserToChatBtn);
         topP.add(renameBtnChat);
         topP.add(deleteBtnChat);
+        topP.add(exportBtnChat);
         midP.add(jsp);
         bottomP.add(inputTfChat);
         bottomP.add(sendBtnChat);
 
         //add to frame
         chatFrame.add(box);
-
-
-        ActionListener actionListener = new ActionListener() {
+        WindowListener windowListener = new WindowAdapter() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == addUserToChatBtn) {
-                    //TODO send adduser2conversation request
-                }
-                if (e.getSource() == deleteBtnChat) {
-                    //TODO send verification request
-                    int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to delete" +
-                            "the conversation?", "Delete", JOptionPane.OK_CANCEL_OPTION);
-                    if (answer == JOptionPane.OK_OPTION) {
-                        //TODO send delete request
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                clientWorker.saveMessageToMap();
+            }
+        };
+
+        ActionListener actionListener = e -> {
+            if (e.getSource() == addUserToChatBtn) {
+                String invite_uuid_String = JOptionPane.showInputDialog(chatFrame, "Enter the uuid:",
+                        "Invite", JOptionPane.INFORMATION_MESSAGE);
+                UUID invited_uuid = UUID.fromString(invite_uuid_String);
+                clientWorker.addUserToGroup(invited_uuid, clientWorker.getCurrentConversation_uuid());
+            }
+            if (e.getSource() == deleteBtnChat) {
+                int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to delete" +
+                        "the conversation?", "Delete", JOptionPane.OK_CANCEL_OPTION);
+                if (answer == JOptionPane.OK_OPTION) {
+                    if (clientWorker.deleteConversation(clientWorker.getCurrentConversation_uuid())) {
+                        chatFrame.dispose();
                     }
                 }
-                if (e.getSource() == renameBtnChat) {
-                    groupNameChat = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
-                            "Rename", JOptionPane.PLAIN_MESSAGE);
+            }
+            if (e.getSource() == renameBtnChat) {
+                groupNameChat = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
+                        "Rename", JOptionPane.PLAIN_MESSAGE);
+                if (clientWorker.renameConversation(groupNameChat)) {
                     chatFrame.setTitle(groupNameChat);
                 }
-                if (e.getSource() == sendBtnChat) {
-                    //TODO send message request
-                }
             }
+            if (e.getSource() == sendBtnChat) {
+                Message message = new Message(clientWorker.getMy_uuid(),
+                        new Date(), inputTfChat.getText());
+                if (clientWorker.sendMessage(currentConversation, message)) {
+                    displayChat.append(clientWorker.messageString(message));
+                    inputTfChat.setText(null);
+                }
+
+            } if (e.getSource() == exportBtnChat) {
+                clientWorker.export();
+            }
+
         };
         deleteBtnChat.addActionListener(actionListener);
         renameBtnChat.addActionListener(actionListener);
@@ -590,6 +615,9 @@ class ClientWorker {
     private Credential credential;
     private Profile profile;
     private UUID my_uuid;
+    private UUID currentConversation_uuid;
+    private Conversation currentConversation;
+    private ArrayList<Message> currentMessageList = new ArrayList<>();
     private ArrayList<UUID> conversation_uuid_list = new ArrayList<>();
     private ArrayList<Conversation> conversation_list = new ArrayList<>();
     private HashMap<UUID, Message[]> messageMap = new HashMap<>();
@@ -601,6 +629,10 @@ class ClientWorker {
 
     public ClientWorker(Window window) {
         this.window = window;
+    }
+
+    public UUID getCurrentConversation_uuid() {
+        return currentConversation_uuid;
     }
 
     public ArrayList<UUID> getConversation_uuid_list() {
@@ -615,8 +647,12 @@ class ClientWorker {
         return my_uuid;
     }
 
+    /**
+     * @param conversation_uuid the uuid of the conversation
+     * @return return the name of the conversation
+     */
     public String getGroupName(UUID conversation_uuid) {
-        for (int i = 0; i < conversation_list.size() ; i++) {
+        for (int i = 0; i < conversation_list.size(); i++) {
             if (conversation_list.get(i).uuid.equals(conversation_uuid)) {
                 return conversation_list.get(i).name;
             }
@@ -832,15 +868,17 @@ class ClientWorker {
     /**
      * send a delete account request
      */
-    public void deleteAccount() {
+    public boolean deleteAccount() {
         DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(credential);
         try {
             send(deleteAccountRequest, socket);
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
         } catch (RequestFailedException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     /**
@@ -873,7 +911,7 @@ class ClientWorker {
                 GetConversationRequest getConversation = new GetConversationRequest(conversation_uuid_list.get(i));
                 GetConversationResponse response;
                 try {
-                    response = (GetConversationResponse)send(getConversation, socket);
+                    response = (GetConversationResponse) send(getConversation, socket);
                     conversation_list.add(response.conversation);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -884,6 +922,10 @@ class ClientWorker {
         }
     }
 
+    /**
+     * get previously existed conversation history and
+     * save them in the map
+     */
     public void getExistMessageHistory() {
         if (conversation_uuid_list != null) {
             for (int i = 0; i < conversation_uuid_list.size(); i++) {
@@ -891,7 +933,7 @@ class ClientWorker {
                 GetMessageHistoryResponse response;
                 try {
                     response = (GetMessageHistoryResponse) send(getMessage, socket);
-                    messageMap.put(conversation_list.get(i).uuid,response.messages);
+                    messageMap.put(conversation_list.get(i).uuid, response.messages);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (RequestFailedException e) {
@@ -908,14 +950,17 @@ class ClientWorker {
      * the UI and the data stored in client
      *
      * @param conversation_uuid the uuid of the conversation
+     * @return return true if success
      */
-    public void deleteConversation(UUID conversation_uuid) {
+    public boolean deleteConversation(UUID conversation_uuid) {
         DeleteConversationRequest dr = new DeleteConversationRequest(conversation_uuid);
         try {
             send(dr, socket);
             JOptionPane.showMessageDialog(null, "Successfully deleted",
                     "Delete Conversation", JOptionPane.INFORMATION_MESSAGE);
             conversation_uuid_list.remove(conversation_uuid);
+            messageMap.remove(conversation_uuid);
+            return true;
 
         } catch (NotLoggedInException | ConversationNotFoundException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(),
@@ -925,9 +970,15 @@ class ClientWorker {
         } catch (RequestFailedException e) {
             e.printStackTrace();
         }
-
+        return false;
     }
 
+    /**
+     * Sends an add user request and receives a response
+     *
+     * @param user_uuid         the user's uuid that you want to add
+     * @param conversation_uuid the uuid of the conversation
+     */
     public void addUserToGroup(UUID user_uuid, UUID conversation_uuid) {
         AddUser2ConversationRequest addRequest = new AddUser2ConversationRequest(user_uuid, conversation_uuid);
         try {
@@ -942,11 +993,18 @@ class ClientWorker {
         }
     }
 
-    public void searchUser(UUID user_uuid) {
+
+    /**
+     * Search for a user by the uuid
+     * @param user_uuid the uuid of the user
+     * @return return the user
+     */
+    public User searchUser(UUID user_uuid) {
         GetUserRequest getUser = new GetUserRequest(user_uuid);
         GetUserResponse response;
         try {
             response = (GetUserResponse) send(getUser, socket);
+            return response.user;
         } catch (NotLoggedInException | UserNotFoundException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
                     JOptionPane.ERROR_MESSAGE);
@@ -955,6 +1013,7 @@ class ClientWorker {
         } catch (RequestFailedException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     /**
@@ -963,14 +1022,16 @@ class ClientWorker {
      * the UI and the data stored in client
      *
      * @param groupName the name of the conversation
+     * @return the uuid of the group
      */
-    public void createConversation(String groupName) {
+    public Conversation createConversation(String groupName) {
         CreateConversationRequest createRequest = new CreateConversationRequest(my_uuid, groupName);
         CreateConversationResponse response;
         try {
             response = (CreateConversationResponse) send(createRequest, socket);
             conversation_uuid_list.add(response.conversation_uuid);
-
+            currentConversation_uuid = response.conversation_uuid;
+            return getConversation(currentConversation_uuid);
         } catch (NotLoggedInException | InvalidConversationNameException | UserNotFoundException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
                     JOptionPane.ERROR_MESSAGE);
@@ -979,10 +1040,163 @@ class ClientWorker {
         } catch (RequestFailedException e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    public Conversation getConversation(UUID uuid) {
+        GetConversationRequest getConversationRequest = new GetConversationRequest(uuid);
+        GetConversationResponse response;
+        try {
+            response = (GetConversationResponse) send(getConversationRequest, socket);
+            return response.conversation;
+        } catch (ConversationNotFoundException | NotLoggedInException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 
+    /**
+     * The method sends a rename request and receives a response
+     *
+     * @param name the name of the conversation
+     * @return return true if success
+     */
+    public boolean renameConversation(String name) {
+        RenameConversationRequest renameRequest = new RenameConversationRequest(currentConversation_uuid, name);
+        try {
+            send(renameRequest, socket);
+            return true;
+        } catch (ConversationNotFoundException | NotLoggedInException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
+    /**
+     * The method sends a postMessageRequest and receives a response. If
+     * the message was sent, save the message to currentMessageList
+     *
+     * @param conversation_uuid uuid of the conversation
+     * @param message           the message that was send
+     * @return return true if message was successfully send, false
+     * if the message was not send
+     */
+    public boolean sendMessage(Conversation conversation_uuid, Message message) {
+        PostMessageRequest postMessageRequest = new PostMessageRequest(conversation_uuid, message);
+        PostMessageResponse response;
+        try {
+            send(postMessageRequest, socket);
+            saveMessage(message);
+            return true;
+        } catch (NotLoggedInException | MessageNotFoundException | IllegalContentException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
+    /**
+     * After the user entered an previously existed conversation,
+     * import the chat history for this conversation to currentMessageList
+     */
+    public void importCurrentHistory() {
+        Message[] thisConversationHistory = messageMap.get(currentConversation_uuid);
+        if (thisConversationHistory != null) {
+            currentMessageList.addAll(Arrays.asList(thisConversationHistory));
+        }
+    }
+
+
+    /**
+     * If the user entered a previously existed conversation, use importCurrentHistory
+     * before using saveMessage method.
+     *
+     * @param message when send button is clicked, add the message to currentMessageList
+     */
+    public void saveMessage(Message message) {
+        currentMessageList.add(message);
+    }
+
+
+    /**
+     * save currentMessageList to map
+     */
+    public void saveMessageToMap() {
+        Message[] messageList = new Message[currentMessageList.size()];
+        for (int i = 0; i < currentMessageList.size(); i++) {
+            messageList[i] = currentMessageList.get(i);
+        }
+        if (messageMap.containsKey(currentConversation_uuid)) {
+            messageMap.replace(currentConversation_uuid, messageList);
+        } else {
+            messageMap.put(currentConversation_uuid, messageList);
+        }
+    }
+
+    /**
+     * When the user exit current conversation, save the
+     * messages, set currentConversation_uuid to null, and
+     * clear the currentMessageList
+     */
+    public void setToNewConversation() {
+        saveMessageToMap();
+        currentConversation_uuid = null;
+        currentMessageList.clear();
+    }
+
+    /**
+     * Export the current conversation history
+     */
+    public void export() {
+        try (PrintWriter pw = new PrintWriter("Conversation_History")) {
+            pw.write("Message Sender,");
+            pw.write("Timestamp,");
+            pw.write("contents\n");
+            if (currentMessageList != null) {
+                for (int i = 0; i < currentMessageList.size(); i++) {
+                    String sender = searchUser(currentMessageList.get(i).sender_uuid).profile.name;
+                    pw.write(String.format("%s,", sender));
+                    String time = currentMessageList.get(i).time.toString();
+                    pw.write(String.format("%s,", time));
+                    pw.write(String.format("%s,", currentMessageList.get(i).content));
+                }
+            }
+            JOptionPane.showMessageDialog(null, "Export successfully!",
+                    "export", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Export failed!",
+                    "export", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * The message will be sent in the following format:
+     * {Name at Time: <the content of the message>}
+     * @param message the message
+     * @return the message string
+     */
+    public String messageString(Message message) {
+        String name = searchUser(message.sender_uuid).profile.name;
+        String date = message.time.toString();
+        String content = message.content;
+        return String.format("{%s at %s: <%s>}\n", name, date, content);
+    }
 
 }
 
