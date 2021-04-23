@@ -181,8 +181,9 @@ public class MessageServerWorker extends Thread {
     EditMessageResponse process(EditMessageRequest editMessageRequest) throws NotLoggedInException,
             MessageNotFoundException, AuthorizationException, IllegalContentException {
 
+        return null;
 
-        return new EditMessageResponse(true, "", editMessageRequest.uuid, editMessageRequest.);
+        //return new EditMessageResponse(true, "", editMessageRequest.uuid, editMessageRequest.);
     }
 
     //deleteMessageRequest
