@@ -43,7 +43,7 @@ class Window {
     private JLabel passwordLbSign;
     private Button okButtonSign;
     private TextField usernameTfSign;
-    private TextField passwordTfSign;
+    private JPasswordField passwordTfSign;
     private ClientWorker clientWorker = new ClientWorker(this);
 
     public Window() {
@@ -69,7 +69,8 @@ class Window {
         usernameLbSign = new JLabel("Username");
         passwordLbSign = new JLabel("Password");
         usernameTfSign = new TextField(20);
-        passwordTfSign = new TextField(20);
+        passwordTfSign = new JPasswordField(20);
+        passwordTfSign.setEchoChar('*');
 
         //add to top panel
         topPanel.add(registerButtonSign);
@@ -126,7 +127,7 @@ class Window {
     private final TextField rgNameTf = new TextField(20);
     private final TextField rgAgeTf = new TextField(20);
     private final TextField rgUserTf = new TextField(20);
-    private final TextField rgPassTf = new TextField(20);
+    private final JPasswordField rgPassTf = new JPasswordField(20);
     private final Button rgOkBtn = new Button("OK");
     private final Button rgCancelBtn = new Button("Cancel");
 
@@ -587,7 +588,7 @@ class Window {
     }
 
     public String getSignInPassword() {
-        return passwordTfSign.getText();
+        return Arrays.toString(passwordTfSign.getPassword());
     }
 
     public String getRgUsername() {
@@ -595,7 +596,7 @@ class Window {
     }
 
     public String getRgPassword() {
-        return rgPassTf.getText();
+        return Arrays.toString(rgPassTf.getPassword());
     }
 
     public String getRgName() {
