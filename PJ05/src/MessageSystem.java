@@ -2,7 +2,6 @@ import Exceptions.*;
 import Field.*;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.UUID;
 
 public class MessageSystem {
@@ -27,17 +26,17 @@ public class MessageSystem {
                 return user;
             }
         }
+
+
         throw new UserNotFoundException();
     }
 
     public User getUser(UUID find_uuid) throws UserNotFoundException {
-        for (UUID uuid : userDatabase.uuids()) {
-            User user = userDatabase.get(uuid);
-            if (user.uuid.equals(find_uuid)) {
-                return user;
-            }
-        }
-        throw new UserNotFoundException();
+
+
+        User user = userDatabase.get(find_uuid);
+        return user;
+
     }
 
     public User getUser(Credential credential) throws UserNotFoundException, InvalidPasswordException {
@@ -52,13 +51,9 @@ public class MessageSystem {
 
     public Conversation getConversation(UUID conversation_uuid) throws ConversationNotFoundException {
 
-        for (UUID uuid : conversationDatabase.uuids()) {
-            Conversation conversation = conversationDatabase.get(uuid);
-            if (conversation.uuid.equals(conversation_uuid)) {
-                return conversation;
-            }
-        }
-        throw new ConversationNotFoundException();
+        Conversation conversation = conversationDatabase.get(conversation_uuid);
+        return conversation;
+
     }
 
     public User addUser(Credential credential, Profile profile) throws UserExistsException {
@@ -96,9 +91,14 @@ public class MessageSystem {
         return null;
     }
 
-    public Conversation createConversation(String name, UUID uuid, UUID[] uuids) throws InvalidConversationNameException, UserNotFoundException {
+    public Conversation createConversation(String name, UUID uuid) throws InvalidConversationNameException, UserNotFoundException {
         //create one conversation(默认uuids>0)
         return null;
+    }
+
+    public Conversation setAdmin(UUID user_uuid, UUID conversation_uuid) throws ConversationNotFoundException {
+        return null;
+
     }
 
     //    public Conversation createConversation(String name,UUID uuid) throws InvalidConversationNameException,UserNotFoundException{
@@ -130,8 +130,9 @@ public class MessageSystem {
         return uuids;
     }
 
-    public Message editMessage(String message, Date date, UUID uuid) {
+    public Message editMessage(String message, UUID message_uuid) {
         //message为更改后的内容
+        //生成当前时间
         return null;
     }
 

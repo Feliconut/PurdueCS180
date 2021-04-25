@@ -186,9 +186,11 @@ public class MessageServerWorker extends Thread {
         } else if (edit_message.content.length() > 1000 || edit_message.content.contains("**")) {
             throw new IllegalContentException();
         } else {
-            Message replaced_message = system.editMessage(message, editMessageRequest.date, editMessageRequest.messsage_uuid);
-            return new EditMessageResponse(true, "", editMessageRequest.uuid, editMessageRequest.date);
+
+            Message replaced_message = system.editMessage(message, editMessageRequest.messsage_uuid);
+            return new EditMessageResponse(true, "", editMessageRequest.uuid, replaced_message.time);
         }
+
     }
 
     //deleteMessageRequest
@@ -206,20 +208,15 @@ public class MessageServerWorker extends Thread {
             InvalidConversationNameException, UserNotFoundException {
         //群主
         UUID createConversation_uuid = createConversationRequest.uuid;
-        //群员ID
-        UUID[] particpant_uuid = createConversationRequest.user_uuids;
+
 
         String name = createConversationRequest.name;
 
         if (currentUser == null) {
             throw new NotLoggedInException();
-        } else if (particpant_uuid.length == 0) {
-            //有个问题(GOOGLE DOC)
-            //
-            throw new UserNotFoundException();
         } else {
-            Conversation conversation = system.createConversation(name, createConversation_uuid, particpant_uuid);
-            return new CreateConversationResponse(true, "", createConversation_uuid, particpant_uuid);
+            Conversation conversation = system.createConversation(name, createConversation_uuid);
+            return new CreateConversationResponse(true, "", createConversation_uuid, createConversation_uuid);
         }
     }
 
@@ -269,8 +266,10 @@ public class MessageServerWorker extends Thread {
     //setConversationAdminRequest
     Response process(SetConversationAdminRequest setConversationAdminRequest) throws NotLoggedInException, UserNotFoundException,
             ConversationNotFoundException, AuthorizationException {
-
-        return null;
+        UUID user_uuid = setConversationAdminRequest.uuid;
+        UUID conversation_uuid = setConversationAdminRequest.conversation_uuid;
+        system.setAdmin(user_uuid, conversation_uuid);
+        return new Response(true, "", setConversationAdminRequest.uuid);
     }
 
     //quitConversationRequest
