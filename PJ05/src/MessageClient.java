@@ -211,6 +211,9 @@ class Window {
     private JLabel newChatLbM = new JLabel("Create a new chat");
     private JLabel groupNameLbM = new JLabel("Enter a group name");
     private TextField groupNameTfM = new TextField(20);
+    private JLabel inviteLbM = new JLabel("Enter people's uuids you want to invite\n(Separated by commas)");
+    private JTextField inviteTfM = new JTextField(20);
+   // private Button addBtnM = new Button("ADD");
     private Button startBtnM = new Button("CREATE");
     private JLabel groupInfoLb = new JLabel();
     private ArrayList<UUID> my_conversation_uuids;
@@ -267,6 +270,8 @@ class Window {
         newChatP.add(vBoxInRight);
         Panel newChatLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
         Panel labelP = new Panel(new FlowLayout(FlowLayout.LEFT));
+        Panel addLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
+        Panel addP = new Panel();
         Panel groupNameP = new Panel();
         Panel startP = new Panel();
 
@@ -274,12 +279,17 @@ class Window {
         vBoxInRight.add(newChatLbP);
         vBoxInRight.add(Box.createVerticalStrut(10));
         vBoxInRight.add(labelP);
+        vBoxInRight.add(addLbP);
+        vBoxInRight.add(addP);
         vBoxInRight.add(groupNameP);
         vBoxInRight.add(startP);
 
         newChatLbP.add(newChatLbM);
         labelP.add(groupNameLbM);
         groupNameP.add(groupNameTfM);
+        addLbP.add(inviteLbM);
+        addP.add(inviteTfM);
+        //addP.add(addBtnM);
         startP.add(startBtnM);
 
         //add panels to frame
@@ -334,11 +344,14 @@ class Window {
                 }
             }
             if (e.getSource() == startBtnM) {
-                Conversation conversation = clientWorker.createConversation(groupNameTfM.getText());
+                String groupName = groupNameTfM.getText();
+                String inviteString = inviteTfM.getText();
+                Conversation conversation = clientWorker.createConversation(groupName, inviteString);
                 UUID newConversation_uuid = conversation.uuid;
-                conversationModel.addElement(newConversation_uuid);
+                conversationModel.addElement(newConversation_uuid); //add the conversation to list
                 chatWindow(conversation);
-
+                groupNameLbM.setText(null);
+                inviteTfM.setText(null);
             }
         };
 
@@ -1025,9 +1038,25 @@ class ClientWorker {
      * @param groupName the name of the conversation
      * @return the uuid of the group
      */
-    public Conversation createConversation(String groupName) {
-        CreateConversationRequest createRequest = new CreateConversationRequest(my_uuid, groupName);
+    public Conversation createConversation(String groupName, String inviteString) {
+        String[] uuidsString;
+        UUID[] uuids;
+        try {
+        uuidsString = inviteString.split(",");
+        } catch (NumberFormatException | NullPointerException e) {
+            JOptionPane.showMessageDialog(null, "Please separate the uuids by commas!",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+        uuids = new UUID[uuidsString.length];
+        for (int i = 0; i <inviteString.length() ; i++) {
+            UUID uuid = UUID.fromString(uuidsString[i]);
+            uuids[i] = uuid;
+        }
+        CreateConversationRequest createRequest = new CreateConversationRequest(uuids, groupName);
         CreateConversationResponse response;
+
         try {
             response = (CreateConversationResponse) send(createRequest, socket);
             conversation_uuid_list.add(response.conversation_uuid);
