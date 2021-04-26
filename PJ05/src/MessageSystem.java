@@ -2,6 +2,8 @@ import Exceptions.*;
 import Field.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Set;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
@@ -10,13 +12,28 @@ public class MessageSystem {
     private final Database<User> userDatabase;
     private final Database<Message> messageDatabase;
     private final Database<Conversation> conversationDatabase;
+    private final EventBagHandler eventBagHandler;
 
 
     public MessageSystem(String userFileName, String messageFileName, String conversationFileName) {
         userDatabase = new Database<>(userFileName, User.class);
         conversationDatabase = new Database<>(conversationFileName, Conversation.class);
         messageDatabase = new Database<>(messageFileName, Message.class);
+        eventBagHandler = new EventBagHandler();
+    }
 
+    public User signIn(Credential credential) throws LoggedInException, UserNotFoundException, InvalidPasswordException {
+        User user = getUser(credential);
+        eventBagHandler.signIn(user.uuid);
+        return user;
+    }
+
+    public void signOut(UUID user_uuid) throws NotLoggedInException {
+        eventBagHandler.signOut(user_uuid);
+    }
+
+    public EventBag getEventBag(UUID user_uuid) throws NotLoggedInException {
+        return eventBagHandler.flush(user_uuid);
     }
 
     public User getUser(String name) throws UserNotFoundException {
@@ -27,7 +44,6 @@ public class MessageSystem {
                 return user;
             }
         }
-
 
         throw new UserNotFoundException();
     }
@@ -262,5 +278,151 @@ public class MessageSystem {
         return null;
     }
 
+
+}
+
+class EventBagHandler {
+    private final HashMap<UUID, EventBag> currentBags;
+
+    public EventBagHandler() {
+        currentBags = new HashMap<>();
+    }
+
+    public synchronized boolean isLoggedIn(UUID user_uuid) {
+        return currentBags.containsKey(user_uuid);
+    }
+
+    public synchronized void signIn(UUID user_uuid) throws LoggedInException {
+        if (isLoggedIn(user_uuid)) {
+            throw new LoggedInException();
+        } else {
+            currentBags.put(user_uuid, new EventBag());
+        }
+    }
+
+    public synchronized EventBag signOut(UUID user_uuid) throws NotLoggedInException {
+        EventBag bag;
+        if ((bag = currentBags.remove(user_uuid)) == null) { // if signed in, will remove and return non-null value.
+            throw new NotLoggedInException();
+        } else {
+            return bag;
+        }
+    }
+
+    public synchronized EventBag flush(UUID user_uuid) throws NotLoggedInException {
+        EventBag bag = signOut(user_uuid);
+        try {
+            signIn(user_uuid);
+        } catch (LoggedInException e) {
+            e.printStackTrace();
+        }
+        return bag;
+    }
+
+    public synchronized void add(User new_user) {
+        // everyone should know.
+        for (EventBag bag :
+                currentBags.values()) {
+            bag.putNewUser(new_user);
+        }
+    }
+
+
+    public synchronized void add(Conversation new_conversation) {
+        // everyone in the conversation should know.
+        Set<UUID> user_uuids = Set.of(new_conversation.user_uuids);
+        for (UUID uuid : currentBags.keySet()) {
+            if (user_uuids.contains(uuid)) {
+                currentBags.get(uuid).putNewConversation(new_conversation);
+            }
+        }
+    }
+
+    public synchronized void add(UUID conversation_uuid, UUID[] conversation_user_uuids, Message new_message) {
+        // everyone in the conversation should know.
+        Set<UUID> user_uuids = Set.of(conversation_user_uuids);
+        for (UUID uuid : currentBags.keySet()) {
+            if (user_uuids.contains(uuid)) {
+                currentBags.get(uuid).putNewMessage(conversation_uuid, new_message);
+            }
+        }
+    }
+
+    public synchronized void add(Conversation conversation, Message message) {
+        add(conversation.uuid, conversation.user_uuids, message);
+    }
+
+    public synchronized void update(User user) {
+        // everyone should know.
+        for (EventBag bag :
+                currentBags.values()) {
+            bag.putUpdatedUser(user);
+        }
+
+    }
+
+    public synchronized void update(Conversation conversation) {
+        // everyone in the conversation should know.
+        Set<UUID> user_uuids = Set.of(conversation.user_uuids);
+        for (UUID uuid : currentBags.keySet()) {
+            if (user_uuids.contains(uuid)) {
+                currentBags.get(uuid).putUpdatedConversation(conversation);
+            }
+        }
+    }
+
+    public synchronized void update(UUID[] conversation_user_uuids, Message message) {
+        // everyone in the conversation should know.
+        Set<UUID> user_uuids = Set.of(conversation_user_uuids);
+        for (UUID uuid : currentBags.keySet()) {
+            if (user_uuids.contains(uuid)) {
+                currentBags.get(uuid).putUpdatedMessage(message);
+            }
+        }
+    }
+
+    public void addUpdate(Conversation conversation, Message message) {
+        update(conversation.user_uuids, message);
+    }
+
+    public synchronized void removeUser(UUID user_uuid) {
+        // everyone should know.
+        for (EventBag bag :
+                currentBags.values()) {
+            bag.putRemovedUser(user_uuid);
+        }
+    }
+
+    public void remove(User user) {
+        removeUser(user.uuid);
+    }
+
+    public synchronized void removeConversation(UUID conversation_uuid, UUID[] conversation_user_uuids) {
+        // everyone in the conversation should know.
+        Set<UUID> user_uuids = Set.of(conversation_user_uuids);
+        for (UUID uuid : currentBags.keySet()) {
+            if (user_uuids.contains(uuid)) {
+                currentBags.get(uuid).putRemovedConversation(conversation_uuid);
+            }
+        }
+    }
+
+    public void remove(Conversation conversation) {
+        removeConversation(conversation.uuid, conversation.user_uuids);
+    }
+
+    public synchronized void removeMessage(UUID message_uuid, UUID[] conversation_user_uuids) {
+        // everyone in the conversation should know.
+        Set<UUID> user_uuids = Set.of(conversation_user_uuids);
+        for (UUID uuid : currentBags.keySet()) {
+            if (user_uuids.contains(uuid)) {
+                currentBags.get(uuid).putRemovedMessage(message_uuid);
+            }
+        }
+    }
+
+    public void remove(Message message, Conversation conversation) {
+        removeMessage(message.uuid, conversation.user_uuids);
+    }
 
 }

@@ -108,6 +108,14 @@ public class MessageServerWorker extends Thread {
             }
 
         }
+
+        if (currentUser != null) {
+            try {
+                system.signOut(currentUser.uuid);
+            } catch (NotLoggedInException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private Response process(Request request) throws
@@ -121,11 +129,10 @@ public class MessageServerWorker extends Thread {
     //log in
     //authenticateRequest. To test user's login circumstances.
     Response process(AuthenticateRequest authenticateRequest) throws UserNotFoundException, InvalidPasswordException,
-            InvalidUsernameException {
+            InvalidUsernameException, LoggedInException {
         Credential credential = authenticateRequest.credential;
-
-        User user = system.getUser(credential);
-        currentUser = user;
+        User user = system.signIn(credential); // Validates the credential.
+        currentUser = user; // Mark this ServerWorker as authenticated.
         return new Response(true, "Login successful!", authenticateRequest.uuid);
 
     }
@@ -444,6 +451,12 @@ public class MessageServerWorker extends Thread {
 
     //GetEventFeedResponse
     GetEventFeedResponse process(GetEventFeedRequest getEventFeedRequest) throws NotLoggedInException {
-        return null;
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else {
+
+            return new GetEventFeedResponse(true, "", getEventFeedRequest.uuid,
+                    system.getEventBag(currentUser.uuid));
+        }
     }
 }
