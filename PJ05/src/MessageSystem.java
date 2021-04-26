@@ -74,7 +74,7 @@ public class MessageSystem {
         return null;
     }
 
-    public Message deleteMessage(UUID uuid) throws MessageNotFoundException {
+    public Message deleteMessage(UUID message_uuid, UUID conversation_uuid) throws MessageNotFoundException {
 //        messageDatabase.remove(uuid);
         return null;
     }
@@ -85,7 +85,7 @@ public class MessageSystem {
     }
 
 
-    public Message addMessage(UUID uuid) throws MessageNotFoundException {
+    public Message addMessage(UUID message_uuid, UUID conversation_uuid) throws MessageNotFoundException {
         // want to add the a message to it's conversation and return the message
         return null;
     }
