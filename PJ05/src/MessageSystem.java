@@ -1,180 +1,143 @@
-import Exceptions.*;
-import Field.*;
+import Field.Conversation;
+import Field.Credential;
+import Field.Message;
+import Field.User;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
-public class MessageSystem {
+public class MessageSystem
+{
     private final Database<User> userDatabase;
     private final Database<Message> messageDatabase;
     private final Database<Conversation> conversationDatabase;
 
 
-    public MessageSystem(String userFileName, String messageFileName, String conversationFileName) {
+    public MessageSystem(String userFileName, String messageFileName, String conversationFileName)
+    {
         userDatabase = new Database<>(userFileName, User.class);
-        conversationDatabase = new Database<>(conversationFileName, Conversation.class);
+        conversationDatabase = new Database<>(conversationFileName,Conversation.class);
         messageDatabase = new Database<>(messageFileName, Message.class);
 
     }
 
 
-    public User getUser(String name) throws UserNotFoundException {
-        for (UUID uuid : userDatabase.uuids()) {
+    public User getUser(String name) throws UserNotFoundException
+    {
+        for (UUID uuid : userDatabase.uuids())
+        {
             User user = userDatabase.get(uuid);
             Credential userCredential = user.credential;
-            if (userCredential.usrName.equals(name)) {
+            if (userCredential.usrName.equals(name))
+            {
                 return user;
             }
         }
-
-
         throw new UserNotFoundException();
     }
 
-    public User getUser(UUID find_uuid) throws UserNotFoundException {
-
-
-        User user = userDatabase.get(find_uuid);
-        return user;
-
-    }
-
-    public User getUser(Credential credential) throws UserNotFoundException, InvalidPasswordException {
+    public User getUser(Credential credential) throws UserNotFoundException, InvalidPasswordException
+    {
 
         User user = getUser(credential.usrName);
-        if (user.credential.passwd.equals(credential.passwd)) {
+        if (user.credential.passwd.equals(credential.passwd))
+        {
             return user;
-        } else {
+        } else
+        {
             throw new InvalidPasswordException();
         }
     }
 
-    public Conversation getConversation(UUID conversation_uuid) throws ConversationNotFoundException {
-
-        Conversation conversation = conversationDatabase.get(conversation_uuid);
-        return conversation;
-
-    }
-
-    public User addUser(Credential credential, Profile profile) throws UserExistsException {
-        //make sure the user not exist
-        try {
-            User user = getUser(credential.usrName);
-            throw new UserExistsException();
-        } catch (UserNotFoundException ignored) {
-
-        }
-        User user = new User(credential, profile);
-        userDatabase.put(user.uuid, user);
-        return user;
-
-    }
-
-    public Profile deleteUser(UUID uuid) throws UserNotFoundException {
-//        userDatabase.remove(uuid);
-        return null;
-    }
-
-    public Message deleteMessage(UUID uuid) throws MessageNotFoundException {
-//        messageDatabase.remove(uuid);
-        return null;
-    }
-
-    public Conversation deleteConversation(Conversation conversation, UUID uuid) throws ConversationNotFoundException {
-//        conversationDatabase.remove(conversation.message_uuids);
-        return null;
-    }
-
-
-    public Message addMessage(UUID uuid) throws MessageNotFoundException {
-        // want to add the a message to it's conversation and return the message
-        return null;
-    }
-
-    public Conversation createConversation(String name, UUID uuid) throws InvalidConversationNameException, UserNotFoundException {
-        //create one conversation(默认uuids>0)
-        return null;
-    }
-
-    public Conversation setAdmin(UUID user_uuid, UUID conversation_uuid) throws ConversationNotFoundException {
-        return null;
-
-    }
-
-    //    public Conversation createConversation(String name,UUID uuid) throws InvalidConversationNameException,UserNotFoundException{
-//        // 变成单人聊天
-//        return null;
-//    }
-    public Conversation renameConversation(String name, UUID conversation_uuid) {
-        //rename
-        return null;
-    }
-
-    public Conversation addUser2Conversation(UUID user_uuid, UUID conversation_uuid) {
-        //拉user_uuid进入conversation_uuid这个群聊
-        return null;
-    }
-
-    public Conversation removeUserFormConversation(UUID user_uuid, UUID conversation_uuid) {
-        //踢user_uuid进入conversation_uuid这个群聊（被动离开）
-        return null;
-    }
-
-    public Conversation quitConversation(UUID user_uuid, UUID conversation_uuid) {
-        //这个uuid主动离开这个conversation_uuid群聊
-        return null;
-    }
-
-    public ArrayList<UUID> allUser() {
-        ArrayList<UUID> uuids = new ArrayList<>(userDatabase.uuids());
-        return uuids;
-    }
-
-    public Message editMessage(String message, UUID message_uuid) {
-        //message为更改后的内容
-        //生成当前时间
-        return null;
-    }
-
-    public UUID[] listAllUUID(UUID conversation_uuid) {
-        //所有群聊人员的uuid
-        return null;
-    }
-
-
     /**
      * Gets all message of the given conversation starting from given time.
      **/
-    public Message getMessages(UUID conversatioin_uuid) throws MessageNotFoundException, ConversationNotFoundException {
+    public Message[] getMessage(UUID uuid, String time)
+    {
+        List<Message> list = new ArrayList<Message>();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        try {
+            Date date = format.parse(time);
+            Conversation conversation = conversationDatabase.get(uuid);
+            UUID[] message_uuids = conversation.message_uuids;
+            for (UUID item:
+                 message_uuids) {
+                Message message = messageDatabase.get(item);
+                long time1 = message.time.getTime();
+                long time2 = date.getTime();
+                if(time1 < time2){
+                    continue;
+                }
+                list.add(message);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         //TODO
-        Conversation conversation = getConversation(conversatioin_uuid);
-        Message message = messageDatabase.get(conversatioin_uuid);
-
-
-        return message;
+        return list.toArray(new Message[list.size()]);
     }
 
-    public Message[] getConversationMessages(UUID conversation_uuid) {
-        //一个conversation所有的人员的uuid
-        return null;
+    public Message[] getMessage(UUID uuid)
+    {
+        List<Message> list = new ArrayList<Message>();
+        Conversation conversation = conversationDatabase.get(uuid);
+        UUID[] message_uuids = conversation.message_uuids;
+        for (UUID item:
+                message_uuids) {
+            Message message = messageDatabase.get(item);
+            list.add(message);
+        }
+
+        return list.toArray(new Message[list.size()]);
     }
 
-    public Message getMessage(UUID conversation_uuid) throws MessageNotFoundException {
-        //一条信息
-        return null;
-    }
-
-    public UUID[] getUserConversations(UUID user_uuid) throws ConversationNotFoundException {
-        ArrayList<UUID> uuids = new ArrayList<>();
-        for (UUID uuid : conversationDatabase.uuids()) {
-            Conversation conversation = getConversation(uuid);
-            if (conversation.uuid == user_uuid) {
-                uuids.add(conversation.uuid);
+    public Conversation[] getConversation(UUID uuid, String time)
+    {
+        List<Conversation> list = new ArrayList<Conversation>();
+        UUID[] userUUIDs = {uuid};
+        for (UUID itemUUID:
+                conversationDatabase.uuids()) {
+           Conversation conversation =  conversationDatabase.get(itemUUID);
+            for (UUID userID:
+                 conversation.user_uuids) {
+                if (!userID.equals(uuid)){
+                    continue;
+                }
+                Message[] messages = getMessage(conversation.uuid,time);
+                UUID[] msgUUIDs = new UUID[messages.length];
+                for(int i = 0; i < messages.length; i++){
+                    msgUUIDs[i] = messages[i].uuid;
+                }
+                Conversation item = new Conversation(conversation.uuid,conversation.name,conversation.user_uuids,msgUUIDs);
+                list.add(item);
+                break;
             }
         }
 
-        return (UUID[]) uuids.toArray();
+        return list.toArray(new Conversation[list.size()]);
+    }
+
+    public Conversation[] getConversation(UUID uuid)
+    {
+        Conversation item = conversationDatabase.get(uuid);
+        List<Conversation> list = new ArrayList<Conversation>();
+        list.add(item);
+
+
+        return list.toArray(new Conversation[list.size()]);
     }
 
 
+}
+
+class UserNotFoundException extends Exception
+{
+}
+
+class InvalidPasswordException extends Exception
+{
 }
