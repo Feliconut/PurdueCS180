@@ -1,10 +1,24 @@
 import Field.*;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Date;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
 public class MessageSystemTest {
 
+    @Before
+    public void setUp() throws Exception {
+        System.out.println("Test begins.");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        System.out.println("Test ends.");
+    }
 
     @Test
     public void getUser() {
@@ -12,7 +26,11 @@ public class MessageSystemTest {
             MessageSystem messageSystem = new MessageSystem("userFileTest", "messageFileTest"
                     , "conversationFileTest");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
+            User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
+            // expected successful test case for add, remove method.
             messageSystem.addUser(student1.credential, student1.profile);
+            messageSystem.addUser(student2.credential, student2.profile);
+            messageSystem.deleteUser(student2.uuid);
             assertEquals(student1, messageSystem.getUser(student1.credential.usrName));
             assertEquals(student1, messageSystem.getUser(student1.uuid));
             assertEquals(student1, messageSystem.getUser(student1.credential));
@@ -52,10 +70,52 @@ public class MessageSystemTest {
 
     @Test
     public void getConversation() {
+        try {
+            MessageSystem ms3 = new MessageSystem("userFileTest", "messageFileTest"
+                    , "conversationFileTest");
+            User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
+            User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
+            Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
+            Message message2 = new Message(student2.uuid, new Date(2022, 4, 26), "Hi");
+            UUID[] group1 = {student1.uuid, student2.uuid};
+            UUID[] messageGroup = {message1.uuid, message2.uuid};
+            Conversation conversationTest = new Conversation("Group1", group1, messageGroup);
+            // expected successful test case for addUser, addMessage, and remove method.
+            Conversation conversation = ms3.createConversation("group1", student1.uuid);
+            ms3.addUser2Conversation(student2.uuid, conversation.uuid);
+            ms3.addMessage(message1.uuid, conversation.uuid);
+            ms3.addMessage(message2.uuid, conversation.uuid);
+            // 修改了addMessage method，添加了特定conversation_uuid，等整个写完要确认此处没有问题
+            assertEquals(conversationTest, ms3.getConversation(conversation.uuid));
+        } catch (MessageNotFoundException e) {
+            e.printStackTrace();
+            fail();
+        } catch (UserNotFoundException e) {
+            e.printStackTrace();
+            fail();
+        } catch (InvalidConversationNameException e) {
+            e.printStackTrace();
+            fail();
+        } catch (ConversationNotFoundException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 
-    @Test
-    public void addUser() {
+    @Test (expected = UserExistsException.class)
+    public void addUserExceptionExpected() throws UserExistsException {
+        try {
+            MessageSystem ms4 = new MessageSystem("userFileTest", "messageFileTest"
+                    , "conversationFileTest");
+            User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
+            ms4.addUser(student1.credential, student1.profile);
+            ms4.addUser(student1.credential, student1.profile);
+        } catch (UserExistsException e) {
+            String message = ""; // Exception prompt.
+            assertEquals(message, e.getMessage());
+            throw e;
+        }
+        fail("UserExistException did not throw when expected.");
     }
 
     @Test
