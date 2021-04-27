@@ -11,5 +11,13 @@ public class DeleteMessageRequest extends Request {
         this.message_uuid = message_uuid;
     }
 
+    @Override
+    public String toString() {
+        return "DeleteMessageRequest{" +
+                "message_uuid=" + message_uuid +
+                ", uuid=" + uuid +
+                '}';
+    }
+
 
 }

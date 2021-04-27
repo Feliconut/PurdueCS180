@@ -1,6 +1,5 @@
 package Request;
 
-import Field.Conversation;
 import Field.Message;
 
 import java.util.UUID;
@@ -13,5 +12,14 @@ public class PostMessageRequest extends Request {
         super();
         this.conversation_uuid = conversation_uuid;
         this.message = message;
+    }
+
+    @Override
+    public String toString() {
+        return "PostMessageRequest{" +
+                "conversation_uuid=" + conversation_uuid +
+                ", message=" + message +
+                ", uuid=" + uuid +
+                '}';
     }
 }

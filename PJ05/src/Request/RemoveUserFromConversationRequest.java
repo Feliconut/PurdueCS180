@@ -10,4 +10,13 @@ public class RemoveUserFromConversationRequest extends Request {
         this.user_uuid = user_uuid;
         this.conversation_uuid = conversation_uuid;
     }
+
+    @Override
+    public String toString() {
+        return "RemoveUserFromConversationRequest{" +
+                "user_uuid=" + user_uuid +
+                ", conversation_uuid=" + conversation_uuid +
+                ", uuid=" + uuid +
+                '}';
+    }
 }

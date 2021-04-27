@@ -9,4 +9,13 @@ public class UpdateMessageRequest extends Request {
         this.messageUID = messageUID;
         this.newContent = newContent;
     }
+
+    @Override
+    public String toString() {
+        return "UpdateMessageRequest{" +
+                "uuid=" + uuid +
+                ", messageUID='" + messageUID + '\'' +
+                ", newContent='" + newContent + '\'' +
+                '}';
+    }
 }

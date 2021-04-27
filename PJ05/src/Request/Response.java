@@ -23,4 +23,15 @@ public class Response extends Request {
         this.request_uuid = request_uuid;
         this.exception = exception;
     }
+
+    @Override
+    public String toString() {
+        return "Response{" +
+                "uuid=" + uuid +
+                ", state=" + state +
+                ", msg='" + msg + '\'' +
+                ", request_uuid=" + request_uuid +
+                ", exception=" + exception +
+                '}';
+    }
 }
