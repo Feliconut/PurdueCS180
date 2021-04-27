@@ -70,6 +70,7 @@ class Window {
         passwordLbSign = new JLabel("Password");
         usernameTfSign = new TextField(20);
         passwordTfSign = new JPasswordField(20);
+        passwordTfSign.setSize(usernameTfSign.getSize());
         passwordTfSign.setEchoChar('*');
 
         //add to top panel
@@ -213,7 +214,7 @@ class Window {
     private TextField groupNameTfM = new TextField(20);
     private JLabel inviteLbM = new JLabel("Enter people's uuids you want to invite\n(Separated by commas)");
     private JTextField inviteTfM = new JTextField(20);
-   // private Button addBtnM = new Button("ADD");
+    // private Button addBtnM = new Button("ADD");
     private Button startBtnM = new Button("CREATE");
     private JLabel groupInfoLb = new JLabel();
     private ArrayList<UUID> my_conversation_uuids;
@@ -502,7 +503,7 @@ class Window {
         cancelBtnProfile.addActionListener(actionListener);
     }
 
-    private JTextArea displayChat = new JTextArea(15, 40);
+
     private TextField inputTfChat = new TextField(30);
     private Button sendBtnChat = new Button("SEND");
     private Button deleteBtnChat = new Button("Delete the group");
@@ -520,11 +521,11 @@ class Window {
         chatFrame.setVisible(true);
 
         //set display window
-        displayChat.setLineWrap(true);
-        displayChat.setEditable(false);
-        JScrollPane jsp = new JScrollPane(displayChat);
-        jsp.setBounds(displayChat.getX(), displayChat.getY(),
-                displayChat.getWidth(), displayChat.getHeight());
+        DefaultListModel<String> model = new DefaultListModel<>();
+        JList<String> chatList = new JList<>(model);
+        JScrollPane jsp = new JScrollPane(chatList);
+        jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        jsp.setBounds(0, 50, 400, 250);
 
         //set panels
         Box box = Box.createVerticalBox();
@@ -551,8 +552,35 @@ class Window {
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
                 clientWorker.saveMessageToMap();
+                clientWorker.setToNewConversation();
             }
         };
+
+        //if left clicked, edit message.
+        //if right clicked, delete message.
+        list.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                if (e.getButton() == MouseEvent.BUTTON3) {
+                    int answer = JOptionPane.showConfirmDialog(chatFrame,
+                            "Are you sure to delete the selected message?",
+                            "Alert", JOptionPane.YES_NO_OPTION);
+                    if (answer == JOptionPane.YES_OPTION) {
+                        if (clientWorker.deleteMessage(chatList.getSelectedValue())) {
+                            model.removeElement(chatList.getSelectedValue());
+                        }
+                    }
+                }
+
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    String edit = JOptionPane.showInputDialog(chatFrame, "Edit the selected message:",
+                            "Edit", JOptionPane.INFORMATION_MESSAGE);
+                    clientWorker.editMessage(chatList.getSelectedValue(), edit);
+                    model.setElementAt(edit, list.getSelectedIndex());
+                }
+            }
+        });
 
         ActionListener actionListener = e -> {
             if (e.getSource() == addUserToChatBtn) {
@@ -580,12 +608,14 @@ class Window {
             if (e.getSource() == sendBtnChat) {
                 Message message = new Message(clientWorker.getMy_uuid(),
                         new Date(), inputTfChat.getText());
-                if (clientWorker.sendMessage(currentConversation, message)) {
-                    displayChat.append(clientWorker.messageString(message));
+                String messageString = clientWorker.messageString(message);
+                if (clientWorker.sendMessage(currentConversation.uuid, message)) {
+                    model.addElement(messageString);
                     inputTfChat.setText(null);
                 }
 
-            } if (e.getSource() == exportBtnChat) {
+            }
+            if (e.getSource() == exportBtnChat) {
                 clientWorker.export();
             }
 
@@ -619,6 +649,7 @@ class Window {
     public String getRgAgeString() {
         return rgAgeTf.getText();
     }
+
 
 }
 
@@ -1010,6 +1041,7 @@ class ClientWorker {
 
     /**
      * Search for a user by the uuid
+     *
      * @param user_uuid the uuid of the user
      * @return return the user
      */
@@ -1042,7 +1074,7 @@ class ClientWorker {
         String[] uuidsString;
         UUID[] uuids;
         try {
-        uuidsString = inviteString.split(",");
+            uuidsString = inviteString.split(",");
         } catch (NumberFormatException | NullPointerException e) {
             JOptionPane.showMessageDialog(null, "Please separate the uuids by commas!",
                     "Error",
@@ -1050,7 +1082,7 @@ class ClientWorker {
             return null;
         }
         uuids = new UUID[uuidsString.length];
-        for (int i = 0; i <inviteString.length() ; i++) {
+        for (int i = 0; i < inviteString.length(); i++) {
             UUID uuid = UUID.fromString(uuidsString[i]);
             uuids[i] = uuid;
         }
@@ -1122,11 +1154,11 @@ class ClientWorker {
      * @return return true if message was successfully send, false
      * if the message was not send
      */
-    public boolean sendMessage(Conversation conversation_uuid, Message message) {
+    public boolean sendMessage(UUID conversation_uuid, Message message) {
         PostMessageRequest postMessageRequest = new PostMessageRequest(conversation_uuid, message);
         PostMessageResponse response;
         try {
-            send(postMessageRequest, socket);
+            response = (PostMessageResponse) send(postMessageRequest, socket);
             saveMessage(message);
             return true;
         } catch (NotLoggedInException | MessageNotFoundException | IllegalContentException e) {
@@ -1218,6 +1250,7 @@ class ClientWorker {
     /**
      * The message will be sent in the following format:
      * {Name at Time: <the content of the message>}
+     *
      * @param message the message
      * @return the message string
      */
@@ -1225,8 +1258,51 @@ class ClientWorker {
         String name = searchUser(message.sender_uuid).profile.name;
         String date = message.time.toString();
         String content = message.content;
-        return String.format("{%s at %s: <%s>}\n", name, date, content);
+        String uuid = message.uuid.toString();
+        return String.format("{(%s)%s at %s: <%s>}\n", uuid, name, date, content);
     }
+
+    /**
+     * The method sends a deleteMessage request and receives a response
+     *
+     * @param content the content of the string
+     * @return true if the message was successfully deleted, false if
+     * an error occurred
+     */
+    public boolean deleteMessage(String content) {
+        UUID message_uuid = UUID.fromString(content.substring(content.indexOf("(") + 1, content.indexOf(")")));
+        DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(message_uuid);
+
+        try {
+            send(deleteMessageRequest, socket);
+            return true;
+        } catch (MessageNotFoundException | NotLoggedInException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void editMessage(String oldContent, String newContent) {
+        UUID message_uuid = UUID.fromString(oldContent.substring(oldContent.indexOf("(") + 1, oldContent.indexOf(")")));
+        EditMessageRequest editMessageRequest = new EditMessageRequest(message_uuid, newContent);
+        try {
+            send(editMessageRequest, socket);
+        } catch (NotLoggedInException | MessageNotFoundException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
 }
 
