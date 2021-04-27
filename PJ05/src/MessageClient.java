@@ -847,17 +847,19 @@ class ClientWorker {
         int port;
 
         try {
-            hostname = JOptionPane.showInputDialog(null, "Please enter the hostname:",
-                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
-            if (hostname == null) {
-                return;
-            }
-
-            portString = JOptionPane.showInputDialog(null, "Please enter the port number:",
-                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
-            if (portString == null) {
-                return;
-            }
+//            hostname = JOptionPane.showInputDialog(null, "Please enter the hostname:",
+//                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
+//            if (hostname == null) {
+//                return;
+//            }
+//
+//            portString = JOptionPane.showInputDialog(null, "Please enter the port number:",
+//                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
+//            if (portString == null) {
+//                return;
+//            }
+            hostname = "localhost";
+            portString = "9866";
             port = Integer.parseInt(portString);
 
             socket = new Socket(hostname, port);
