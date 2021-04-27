@@ -1,11 +1,15 @@
 import Exceptions.*;
-import Field.*;
+import Field.Conversation;
+import Field.Credential;
+import Field.Message;
+import Field.User;
 import Request.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Set;
 import java.util.UUID;
 
 public class MessageServerWorker extends Thread {
@@ -43,6 +47,8 @@ public class MessageServerWorker extends Thread {
 
                     if (request instanceof AuthenticateRequest) {
                         response = process((AuthenticateRequest) request);
+                    } else if (request instanceof EditProfileRequest) {
+                        response = process((EditProfileRequest) request);
                     } else if (request instanceof AddUser2ConversationRequest) {
                         response = process((AddUser2ConversationRequest) request);
                     } else if (request instanceof CreateConversationRequest) {
@@ -124,6 +130,16 @@ public class MessageServerWorker extends Thread {
 
     }
 
+    //editProfileRequest
+    Response process(EditProfileRequest editProfileRequest) throws NotLoggedInException {
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else {
+
+        }
+        return null;
+    }
+
     //logOutRequest
     Response process(LogOutRequest logOutRequest) throws NotLoggedInException {
 
@@ -145,12 +161,16 @@ public class MessageServerWorker extends Thread {
     }
 
     //deleteAccountRequest
-    Response process(DeleteAccountRequest deleteAccountRequest) throws AuthorizationException, UserNotFoundException {
-        UUID uuid = deleteAccountRequest.uuid;
+    Response process(DeleteAccountRequest deleteAccountRequest) throws AuthorizationException, UserNotFoundException, InvalidPasswordException {
 
-        Profile profile = system.deleteUser(uuid);
-
-        return new Response(true, "Delete successfully", deleteAccountRequest.uuid);
+        if (deleteAccountRequest.credential.usrName.equals(currentUser.credential.usrName)) {
+            system.getUser(deleteAccountRequest.credential);
+            UUID uuid = currentUser.uuid;
+            system.deleteUser(uuid);
+        } else {
+            throw new AuthorizationException();
+        }
+        return new Response(true, "", deleteAccountRequest.uuid);
     }
 
 
@@ -158,19 +178,17 @@ public class MessageServerWorker extends Thread {
     PostMessageResponse process(PostMessageRequest postMessageRequest) throws NotLoggedInException,
             ConversationNotFoundException, AuthorizationException, IllegalContentException, MessageNotFoundException {
 
-        //打算搞简单一点 handout没说权限这个事
-        Message post_message = system.getMessage(postMessageRequest.uuid);
-        String message = String.valueOf(postMessageRequest.message);
+        UUID conversation_uuid = postMessageRequest.conversation_uuid;
+        Message message = postMessageRequest.message;
+        Conversation conversation = system.getConversation(conversation_uuid);
+
         if (currentUser == null) {
             throw new NotLoggedInException();
-        } else if (message.length() > 1000) {
-            throw new IllegalContentException();
-        } else if (post_message == null) {
-            throw new MessageNotFoundException();
+        } else if (Set.of(conversation.user_uuids).contains(currentUser.uuid)) {
+            Message new_message = system.addMessage(postMessageRequest.conversation_uuid, currentUser.uuid, message.content);
+            return new PostMessageResponse(true, "", postMessageRequest.uuid, new_message.time, new_message.uuid);
         } else {
-            Message add_message = system.addMessage(postMessageRequest.uuid);
-            return new PostMessageResponse(true, "", postMessageRequest.uuid, postMessageRequest.message.time);
-
+            throw new ConversationNotFoundException();
         }
     }
 
@@ -178,15 +196,14 @@ public class MessageServerWorker extends Thread {
     EditMessageResponse process(EditMessageRequest editMessageRequest) throws NotLoggedInException,
             MessageNotFoundException, AuthorizationException, IllegalContentException {
 
-        Message edit_message = system.getMessage(editMessageRequest.uuid);
+        Message edit_message = system.getMessage(editMessageRequest.messsage_uuid);
         String message = edit_message.content;
 
         if (currentUser == null) {
             throw new NotLoggedInException();
-        } else if (edit_message.content.length() > 1000 || edit_message.content.contains("**")) {
+        } else if (message.length() > 1000 || message.contains("**")) {
             throw new IllegalContentException();
         } else {
-
             Message replaced_message = system.editMessage(message, editMessageRequest.messsage_uuid);
             return new EditMessageResponse(true, "", editMessageRequest.uuid, replaced_message.time);
         }
@@ -195,37 +212,44 @@ public class MessageServerWorker extends Thread {
 
     //deleteMessageRequest
     Response process(DeleteMessageRequest deleteMessageRequest) throws NotLoggedInException,
-            MessageNotFoundException, AuthorizationException {
-
-        UUID uuid = deleteMessageRequest.uuid;
-
-        Message message = system.deleteMessage(uuid);
-        return new Response(true, "Delete message successfully", deleteMessageRequest.uuid);
+            MessageNotFoundException, AuthorizationException, UserNotFoundException {
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        }
+        UUID message_uuid = deleteMessageRequest.message_uuid;
+        Message message = system.getMessage(message_uuid);
+        if (message.sender_uuid == currentUser.uuid) {
+            system.deleteMessage(message_uuid);
+        } else {
+            throw new AuthorizationException();
+        }
+        return new Response(true, "", deleteMessageRequest.uuid);
     }
 
     //createConversationRequest
     CreateConversationResponse process(CreateConversationRequest createConversationRequest) throws NotLoggedInException,
             InvalidConversationNameException, UserNotFoundException {
         //群主
-        UUID createConversation_uuid = createConversationRequest.uuid;
-
-
+        UUID[] createConversation_uuid = createConversationRequest.user_uuids;
         String name = createConversationRequest.name;
 
         if (currentUser == null) {
             throw new NotLoggedInException();
+        } else if (name.contains("**") || name.length() > 1000) {
+            throw new InvalidConversationNameException();
         } else {
             Conversation conversation = system.createConversation(name, createConversation_uuid);
-            return new CreateConversationResponse(true, "", createConversation_uuid, createConversation_uuid);
+            return new CreateConversationResponse(true, "", createConversationRequest.uuid, conversation.uuid);
         }
     }
 
     //deleteConversationRequest
     Response process(DeleteConversationRequest deleteConversationRequest) throws NotLoggedInException, ConversationNotFoundException {
-        UUID uuid = deleteConversationRequest.uuid;
 
-        //Conversation conversation = system.deleteConversation(deleteConversationRequest.conversation, deleteConversationRequest.uuid);
-
+        Conversation conversation = system.deleteConversation(deleteConversationRequest.conversation_uuid);
+        if (conversation == null) {
+            throw new ConversationNotFoundException();
+        }
         return new Response(true, "", deleteConversationRequest.uuid);
     }
 
@@ -233,7 +257,6 @@ public class MessageServerWorker extends Thread {
     Response process(RenameConversationRequest renameConversationRequest) throws NotLoggedInException, UserNotFoundException,
             ConversationNotFoundException, InvalidConversationNameException {
         String name = renameConversationRequest.name;
-
         if (currentUser == null) {
             throw new NotLoggedInException();
         } else if (name.contains("**")) {
@@ -241,7 +264,7 @@ public class MessageServerWorker extends Thread {
         } else if (renameConversationRequest.conversation_uuid == null) {
             throw new UserNotFoundException();
         } else {
-            Conversation conversation = system.renameConversation(name, renameConversationRequest.conversation_uuid);
+            system.renameConversation(name, renameConversationRequest.conversation_uuid);
             return new Response(true, "", renameConversationRequest.uuid);
         }
     }
@@ -249,39 +272,89 @@ public class MessageServerWorker extends Thread {
     //addUser2ConversationRequest
     Response process(AddUser2ConversationRequest addUser2ConversationRequest) throws NotLoggedInException,
             UserNotFoundException, ConversationNotFoundException, AuthorizationException {
+        User user = system.getUser(addUser2ConversationRequest.user_uuid);
+        Conversation conversation = system.getConversation(addUser2ConversationRequest.conversation_uuid);
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else if (user == null) {
+            throw new UserNotFoundException();
+        } else if (conversation == null) {
+            throw new ConversationNotFoundException();
+        } else {
+            UUID user_uuid = addUser2ConversationRequest.user_uuid;
+            system.addUser2Conversation(user_uuid, addUser2ConversationRequest.conversation_uuid);
+            return new Response(true, "", addUser2ConversationRequest.uuid);
+        }
 
-        UUID user_uuid = addUser2ConversationRequest.user_uuid;
-        Conversation conversation = system.addUser2Conversation(user_uuid, addUser2ConversationRequest.conversation_uuid);
-        return new Response(true, "", addUser2ConversationRequest.uuid);
     }
 
     //removeUserFromConversationRequest
     Response process(RemoveUserFromConversationRequest removeUserFromConversationRequest) throws
             RequestFailedException {
-        UUID uuid = removeUserFromConversationRequest.user_uuid;
-        Conversation conversation = system.removeUserFormConversation(uuid, removeUserFromConversationRequest.conversation_uuid);
-        return new Response(true, "", removeUserFromConversationRequest.conversation_uuid);
+        User user = system.getUser(removeUserFromConversationRequest.user_uuid);
+        Conversation conversation = system.getConversation(removeUserFromConversationRequest.conversation_uuid);
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else if (user == null) {
+            throw new UserNotFoundException();
+        } else if (conversation == null) {
+            throw new ConversationNotFoundException();
+        } else if (currentUser.uuid != conversation.admin_uuid) {
+            throw new AuthorizationException();
+        } else {
+            UUID uuid = removeUserFromConversationRequest.user_uuid;
+
+            system.removeUserFromConversation(uuid, removeUserFromConversationRequest.conversation_uuid);
+            return new Response(true, "", removeUserFromConversationRequest.conversation_uuid);
+        }
+
     }
 
     //setConversationAdminRequest
     Response process(SetConversationAdminRequest setConversationAdminRequest) throws NotLoggedInException, UserNotFoundException,
             ConversationNotFoundException, AuthorizationException {
-        UUID user_uuid = setConversationAdminRequest.uuid;
-        UUID conversation_uuid = setConversationAdminRequest.conversation_uuid;
-        system.setAdmin(user_uuid, conversation_uuid);
-        return new Response(true, "", setConversationAdminRequest.uuid);
+        User user = system.getUser(setConversationAdminRequest.user_uuid);
+        Conversation conversation = system.getConversation(setConversationAdminRequest.conversation_uuid);
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else if (user == null) {
+            throw new UserNotFoundException();
+        } else if (conversation == null) {
+            throw new ConversationNotFoundException();
+        } else if (currentUser.uuid != conversation.admin_uuid) {
+            throw new AuthorizationException();
+        } else {
+            UUID user_uuid = setConversationAdminRequest.user_uuid;
+            UUID conversation_uuid = setConversationAdminRequest.conversation_uuid;
+            system.setAdmin(user_uuid, conversation_uuid);
+            return new Response(true, "", setConversationAdminRequest.uuid);
+        }
     }
 
     //quitConversationRequest
-    Response process(QuitConversationRequest quitConversationRequest) throws NotLoggedInException, ConversationNotFoundException {
-        UUID uuid = quitConversationRequest.uuid;
-        Conversation conversation = system.quitConversation(uuid, quitConversationRequest.conversation_uuid);
-        return new Response(true, "", quitConversationRequest.uuid);
+    Response process(QuitConversationRequest quitConversationRequest) throws NotLoggedInException,
+            ConversationNotFoundException, UserNotFoundException {
+        User user = system.getUser(currentUser.uuid);
+        Conversation conversation = system.getConversation(quitConversationRequest.conversation_uuid);
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else if (user == null) {
+            throw new UserNotFoundException();
+        } else if (conversation == null) {
+            throw new ConversationNotFoundException();
+        } else {
+            UUID uuid = quitConversationRequest.conversation_uuid;
+            system.quitConversation(uuid, quitConversationRequest.conversation_uuid);
+            return new Response(true, "", quitConversationRequest.uuid);
+        }
+
     }
 
     //listAllUsersRequest
     ListAllUsersResponse process(ListAllUsersRequest listAllUsersRequest) throws NotLoggedInException {
-        //不确定这行啥意思
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        }
         UUID[] users = system.allUser().toArray(new UUID[0]);
         return new ListAllUsersResponse(true, "", listAllUsersRequest.uuid, users);
     }
@@ -290,43 +363,83 @@ public class MessageServerWorker extends Thread {
     ListAllConversationsResponse process(ListAllConversationsRequest listAllConversationsRequest) throws NotLoggedInException, ConversationNotFoundException {
         UUID uuid = listAllConversationsRequest.uuid;
         UUID[] uuids = system.getUserConversations(uuid);
-        return new ListAllConversationsResponse(true, "", listAllConversationsRequest.uuid, uuids);
+
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else if (uuids == null) {
+            throw new ConversationNotFoundException();
+        } else {
+            return new ListAllConversationsResponse(true, "", listAllConversationsRequest.uuid, uuids);
+        }
     }
 
     //listAllMessagesRequest
     ListAllMessagesResponse process(ListAllMessagesRequest listAllMessagesRequest) throws NotLoggedInException, ConversationNotFoundException {
-        UUID conversation_uuid = listAllMessagesRequest.conversation_uuid;
-        UUID[] user_uuid = system.listAllUUID(conversation_uuid);
-        return new ListAllMessagesResponse(true, "", listAllMessagesRequest.uuid, user_uuid);
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else if (system.deleteConversation(listAllMessagesRequest.conversation_uuid) == null) {
+            throw new ConversationNotFoundException();
+        } else {
+            UUID conversation_uuid = listAllMessagesRequest.conversation_uuid;
+            UUID[] user_uuid = system.listAllUUID(conversation_uuid);
+            return new ListAllMessagesResponse(true, "", listAllMessagesRequest.uuid, user_uuid);
+        }
+
     }
 
     //getUserRequest
     GetUserResponse process(GetUserRequest getUserRequest) throws NotLoggedInException, UserNotFoundException {
         UUID uuid = getUserRequest.user_uuid;
         User user = system.getUser(uuid);
-        return new GetUserResponse(true, "", getUserRequest.uuid, user);
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else if (user == null) {
+            throw new UserNotFoundException();
+        } else {
+            return new GetUserResponse(true, "", getUserRequest.uuid, user);
+        }
     }
 
     //getConversationRequest
     GetConversationResponse process(GetConversationRequest getConversationRequest) throws NotLoggedInException, ConversationNotFoundException {
         UUID uuid = getConversationRequest.conversation_uuid;
         Conversation conversation = system.getConversation(uuid);
-        return new GetConversationResponse(true, "", getConversationRequest.uuid, conversation);
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else if (conversation == null) {
+            throw new ConversationNotFoundException();
+        } else {
+            return new GetConversationResponse(true, "", getConversationRequest.uuid, conversation);
+        }
     }
 
     //getMessageRequest
-    GetMessageResponse process(GetMessageRequest getMessageRequest) throws NotLoggedInException, MessageNotFoundException, ConversationNotFoundException {
+    GetMessageResponse process(GetMessageRequest getMessageRequest) throws NotLoggedInException, MessageNotFoundException {
         UUID uuid = getMessageRequest.message_uuid;
-        Message message = system.getMessages(uuid);
-        return new GetMessageResponse(true, "", getMessageRequest.uuid, message);
+        Message message = system.getMessage(uuid);
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else if (message == null) {
+            throw new MessageNotFoundException();
+        } else {
+            return new GetMessageResponse(true, "", getMessageRequest.uuid, message);
+        }
     }
 
     //getMessageHistoryRequest
     GetMessageHistoryResponse process(GetMessageHistoryRequest getMessageHistoryRequest) throws NotLoggedInException,
             ConversationNotFoundException, MessageNotFoundException {
-        Message[] message = system.getConversationMessages(getMessageHistoryRequest.uuid);
+        Message[] message = system.getConversationMessages(getMessageHistoryRequest.conversation_uuId);
 
-        return new GetMessageHistoryResponse(true, "", getMessageHistoryRequest.uuid, message);
+        if (currentUser == null) {
+            throw new NotLoggedInException();
+        } else if (message == null) {
+            throw new MessageNotFoundException();
+        } else if (system.getConversation(getMessageHistoryRequest.conversation_uuId) == null) {
+            throw new ConversationNotFoundException();
+        } else {
+            return new GetMessageHistoryResponse(true, "", getMessageHistoryRequest.uuid, message);
+        }
     }
 
     //GetEventFeedResponse
