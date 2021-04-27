@@ -11,4 +11,13 @@ public class SetConversationAdminRequest extends Request {
         this.user_uuid = user_uuid;
         this.conversation_uuid = conversation_uuid;
     }
+
+    @Override
+    public String toString() {
+        return "SetConversationAdminRequest{" +
+                "uuid=" + uuid +
+                ", user_uuid=" + user_uuid +
+                ", conversation_uuid=" + conversation_uuid +
+                '}';
+    }
 }

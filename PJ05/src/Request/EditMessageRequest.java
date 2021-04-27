@@ -1,6 +1,5 @@
 package Request;
 
-import java.util.Date;
 import java.util.UUID;
 
 public class EditMessageRequest extends Request {
@@ -14,5 +13,14 @@ public class EditMessageRequest extends Request {
         this.messsage_uuid = messsage_uuid;
         this.content = content;
 
+    }
+
+    @Override
+    public String toString() {
+        return "EditMessageRequest{" +
+                "messsage_uuid=" + messsage_uuid +
+                ", content='" + content + '\'' +
+                ", uuid=" + uuid +
+                '}';
     }
 }

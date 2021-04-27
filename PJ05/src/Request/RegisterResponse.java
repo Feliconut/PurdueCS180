@@ -9,4 +9,16 @@ public class RegisterResponse extends Response {
         super(state, msg, request_uuid);
         this.uuid = uuid;
     }
+
+    @Override
+    public String toString() {
+        return "RegisterResponse{" +
+                "uuid=" + uuid +
+                ", uuid=" + uuid +
+                ", state=" + state +
+                ", msg='" + msg + '\'' +
+                ", request_uuid=" + request_uuid +
+                ", exception=" + exception +
+                '}';
+    }
 }

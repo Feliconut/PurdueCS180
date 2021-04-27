@@ -11,4 +11,16 @@ public class GetMessageResponse extends Response {
         super(state, msg, request_uuid);
         this.message = message;
     }
+
+    @Override
+    public String toString() {
+        return "GetMessageResponse{" +
+                "message=" + message +
+                ", uuid=" + uuid +
+                ", state=" + state +
+                ", msg='" + msg + '\'' +
+                ", request_uuid=" + request_uuid +
+                ", exception=" + exception +
+                '}';
+    }
 }

@@ -10,4 +10,12 @@ public class DeleteConversationRequest extends Request {
         super();
         this.conversation_uuid = conversation_uuid;
     }
+
+    @Override
+    public String toString() {
+        return "DeleteConversationRequest{" +
+                "conversation_uuid=" + conversation_uuid +
+                ", uuid=" + uuid +
+                '}';
+    }
 }
