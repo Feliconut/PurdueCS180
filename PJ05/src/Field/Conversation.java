@@ -3,8 +3,7 @@ package Field;
 import java.util.Arrays;
 import java.util.UUID;
 
-public class Conversation extends Storable
-{
+public class Conversation extends Storable {
     public String name;
     public UUID[] user_uuids;
     public UUID admin_uuid;
