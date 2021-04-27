@@ -78,13 +78,14 @@ public class MessageSystemTest {
             Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
             Message message2 = new Message(student2.uuid, new Date(2022, 4, 26), "Hi");
             UUID[] group1 = {student1.uuid, student2.uuid};
-            UUID[] messageGroup = {message1.uuid, message2.uuid};
+            UUID[] messageGroup = { message2.uuid};
             Conversation conversationTest = new Conversation("Group1", group1, messageGroup);
             // expected successful test case for addUser, addMessage, and remove method.
             Conversation conversation = ms3.createConversation("group1", student1.uuid);
             ms3.addUser2Conversation(student2.uuid, conversation.uuid);
             ms3.addMessage(message1.uuid, conversation.uuid);
             ms3.addMessage(message2.uuid, conversation.uuid);
+            ms3.deleteMessage(message1.uuid, conversation.uuid);
             // 修改了addMessage method，添加了特定conversation_uuid，等整个写完要确认此处没有问题
             assertEquals(conversationTest, ms3.getConversation(conversation.uuid));
         } catch (MessageNotFoundException e) {
@@ -118,12 +119,40 @@ public class MessageSystemTest {
         fail("UserExistException did not throw when expected.");
     }
 
-    @Test
-    public void deleteUser() {
+    @Test (expected = MessageNotFoundException.class)
+    public void deleteMessageExceptionExpected() throws MessageNotFoundException {
+        try {
+            MessageSystem ms5 = new MessageSystem("userFileTest", "messageFileTest"
+                    , "conversationFileTest");
+            User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
+            Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
+            Conversation conversation = ms5.createConversation("group1", student1.uuid);
+            ms5.deleteMessage(message1.uuid, conversation.uuid);
+        } catch (MessageNotFoundException e) {
+            String message = ""; // Exception prompt.
+            assertEquals(message, e.getMessage());
+            throw e;
+        } catch (UserNotFoundException e) {
+            e.printStackTrace();
+            fail();
+        } catch (InvalidConversationNameException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 
-    @Test
-    public void deleteMessage() {
+    @Test (expected = UserNotFoundException.class)
+    public void deleteUserExceptionExpected() throws UserNotFoundException {
+        try {
+            MessageSystem ms6 = new MessageSystem("userFileTest", "messageFileTest"
+                    , "conversationFileTest");
+            User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
+            ms6.deleteUser(student1.uuid);
+        } catch (UserNotFoundException e) {
+            String message = ""; // Exception prompt.
+            assertEquals(message, e.getMessage());
+            throw e;
+        }
     }
 
     @Test
