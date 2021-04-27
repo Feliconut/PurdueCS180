@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,25 +26,22 @@ public class MessageServerWorker extends Thread {
 
     @Override
     public void run() {
-        ObjectOutputStream objectOutputStream;
-        ObjectInputStream objectInputStream;
-        try {
-            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-            objectInputStream = new ObjectInputStream(socket.getInputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-
+        System.out.println(socket.toString() + " start to run");
+        ObjectOutputStream objectOutputStream = null;
+        ObjectInputStream objectInputStream = null;
         while (true) {
             try {
                 Request request;
                 // Read a new request from socket.
+                if (objectInputStream == null) {
+                    objectInputStream = new ObjectInputStream(socket.getInputStream());
+                }
                 request = (Request) objectInputStream.readObject();
+                System.out.println(request.getClass().getName());
+                System.out.println(request.toString());
                 Response response;
                 try {
                     // Determine type of request, and process the request.
-
 
                     if (request instanceof AuthenticateRequest) {
                         response = process((AuthenticateRequest) request);
@@ -99,9 +97,15 @@ public class MessageServerWorker extends Thread {
                 } catch (RequestFailedException e) {
                     response = new Response(false, "", request.uuid, e);
                 }
+
+                if (objectOutputStream == null) {
+                    objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                }
                 objectOutputStream.writeObject(response);
 
                 // exceptions are regarding system failure
+            } catch (SocketException ignored) {
+                break;
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
                 break;
@@ -116,6 +120,7 @@ public class MessageServerWorker extends Thread {
                 e.printStackTrace();
             }
         }
+        System.out.println(socket.toString() + " terminate");
     }
 
     private Response process(Request request) throws
@@ -131,6 +136,7 @@ public class MessageServerWorker extends Thread {
     Response process(AuthenticateRequest authenticateRequest) throws UserNotFoundException, InvalidPasswordException,
             InvalidUsernameException, LoggedInException {
         Credential credential = authenticateRequest.credential;
+
         User user = system.signIn(credential); // Validates the credential.
         currentUser = user; // Mark this ServerWorker as authenticated.
         return new Response(true, "Login successful!", authenticateRequest.uuid);
@@ -362,7 +368,7 @@ public class MessageServerWorker extends Thread {
         if (currentUser == null) {
             throw new NotLoggedInException();
         }
-        UUID[] users = system.allUser().toArray(new UUID[0]);
+        UUID[] users = system.getAllUserUUIDs();
         return new ListAllUsersResponse(true, "", listAllUsersRequest.uuid, users);
     }
 
