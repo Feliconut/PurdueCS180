@@ -127,9 +127,9 @@ public class MessageSystem {
         Message message = new Message(sender_uuid, date, content);
         messageDatabase.put(message.uuid, message);
         Conversation conversation = getConversation(conversation_uuid);
-        ArrayList<UUID> modified_uuids = new ArrayList<UUID>(Arrays.asList(conversation.message_uuids));
+        ArrayList<UUID> modified_uuids = new ArrayList<>(Arrays.asList(conversation.message_uuids));
         modified_uuids.add(message.uuid);
-        conversation.message_uuids = (UUID[]) modified_uuids.toArray();
+        conversation.message_uuids = modified_uuids.toArray(new UUID[0]);
         conversationDatabase.put(conversation_uuid, conversation);
         return message;
     }
@@ -168,7 +168,7 @@ public class MessageSystem {
             UUID[] uuid = conversation.user_uuids;
             modified_uuids.addAll(Arrays.asList(uuid));
             modified_uuids.add(user_uuid);
-            conversation.user_uuids = (UUID[]) modified_uuids.toArray();
+            conversation.user_uuids = modified_uuids.toArray(new UUID[0]);
         }
     }
 
@@ -193,14 +193,14 @@ public class MessageSystem {
                     modified_uuids.add(uuid);
                 }
             }
-            conversation.user_uuids = (UUID[]) modified_uuids.toArray();
+            conversation.user_uuids = modified_uuids.toArray(new UUID[0]);
         }
 
     }
 
-    public ArrayList<UUID> allUser() {
+    public UUID[] getAllUserUUIDs() {
         ArrayList<UUID> uuids = new ArrayList<>(userDatabase.uuids());
-        return uuids;
+        return uuids.toArray(new UUID[0]);
     }
 
     public Message editMessage(String edit_message, UUID message_uuid) throws MessageNotFoundException {
@@ -240,14 +240,21 @@ public class MessageSystem {
 //    }
     public Message[] getConversationMessages(UUID conversation_uuid) throws ConversationNotFoundException {
         //
-        ArrayList<UUID> uuids = new ArrayList<>();
+        ArrayList<Message> messages = new ArrayList<>();
         Conversation conversation = conversationDatabase.get(conversation_uuid);
         if (conversation == null) {
             throw new ConversationNotFoundException();
         } else {
-            UUID[] message_uuid = conversation.message_uuids;
-            uuids.addAll(Arrays.asList(message_uuid));
-            return (Message[]) uuids.toArray();
+            UUID[] message_uuids = conversation.message_uuids;
+            for (UUID message_uuid :
+                    message_uuids) {
+                try {
+                    messages.add(getMessage(message_uuid));
+                } catch (MessageNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            return messages.toArray(new Message[0]);
         }
     }
 
@@ -271,7 +278,8 @@ public class MessageSystem {
             }
         }
 
-        return (UUID[]) uuids.toArray();
+
+        return uuids.toArray(new UUID[0]);
     }
 
     public Profile editProfile() {
