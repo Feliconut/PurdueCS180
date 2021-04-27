@@ -95,12 +95,13 @@ public class MessageSystem {
         }
     }
 
-    public void deleteConversation(UUID uuid) throws ConversationNotFoundException {
+    public Conversation deleteConversation(UUID uuid) throws ConversationNotFoundException {
         Conversation conversation;
         conversation = conversationDatabase.remove(uuid);
         if (conversation == null) {
             throw new ConversationNotFoundException();
         }
+        return conversation;
     }
 
 
