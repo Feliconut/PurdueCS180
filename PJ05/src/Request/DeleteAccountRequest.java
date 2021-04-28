@@ -10,4 +10,12 @@ public class DeleteAccountRequest extends Request {
         super();
         this.credential = credential;
     }
+
+    @Override
+    public String toString() {
+        return "DeleteAccountRequest{" +
+                "credential=" + credential +
+                ", uuid=" + uuid +
+                '}';
+    }
 }

@@ -10,4 +10,12 @@ public class AuthenticateRequest extends Request {
         super();
         this.credential = credential;
     }
+
+    @Override
+    public String toString() {
+        return "AuthenticateRequest{" +
+                "credential=" + credential +
+                ", uuid=" + uuid +
+                '}';
+    }
 }

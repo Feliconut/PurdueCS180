@@ -8,4 +8,12 @@ public class GetEventFeedRequest extends Request {
     public GetEventFeedRequest(Date dateForm) {
         this.dateForm = dateForm;
     }
+
+    @Override
+    public String toString() {
+        return "GetEventFeedRequest{" +
+                "dateForm=" + dateForm +
+                ", uuid=" + uuid +
+                '}';
+    }
 }

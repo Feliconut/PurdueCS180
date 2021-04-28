@@ -1,6 +1,5 @@
 import Exceptions.*;
 import Field.*;
-import Request.AuthenticateRequest;
 import Request.*;
 
 import javax.swing.*;
@@ -8,8 +7,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -22,29 +19,71 @@ import java.util.*;
  */
 
 public class MessageClient implements Runnable {
-    private static BufferedReader bfr = null;
-    private static PrintWriter pw = null;
-
-    public void run() {
-        new Window();
-    }
+    private static final BufferedReader bfr = null;
+    private static final PrintWriter pw = null;
 
     public static void main(String[] args) {
         new ClientWorker().connectToSocket();
+    }
+
+    public void run() {
+        new Window();
     }
 
 }
 
 
 class Window {
-    private Button registerButtonSign;
-    private JLabel titleLbSign;
-    private JLabel usernameLbSign;
-    private JLabel passwordLbSign;
-    private Button okButtonSign;
-    private TextField usernameTfSign;
-    private JPasswordField passwordTfSign;
-    private ClientWorker clientWorker = new ClientWorker(this);
+    private final JLabel rgNameLb = new JLabel("Name");
+    private final JLabel rgAgeLb = new JLabel("Age");
+    private final JLabel rgUserLb = new JLabel("Username");
+    private final JLabel rgPassLb = new JLabel("Password");
+    private final TextField rgNameTf = new TextField(20);
+    private final TextField rgAgeTf = new TextField(20);
+    private final TextField rgUserTf = new TextField(20);
+    private final JPasswordField rgPassTf = new JPasswordField(20);
+    private final Button rgOkBtn = new Button("OK");
+    private final Button rgCancelBtn = new Button("Cancel");
+    private final Button logOutBtnM = new Button("LOG OUT");
+    private final Button settingBtnM = new Button("SETTING");
+    JList<UUID> list;
+    private final Button registerButtonSign;
+    private final JLabel titleLbSign;
+    private final JLabel usernameLbSign;
+    private final JLabel passwordLbSign;
+    private final Button okButtonSign;
+    private final TextField usernameTfSign;
+    private final JPasswordField passwordTfSign;
+    private final ClientWorker clientWorker = new ClientWorker(this);
+    private final JLabel chatroomLbM = new JLabel("Chat Rooms");
+    private final JLabel newChatLbM = new JLabel("Create a new chat");
+    private final JLabel groupNameLbM = new JLabel("Enter a group name");
+    private final TextField groupNameTfM = new TextField(20);
+    private final JLabel inviteLbM = new JLabel("Enter people's uuids you want to invite\n(Separated by commas)");
+    private final JTextField inviteTfM = new JTextField(20);
+    // private Button addBtnM = new Button("ADD");
+    private final Button startBtnM = new Button("CREATE");
+    private final JLabel groupInfoLb = new JLabel();
+    private ArrayList<UUID> my_conversation_uuids;
+    private final DefaultListModel<UUID> conversationModel = new DefaultListModel<>();
+    private final Button backBtnSetting = new Button("Back");
+    private final Button deleteBtnSetting = new Button("DELETE ACCOUNT");
+    private final Button manageProfileBtnSetting = new Button("MANAGE PROFILE");
+    //private Button exportBtnSetting = new Button("EXPORT CHAT HISTORY");
+    private final Button profileBtnSetting = new Button("MY PROFILE");
+    private final JLabel nameLbProfile = new JLabel("Name");
+    private final JLabel ageLbProfile = new JLabel("age");
+    private final TextField nameTfProfile = new TextField(20);
+    private final TextField ageTfProfile = new TextField(20);
+    private final Button okBtnProfile = new Button("OK");
+    private final Button cancelBtnProfile = new Button("Cancel");
+    private final TextField inputTfChat = new TextField(30);
+    private final Button sendBtnChat = new Button("SEND");
+    private final Button deleteBtnChat = new Button("Delete the group");
+    private final Button renameBtnChat = new Button("Rename the group");
+    private String groupNameChat;
+    private final Button addUserToChatBtn = new Button("Invite");
+    private final Button exportBtnChat = new Button("Export");
 
     public Window() {
         //set frame
@@ -120,19 +159,6 @@ class Window {
         okButtonSign.addActionListener(actionListener);
     }
 
-
-    private final JLabel rgNameLb = new JLabel("Name");
-    private final JLabel rgAgeLb = new JLabel("Age");
-    private final JLabel rgUserLb = new JLabel("Username");
-    private final JLabel rgPassLb = new JLabel("Password");
-    private final TextField rgNameTf = new TextField(20);
-    private final TextField rgAgeTf = new TextField(20);
-    private final TextField rgUserTf = new TextField(20);
-    private final JPasswordField rgPassTf = new JPasswordField(20);
-    private final Button rgOkBtn = new Button("OK");
-    private final Button rgCancelBtn = new Button("Cancel");
-
-
     public void registerWindow() {
         //set frame
         JFrame registerFrame = new JFrame("Register");
@@ -204,23 +230,6 @@ class Window {
         rgOkBtn.addActionListener(actionListener);
 
     }
-
-
-    private final Button logOutBtnM = new Button("LOG OUT");
-    private final Button settingBtnM = new Button("SETTING");
-    private JLabel chatroomLbM = new JLabel("Chat Rooms");
-    private JLabel newChatLbM = new JLabel("Create a new chat");
-    private JLabel groupNameLbM = new JLabel("Enter a group name");
-    private TextField groupNameTfM = new TextField(20);
-    private JLabel inviteLbM = new JLabel("Enter people's uuids you want to invite\n(Separated by commas)");
-    private JTextField inviteTfM = new JTextField(20);
-    // private Button addBtnM = new Button("ADD");
-    private Button startBtnM = new Button("CREATE");
-    private JLabel groupInfoLb = new JLabel();
-    private ArrayList<UUID> my_conversation_uuids;
-    private DefaultListModel<UUID> conversationModel = new DefaultListModel<>();
-    JList<UUID> list;
-
 
     public void mainWindow() {
         //set up frame
@@ -362,12 +371,6 @@ class Window {
 
     }
 
-    private Button backBtnSetting = new Button("Back");
-    private Button deleteBtnSetting = new Button("DELETE ACCOUNT");
-    private Button manageProfileBtnSetting = new Button("MANAGE PROFILE");
-    //private Button exportBtnSetting = new Button("EXPORT CHAT HISTORY");
-    private Button profileBtnSetting = new Button("MY PROFILE");
-
     public void settingWindow() {
         //set frame
         JFrame settingFrame = new JFrame("Setting");
@@ -444,13 +447,6 @@ class Window {
         profileBtnSetting.addActionListener(actionListener);
     }
 
-    private JLabel nameLbProfile = new JLabel("Name");
-    private JLabel ageLbProfile = new JLabel("age");
-    private TextField nameTfProfile = new TextField(20);
-    private TextField ageTfProfile = new TextField(20);
-    private Button okBtnProfile = new Button("OK");
-    private Button cancelBtnProfile = new Button("Cancel");
-
     public void manageProfileWindow() {
         //set frame
         JFrame profileFrame = new JFrame("Manage Profile");
@@ -502,15 +498,6 @@ class Window {
         okBtnProfile.addActionListener(actionListener);
         cancelBtnProfile.addActionListener(actionListener);
     }
-
-
-    private TextField inputTfChat = new TextField(30);
-    private Button sendBtnChat = new Button("SEND");
-    private Button deleteBtnChat = new Button("Delete the group");
-    private Button renameBtnChat = new Button("Rename the group");
-    private String groupNameChat;
-    private Button addUserToChatBtn = new Button("Invite");
-    private Button exportBtnChat = new Button("Export");
 
     public void chatWindow(Conversation currentConversation) {
         //set frame
@@ -654,19 +641,20 @@ class Window {
 }
 
 class ClientWorker {
-    private Window window;
     private static Socket socket;
+    private Window window;
     private User user;
     private Credential credential;
     private Profile profile;
     private UUID my_uuid;
     private UUID currentConversation_uuid;
     private Conversation currentConversation;
-    private ArrayList<Message> currentMessageList = new ArrayList<>();
-    private ArrayList<UUID> conversation_uuid_list = new ArrayList<>();
-    private ArrayList<Conversation> conversation_list = new ArrayList<>();
-    private HashMap<UUID, Message[]> messageMap = new HashMap<>();
-
+    private final ArrayList<Message> currentMessageList = new ArrayList<>();
+    private final ArrayList<UUID> conversation_uuid_list = new ArrayList<>();
+    private final ArrayList<Conversation> conversation_list = new ArrayList<>();
+    private final HashMap<UUID, Message[]> messageMap = new HashMap<>();
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
 
     public ClientWorker() {
 
@@ -705,41 +693,27 @@ class ClientWorker {
         return "No conversation";
     }
 
-//    public ArrayList<String> getConversationString() {
-//        ArrayList<String> conversationString = new ArrayList<>();
-//        if (conversation_list != null) {
-//            for (int i = 0; i < conversation_list.size(); i++) {
-//                conversationString.add(conversation_list.get(i).name);
-//            }
-//            return conversationString;
-//        } else {
-//            conversationString.add("You haven't have any conversation yet");
-//            return conversationString;
-//        }
-//    }
-
     /**
      * The method is used to send requests
      *
      * @param request some kind of request used
-     * @param socket  the socket that connects the client and server
      * @return a response
      * @throws IOException
      * @throws RequestParsingException
      * @throws RequestFailedException
      */
-    public static Response send(Request request, Socket socket) throws IOException, RequestParsingException,
+    private Response send(Request request) throws IOException, RequestParsingException,
             RequestFailedException {
+        if (objectOutputStream == null) {
+            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+        }
+        objectOutputStream.writeObject(request);
+        if (objectInputStream == null) {
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
+        }
         Response response;
-        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-
-        oos.writeObject(request);
-        oos.flush();
-        oos.close();
-
         try {
-            response = (Response) ois.readObject();
+            response = (Response) objectInputStream.readObject();
         } catch (ClassNotFoundException | ClassCastException e) {
             e.printStackTrace();
             throw new RequestParsingException();
@@ -769,7 +743,7 @@ class ClientWorker {
         try {
             credential = new Credential(username, password);
             AuthenticateRequest authenticateRequest = new AuthenticateRequest(credential);
-            Response response = send(authenticateRequest, socket);
+            Response response = send(authenticateRequest);
             my_uuid = response.uuid;
             //if success get the user's information
             getProfile();
@@ -812,7 +786,7 @@ class ClientWorker {
 
             RegisterRequest registerRequest = new RegisterRequest(rgCredential, rgProfile);
 
-            response = (RegisterResponse) send(registerRequest, socket);
+            response = (RegisterResponse) send(registerRequest);
             //UUID my_uuid = response.uuid;
             JOptionPane.showMessageDialog(null, "Registered successfully",
                     "Register", JOptionPane.INFORMATION_MESSAGE);
@@ -847,17 +821,19 @@ class ClientWorker {
         int port;
 
         try {
-            hostname = JOptionPane.showInputDialog(null, "Please enter the hostname:",
-                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
-            if (hostname == null) {
-                return;
-            }
-
-            portString = JOptionPane.showInputDialog(null, "Please enter the port number:",
-                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
-            if (portString == null) {
-                return;
-            }
+//            hostname = JOptionPane.showInputDialog(null, "Please enter the hostname:",
+//                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
+//            if (hostname == null) {
+//                return;
+//            }
+//
+//            portString = JOptionPane.showInputDialog(null, "Please enter the port number:",
+//                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
+//            if (portString == null) {
+//                return;
+//            }
+            hostname = "localhost";
+            portString = "9866";
             port = Integer.parseInt(portString);
 
             socket = new Socket(hostname, port);
@@ -884,7 +860,7 @@ class ClientWorker {
     public void logOut() {
         LogOutRequest logOutRequest = new LogOutRequest();
         try {
-            send(logOutRequest, socket);
+            send(logOutRequest);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (RequestFailedException e) {
@@ -900,7 +876,7 @@ class ClientWorker {
         Response response;
         GetUserRequest getUserRequest = new GetUserRequest(my_uuid);
         try {
-            response = send(getUserRequest, socket);
+            response = send(getUserRequest);
             profile = ((GetUserResponse) response).user.profile;
         } catch (IOException e) {
             e.printStackTrace();
@@ -916,7 +892,7 @@ class ClientWorker {
     public boolean deleteAccount() {
         DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(credential);
         try {
-            send(deleteAccountRequest, socket);
+            send(deleteAccountRequest);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -933,7 +909,7 @@ class ClientWorker {
         ListAllConversationsRequest listAllConversationsRequest = new ListAllConversationsRequest();
         ListAllConversationsResponse response;
         try {
-            response = (ListAllConversationsResponse) send(listAllConversationsRequest, socket);
+            response = (ListAllConversationsResponse) send(listAllConversationsRequest);
             if (response.conversation_uuids != null) {
                 conversation_uuid_list.addAll(Arrays.asList(response.conversation_uuids));
             }
@@ -956,7 +932,7 @@ class ClientWorker {
                 GetConversationRequest getConversation = new GetConversationRequest(conversation_uuid_list.get(i));
                 GetConversationResponse response;
                 try {
-                    response = (GetConversationResponse) send(getConversation, socket);
+                    response = (GetConversationResponse) send(getConversation);
                     conversation_list.add(response.conversation);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -977,7 +953,7 @@ class ClientWorker {
                 GetMessageHistoryRequest getMessage = new GetMessageHistoryRequest(conversation_uuid_list.get(i));
                 GetMessageHistoryResponse response;
                 try {
-                    response = (GetMessageHistoryResponse) send(getMessage, socket);
+                    response = (GetMessageHistoryResponse) send(getMessage);
                     messageMap.put(conversation_list.get(i).uuid, response.messages);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -1000,7 +976,7 @@ class ClientWorker {
     public boolean deleteConversation(UUID conversation_uuid) {
         DeleteConversationRequest dr = new DeleteConversationRequest(conversation_uuid);
         try {
-            send(dr, socket);
+            send(dr);
             JOptionPane.showMessageDialog(null, "Successfully deleted",
                     "Delete Conversation", JOptionPane.INFORMATION_MESSAGE);
             conversation_uuid_list.remove(conversation_uuid);
@@ -1027,7 +1003,7 @@ class ClientWorker {
     public void addUserToGroup(UUID user_uuid, UUID conversation_uuid) {
         AddUser2ConversationRequest addRequest = new AddUser2ConversationRequest(user_uuid, conversation_uuid);
         try {
-            send(addRequest, socket);
+            send(addRequest);
         } catch (NotLoggedInException | UserNotFoundException | ConversationNotFoundException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
                     JOptionPane.ERROR_MESSAGE);
@@ -1049,7 +1025,7 @@ class ClientWorker {
         GetUserRequest getUser = new GetUserRequest(user_uuid);
         GetUserResponse response;
         try {
-            response = (GetUserResponse) send(getUser, socket);
+            response = (GetUserResponse) send(getUser);
             return response.user;
         } catch (NotLoggedInException | UserNotFoundException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
@@ -1090,7 +1066,7 @@ class ClientWorker {
         CreateConversationResponse response;
 
         try {
-            response = (CreateConversationResponse) send(createRequest, socket);
+            response = (CreateConversationResponse) send(createRequest);
             conversation_uuid_list.add(response.conversation_uuid);
             currentConversation_uuid = response.conversation_uuid;
             return getConversation(currentConversation_uuid);
@@ -1109,7 +1085,7 @@ class ClientWorker {
         GetConversationRequest getConversationRequest = new GetConversationRequest(uuid);
         GetConversationResponse response;
         try {
-            response = (GetConversationResponse) send(getConversationRequest, socket);
+            response = (GetConversationResponse) send(getConversationRequest);
             return response.conversation;
         } catch (ConversationNotFoundException | NotLoggedInException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
@@ -1132,7 +1108,7 @@ class ClientWorker {
     public boolean renameConversation(String name) {
         RenameConversationRequest renameRequest = new RenameConversationRequest(currentConversation_uuid, name);
         try {
-            send(renameRequest, socket);
+            send(renameRequest);
             return true;
         } catch (ConversationNotFoundException | NotLoggedInException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
@@ -1158,7 +1134,7 @@ class ClientWorker {
         PostMessageRequest postMessageRequest = new PostMessageRequest(conversation_uuid, message);
         PostMessageResponse response;
         try {
-            response = (PostMessageResponse) send(postMessageRequest, socket);
+            response = (PostMessageResponse) send(postMessageRequest);
             saveMessage(message);
             return true;
         } catch (NotLoggedInException | MessageNotFoundException | IllegalContentException e) {
@@ -1274,7 +1250,7 @@ class ClientWorker {
         DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(message_uuid);
 
         try {
-            send(deleteMessageRequest, socket);
+            send(deleteMessageRequest);
             return true;
         } catch (MessageNotFoundException | NotLoggedInException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
@@ -1291,7 +1267,7 @@ class ClientWorker {
         UUID message_uuid = UUID.fromString(oldContent.substring(oldContent.indexOf("(") + 1, oldContent.indexOf(")")));
         EditMessageRequest editMessageRequest = new EditMessageRequest(message_uuid, newContent);
         try {
-            send(editMessageRequest, socket);
+            send(editMessageRequest);
         } catch (NotLoggedInException | MessageNotFoundException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
                     JOptionPane.ERROR_MESSAGE);
@@ -1301,7 +1277,6 @@ class ClientWorker {
             e.printStackTrace();
         }
     }
-
 
 
 }

@@ -4,6 +4,7 @@ import Field.Conversation;
 import Field.Message;
 import Field.User;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -33,5 +34,25 @@ public class GetEventFeedResponse extends Response {
         this.removed_users = removed_users;
         this.removed_conversations = removed_conversations;
         this.removed_messages = removed_messages;
+    }
+
+    @Override
+    public String toString() {
+        return "GetEventFeedResponse{" +
+                "users=" + Arrays.toString(users) +
+                ", conversations=" + Arrays.toString(conversations) +
+                ", new_messages=" + new_messages +
+                ", updated_users=" + Arrays.toString(updated_users) +
+                ", updated_conversations=" + Arrays.toString(updated_conversations) +
+                ", updated_messages=" + Arrays.toString(updated_messages) +
+                ", removed_users=" + Arrays.toString(removed_users) +
+                ", removed_conversations=" + Arrays.toString(removed_conversations) +
+                ", removed_messages=" + Arrays.toString(removed_messages) +
+                ", uuid=" + uuid +
+                ", state=" + state +
+                ", msg='" + msg + '\'' +
+                ", request_uuid=" + request_uuid +
+                ", exception=" + exception +
+                '}';
     }
 }

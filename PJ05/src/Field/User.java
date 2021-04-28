@@ -7,7 +7,7 @@ public class User extends Storable {
     public final Profile profile;
 
     public User(Credential credential, Profile profile) {
-        super(UUID.fromString(credential.usrName));
+        super(UUID.randomUUID());
         this.credential = credential;
         this.profile = profile;
     }

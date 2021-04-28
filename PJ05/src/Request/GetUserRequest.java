@@ -10,4 +10,12 @@ public class GetUserRequest extends Request {
     public GetUserRequest(UUID user_uuid) {
         this.user_uuid = user_uuid;
     }
+
+    @Override
+    public String toString() {
+        return "GetUserRequest{" +
+                "user_uuid=" + user_uuid +
+                ", uuid=" + uuid +
+                '}';
+    }
 }

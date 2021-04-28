@@ -9,4 +9,12 @@ public class GetMessageRequest extends Request {
         super();
         this.message_uuid = uuid;
     }
+
+    @Override
+    public String toString() {
+        return "GetMessageRequest{" +
+                "message_uuid=" + message_uuid +
+                ", uuid=" + uuid +
+                '}';
+    }
 }

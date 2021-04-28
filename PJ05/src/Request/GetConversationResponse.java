@@ -11,4 +11,16 @@ public class GetConversationResponse extends Response {
         super(state, msg, request_uuid);
         this.conversation = conversation;
     }
+
+    @Override
+    public String toString() {
+        return "GetConversationResponse{" +
+                "conversation=" + conversation +
+                ", uuid=" + uuid +
+                ", state=" + state +
+                ", msg='" + msg + '\'' +
+                ", request_uuid=" + request_uuid +
+                ", exception=" + exception +
+                '}';
+    }
 }
