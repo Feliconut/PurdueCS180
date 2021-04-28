@@ -42,6 +42,8 @@ public class MessageServerWorker extends Thread {
 
                     if (request instanceof AuthenticateRequest) {
                         response = process((AuthenticateRequest) request);
+                    } else if (request instanceof GetUserNameRequest) {
+                        response = process((GetUserNameRequest) request);
                     } else if (request instanceof EditProfileRequest) {
                         response = process((EditProfileRequest) request);
                     } else if (request instanceof AddUser2ConversationRequest) {
@@ -137,6 +139,18 @@ public class MessageServerWorker extends Thread {
         User user = system.signIn(credential); // Validates the credential.
         currentUser = user; // Mark this ServerWorker as authenticated.
         return new Response(true, "Login successful!", authenticateRequest.uuid);
+
+    }
+
+    //getUserNameRequest
+    GetUserNameResponse process(GetUserNameRequest getUserNameRequest) throws UserNotFoundException {
+        UUID user_uuid = getUserNameRequest.user_uuid;
+        if (user_uuid == null) {
+            throw new UserNotFoundException();
+        } else {
+            String name = system.getUserName(user_uuid);
+            return new GetUserNameResponse(true, "", getUserNameRequest.uuid, name);
+        }
 
     }
 
