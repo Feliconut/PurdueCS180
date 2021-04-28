@@ -149,7 +149,7 @@ public class MessageServerWorker extends Thread {
             throw new UserNotFoundException();
         } else {
             User user = system.getUser(name);
-            return new GetUserNameResponse(true, "", getUserNameRequest.uuid, user.credential.usrName);
+            return new GetUserNameResponse(true, "", getUserNameRequest.uuid, user.uuid);
         }
 
     }
