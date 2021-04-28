@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.UUID;
 
 public class CreateConversationRequest extends Request {
-    public final UUID[] user_uuids;
-    public final String name;
+    public UUID[] user_uuids;
+    public String name;
 
     public CreateConversationRequest(UUID[] user_uuids, String name) {
         super();

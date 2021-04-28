@@ -3,8 +3,8 @@ package Field;
 import java.util.UUID;
 
 public class User extends Storable {
-    public final Credential credential;
-    public final Profile profile;
+    public Credential credential;
+    public Profile profile;
 
     public User(Credential credential, Profile profile) {
         super(UUID.randomUUID());
