@@ -267,6 +267,7 @@ public class MessageSystem {
 
     }
 
+
     public UUID[] getUserConversations(UUID user_uuid) throws ConversationNotFoundException {
         ArrayList<UUID> uuids = new ArrayList<>();
         for (UUID uuid : conversationDatabase.uuids()) {
