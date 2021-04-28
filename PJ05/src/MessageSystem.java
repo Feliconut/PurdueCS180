@@ -267,11 +267,6 @@ public class MessageSystem {
 
     }
 
-    public String getUserName(UUID user_uuid) {
-        User user = userDatabase.get(user_uuid);
-        String name = user.credential.usrName;
-        return name;
-    }
 
     public UUID[] getUserConversations(UUID user_uuid) throws ConversationNotFoundException {
         ArrayList<UUID> uuids = new ArrayList<>();

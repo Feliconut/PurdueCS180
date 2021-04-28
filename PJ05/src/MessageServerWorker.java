@@ -144,12 +144,12 @@ public class MessageServerWorker extends Thread {
 
     //getUserNameRequest
     GetUserNameResponse process(GetUserNameRequest getUserNameRequest) throws UserNotFoundException {
-        UUID user_uuid = getUserNameRequest.user_uuid;
-        if (user_uuid == null) {
+        String name = getUserNameRequest.name;
+        if (name == null) {
             throw new UserNotFoundException();
         } else {
-            String name = system.getUserName(user_uuid);
-            return new GetUserNameResponse(true, "", getUserNameRequest.uuid, name);
+            User user = system.getUser(name);
+            return new GetUserNameResponse(true, "", getUserNameRequest.uuid, user.credential.usrName);
         }
 
     }
