@@ -61,9 +61,9 @@ class Window {
     private final JLabel newChatLbM = new JLabel("Create a new chat");
     private final JLabel groupNameLbM = new JLabel("Enter a group name");
     private final TextField groupNameTfM = new TextField(20);
-    private final JLabel inviteLbM = new JLabel("Invite by usernames: \n(Separated by commas)");
+    private final JLabel inviteLbM = new JLabel("Invite by usernames:");
     private final JTextField inviteTfM = new JTextField(20);
-    // private Button addBtnM = new Button("ADD");
+    private Button addBtnM = new Button("ADD");
     private final Button startBtnM = new Button("CREATE");
     private final JLabel groupInfoLb = new JLabel();
     private ArrayList<UUID> my_conversation_uuids;
@@ -146,6 +146,7 @@ class Window {
         ActionListener actionListener = e -> {
             if (e.getSource() == registerButtonSign) {
                 registerWindow();
+                // frame.dispose();
             }
             if (e.getSource() == okButtonSign) {
                 my_uuidString = clientWorker.signIn().toString();
@@ -216,19 +217,27 @@ class Window {
                 registerFrame.dispose();
             }
             if (e.getSource() == rgOkBtn) {
-                UUID uid = clientWorker.register();
-                if (uid != null) {
-                    registerFrame.dispose();
-                    rgAgeTf.setText(null);
-                    rgNameTf.setText(null);
-                    rgUserTf.setText(null);
-                    rgPassTf.setText(null);
-                } else {
-                    rgAgeTf.setText(null);
-                    rgNameTf.setText(null);
-                    rgUserTf.setText(null);
-                    rgPassTf.setText(null);
+                String name = rgNameTf.getText();
+                int age = 0;
+                if (rgAgeTf.getText() != null) {
+                    try {
+                        age = Integer.parseInt(rgAgeTf.getText());
+                    } catch (NumberFormatException ee) {
+                        ee.printStackTrace();
+                    }
                 }
+                System.out.println(age);
+                String username = rgUserTf.getText();
+                String password = Arrays.toString(rgPassTf.getPassword());
+                boolean register = clientWorker.register(username, password, name, age);
+
+                registerFrame.dispose();
+
+
+                rgAgeTf.setText(null);
+                rgNameTf.setText(null);
+                rgUserTf.setText(null);
+                rgPassTf.setText(null);
 
             }
         };
@@ -237,6 +246,10 @@ class Window {
         rgOkBtn.addActionListener(actionListener);
 
     }
+
+    private JTextArea showUsernameTa = new JTextArea("Invited:");
+    //private StringBuilder usernameString = new StringBuilder();
+    private ArrayList<UUID> invitedUsers = new ArrayList<>();
 
     public void mainWindow() {
         my_uuid.setText(String.format("my uuid: %s", my_uuidString));
@@ -270,6 +283,12 @@ class Window {
 //        for (UUID my_conversation_uuid : my_conversation_uuids) {
 //            conversationModel.addElement(my_conversation_uuid);
 //        }
+        ArrayList<UUID> uuid_list = clientWorker.getConversation_uuid_list();
+        if (uuid_list != null) {
+            for (int i = 0; i < uuid_list.size(); i++) {
+                conversationModel.addElement(uuid_list.get(i));
+            }
+        }
         list = new JList<UUID>(conversationModel);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -291,15 +310,22 @@ class Window {
         Panel labelP = new Panel(new FlowLayout(FlowLayout.LEFT));
         Panel addLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
         Panel addP = new Panel();
+        //Panel showP = new Panel();
         Panel groupNameP = new Panel();
         Panel startP = new Panel();
 
         //add panels to box
         vBoxInRight.add(newChatLbP);
-        vBoxInRight.add(Box.createVerticalStrut(10));
+        //vBoxInRight.add(Box.createVerticalStrut(10));
         vBoxInRight.add(labelP);
         vBoxInRight.add(groupNameP);
+        //show username panel
+        showUsernameTa.setEditable(false);
+        JScrollPane showJsp = new JScrollPane(showUsernameTa);
+        vBoxInRight.add(showJsp);
+
         vBoxInRight.add(addLbP);
+
         vBoxInRight.add(addP);
         vBoxInRight.add(startP);
 
@@ -308,7 +334,7 @@ class Window {
         groupNameP.add(groupNameTfM);
         addLbP.add(inviteLbM);
         addP.add(inviteTfM);
-        //addP.add(addBtnM);
+        addP.add(addBtnM);
         startP.add(startBtnM);
 
         //add panels to frame
@@ -322,12 +348,14 @@ class Window {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
                     Conversation conversation = clientWorker.getConversation(list.getSelectedValue());
+                    clientWorker.setToNewConversation(list.getSelectedValue());
                     chatWindow(conversation);
                     clientWorker.importCurrentHistory();
                 }
 
                 if (e.getClickCount() == 1) {
-                    groupInfoLb.setText(clientWorker.getGroupName(list.getSelectedValue()));
+                    String groupName = clientWorker.getConversation(list.getSelectedValue()).name;
+                    groupInfoLb.setText(String.format("Group name: %s", groupName));
                 }
 
                 if (e.getButton() == MouseEvent.BUTTON3) {
@@ -365,20 +393,43 @@ class Window {
             if (e.getSource() == startBtnM) {
                 //get the group name and usernames
                 String groupName = groupNameTfM.getText();
-                String inviteString = inviteTfM.getText();
+                // String inviteString = inviteTfM.getText();
                 //create a new conversation
-                Conversation conversation = clientWorker.createConversation(groupName, inviteString);
+                UUID[] user_uuids = new UUID[invitedUsers.size()];
+                for (int i = 0; i < invitedUsers.size(); i++) {
+                    user_uuids[i] = invitedUsers.get(i);
+                }
+                Conversation conversation = clientWorker.createConversation(groupName, user_uuids);
                 UUID newConversation_uuid = conversation.uuid;
                 conversationModel.addElement(newConversation_uuid); //add the conversation to the list displayed
                 chatWindow(conversation);
-                groupNameLbM.setText(null);
+                groupNameTfM.setText(null);
                 inviteTfM.setText(null);
+                showUsernameTa.setText("Invited: ");
+
+                invitedUsers.clear();
+//                usernameString.replace(0, usernameString.length() - 1, "No one has been invited yet!");
+//                showUsernameTa.setText(String.valueOf(usernameString));
+            }
+            if (e.getSource() == addBtnM) {
+                String username = inviteTfM.getText();
+                UUID user_uuid = clientWorker.getUserUUID(username);
+                if (user_uuid != null) {
+                    showUsernameTa.append(String.format("%s ", username));
+//                    usernameString.append();
+//                    showUsernameTa.setText(String.valueOf(usernameString));
+                    invitedUsers.add(user_uuid);
+                    inviteTfM.setText(null);
+                } else {
+                    inviteTfM.setText(null);
+                }
             }
         };
 
         logOutBtnM.addActionListener(actionListener);
         settingBtnM.addActionListener(actionListener);
         startBtnM.addActionListener(actionListener);
+        addBtnM.addActionListener(actionListener);
 
     }
 
@@ -497,7 +548,21 @@ class Window {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (e.getSource() == okBtnProfile) {
-                    //TODO change profile request
+                    String name = nameTfProfile.getText();
+                    String age = ageTfProfile.getText();
+                    if (clientWorker.manageProfile(name, age)) {
+                        JOptionPane.showMessageDialog(profileFrame,
+                                "Profile changed successfully!",
+                                "Manage Profile", JOptionPane.INFORMATION_MESSAGE);
+                        profileFrame.dispose();
+                        settingWindow();
+                        nameTfProfile.setText(null);
+                        ageTfProfile.setText(null);
+                    } else {
+                        nameTfProfile.setText(null);
+                        ageTfProfile.setText(null);
+                    }
+
                 }
                 if (e.getSource() == cancelBtnProfile) {
                     settingWindow();
@@ -535,9 +600,9 @@ class Window {
         box.add(bottomP);
 
         //add to panels
-        topP.add(addUserToChatBtn);
+        //topP.add(addUserToChatBtn);
         topP.add(renameBtnChat);
-        topP.add(deleteBtnChat);
+        //topP.add(deleteBtnChat);
         topP.add(exportBtnChat);
         midP.add(jsp);
         bottomP.add(inputTfChat);
@@ -550,13 +615,13 @@ class Window {
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
                 clientWorker.saveMessageToMap();
-                clientWorker.setToNewConversation();
+                //clientWorker.setToNewConversation();
             }
         };
 
         //if left clicked, edit message.
         //if right clicked, delete message.
-        list.addMouseListener(new MouseAdapter() {
+        chatList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
@@ -587,15 +652,15 @@ class Window {
                 UUID invited_uuid = UUID.fromString(invite_uuid_String);
                 clientWorker.addUserToGroup(invited_uuid, clientWorker.getCurrentConversation_uuid());
             }
-            if (e.getSource() == deleteBtnChat) {
-                int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to delete" +
-                        "the conversation?", "Delete", JOptionPane.OK_CANCEL_OPTION);
-                if (answer == JOptionPane.OK_OPTION) {
-                    if (clientWorker.deleteConversation(clientWorker.getCurrentConversation_uuid())) {
-                        chatFrame.dispose();
-                    }
-                }
-            }
+//            if (e.getSource() == deleteBtnChat) {
+//                int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to delete" +
+//                        "the conversation?", "Delete", JOptionPane.OK_CANCEL_OPTION);
+//                if (answer == JOptionPane.OK_OPTION) {
+//                    if (clientWorker.deleteConversation(clientWorker.getCurrentConversation_uuid())) {
+//                        chatFrame.dispose();
+//                    }
+//                }
+//            }
             if (e.getSource() == renameBtnChat) {
                 groupNameChat = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
                         "Rename", JOptionPane.PLAIN_MESSAGE);
@@ -614,13 +679,15 @@ class Window {
 
             }
             if (e.getSource() == exportBtnChat) {
+                clientWorker.saveMessageToMap();
                 clientWorker.export();
             }
 
         };
-        deleteBtnChat.addActionListener(actionListener);
+        //deleteBtnChat.addActionListener(actionListener);
         renameBtnChat.addActionListener(actionListener);
         sendBtnChat.addActionListener(actionListener);
+        exportBtnChat.addActionListener(actionListener);
     }
 
 
@@ -651,7 +718,7 @@ class Window {
 
 }
 
-class ClientWorker implements Runnable{
+class ClientWorker implements Runnable {
     private static Socket socket;
     private Window window;
     private User user;
@@ -673,6 +740,11 @@ class ClientWorker implements Runnable{
 
     public ClientWorker(Window window) {
         this.window = window;
+    }
+
+    @Override
+    public void run() {
+        new ClientWorker();
     }
 
     public UUID getCurrentConversation_uuid() {
@@ -795,61 +867,66 @@ class ClientWorker implements Runnable{
      * The method sends a register request to the server and receives a
      * registerResponse that contains the user's uuid.
      */
-    public UUID register() {
+    public boolean register(String username, String password, String name, int age) {
         RegisterResponse response;
-        String username = window.getRgUsername();
-        String password = window.getRgPassword();
-        String name = window.getRgName();
-        try {
-            Credential rgCredential = new Credential(username, password);
+//        int age;
+//        try {
+//            age = Integer.parseInt(ageString);
+//        } catch (NumberFormatException e) {
+//            JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
+//                    JOptionPane.ERROR_MESSAGE);
+//            return false;
+//        }
+        if (username != null && password != null && name != null && age != 0) {
+            try {
+                Credential rgCredential = new Credential(username, password);
 
-            Profile rgProfile = new Profile(name, Integer.parseInt(window.getRgAgeString()));
+                Profile rgProfile = new Profile(name, age);
 
-            RegisterRequest registerRequest = new RegisterRequest(rgCredential, rgProfile);
+                RegisterRequest registerRequest = new RegisterRequest(rgCredential, rgProfile);
 
-            response = (RegisterResponse) send(registerRequest);
-            //UUID my_uuid = response.uuid;
-            JOptionPane.showMessageDialog(null, "Registered successfully",
-                    "Register", JOptionPane.INFORMATION_MESSAGE);
-            return response.uuid;
+                response = (RegisterResponse) send(registerRequest);
+                //UUID my_uuid = response.uuid;
+                JOptionPane.showMessageDialog(null, "Registered successfully",
+                        "Register", JOptionPane.INFORMATION_MESSAGE);
+                return true;
 
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return null;
 
-        } catch (RequestParsingException e) {
-            JOptionPane.showMessageDialog(null, "Error", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return null;
+            } catch (RequestParsingException e) {
+                JOptionPane.showMessageDialog(null, "Error", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
 
-        } catch (UserExistsException e) {
-            JOptionPane.showMessageDialog(null, "The username has been taken!",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return null;
+            } catch (UserExistsException e) {
+                JOptionPane.showMessageDialog(null, "The username has been taken!",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
 
-        } catch (InvalidUsernameException e) {
-            JOptionPane.showMessageDialog(null, "Invalid username!", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return null;
+            } catch (InvalidUsernameException e) {
+                JOptionPane.showMessageDialog(null, "Invalid username!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
 
-        } catch (InvalidPasswordException e) {
-            JOptionPane.showMessageDialog(null, "Invalid password!", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return null;
+            } catch (InvalidPasswordException e) {
+                JOptionPane.showMessageDialog(null, "Invalid password!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
 
-        } catch (RequestFailedException e) {
-            JOptionPane.showMessageDialog(null, "Request failed!", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return null;
+            } catch (RequestFailedException e) {
+                JOptionPane.showMessageDialog(null, "Request failed!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO exception!", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
-            return null;
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "IO exception!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+                return false;
+
+            }
         }
+        return false;
     }
 
 
@@ -937,10 +1014,11 @@ class ClientWorker implements Runnable{
             return true;
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         } catch (RequestFailedException e) {
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     /**
@@ -1068,9 +1146,12 @@ class ClientWorker implements Runnable{
         try {
             response = (GetUserResponse) send(getUser);
             return response.user;
-        } catch (NotLoggedInException | UserNotFoundException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
-                    JOptionPane.ERROR_MESSAGE);
+        } catch (UserNotFoundException e) {
+            JOptionPane.showMessageDialog(null, "User does not exist!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (NotLoggedInException e) {
+            JOptionPane.showMessageDialog(null, "You have been logged out!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (RequestFailedException e) {
@@ -1087,26 +1168,24 @@ class ClientWorker implements Runnable{
      * @param groupName the name of the conversation
      * @return the uuid of the group
      */
-    public Conversation createConversation(String groupName, String inviteString) {
-        String[] uuidsString;
-        UUID[] uuids;
-        
-
-        try {
-            uuidsString = inviteString.split(",");
-        } catch (NumberFormatException | NullPointerException e) {
-            JOptionPane.showMessageDialog(null,
-                    "Please separate the uuids by commas!",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
-        uuids = new UUID[uuidsString.length];
-        for (int i = 0; i < uuidsString.length; i++) {
-            UUID uuid = UUID.fromString(uuidsString[i]);
-            uuids[i] = uuid;
-        }
-        CreateConversationRequest createRequest = new CreateConversationRequest(uuids, groupName);
+    public Conversation createConversation(String groupName, UUID[] user_uuids) {
+        //String[] uuidsString;
+        //UUID[] uuids;
+//        try {
+//            uuidsString = inviteString.split(",");
+//        } catch (NumberFormatException | NullPointerException e) {
+//            JOptionPane.showMessageDialog(null,
+//                    "Please separate the uuids by commas!",
+//                    "Error",
+//                    JOptionPane.ERROR_MESSAGE);
+//            return null;
+//        }
+//        uuids = new UUID[uuidsString.length];
+//        for (int i = 0; i < uuidsString.length; i++) {
+//            UUID uuid = UUID.fromString(uuidsString[i]);
+//            uuids[i] = uuid;
+//        }
+        CreateConversationRequest createRequest = new CreateConversationRequest(user_uuids, groupName);
         CreateConversationResponse response;
 
         try {
@@ -1114,12 +1193,21 @@ class ClientWorker implements Runnable{
             conversation_uuid_list.add(response.conversation_uuid);
             currentConversation_uuid = response.conversation_uuid;
             return getConversation(currentConversation_uuid);
-        } catch (NotLoggedInException | InvalidConversationNameException | UserNotFoundException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
-                    JOptionPane.ERROR_MESSAGE);
+
+        } catch (NotLoggedInException e) {
+            JOptionPane.showMessageDialog(null, "You have been logged out!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (InvalidConversationNameException e) {
+            JOptionPane.showMessageDialog(null, "Invalid conversation name!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (UserNotFoundException e) {
+            JOptionPane.showMessageDialog(null, "User does not exist!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (RequestFailedException e) {
+            JOptionPane.showMessageDialog(null, "Request failed!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
         return null;
@@ -1179,14 +1267,21 @@ class ClientWorker implements Runnable{
         PostMessageResponse response;
         try {
             response = (PostMessageResponse) send(postMessageRequest);
-            saveMessage(message);
             return true;
-        } catch (NotLoggedInException | MessageNotFoundException | IllegalContentException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Error",
-                    JOptionPane.ERROR_MESSAGE);
+        }catch (IllegalContentException e) {
+            JOptionPane.showMessageDialog(null, "Illegal content!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }catch (MessageNotFoundException e) {
+            JOptionPane.showMessageDialog(null, "Message not found!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (NotLoggedInException e) {
+            JOptionPane.showMessageDialog(null, "You have logged out!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (RequestFailedException e) {
+            JOptionPane.showMessageDialog(null, "Request failed!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
         return false;
@@ -1236,9 +1331,9 @@ class ClientWorker implements Runnable{
      * messages, set currentConversation_uuid to null, and
      * clear the currentMessageList
      */
-    public void setToNewConversation() {
+    public void setToNewConversation(UUID conversation_uuid) {
         saveMessageToMap();
-        currentConversation_uuid = null;
+        currentConversation_uuid = conversation_uuid;
         currentMessageList.clear();
     }
 
@@ -1275,11 +1370,13 @@ class ClientWorker implements Runnable{
      * @return the message string
      */
     public String messageString(Message message) {
-        String name = searchUser(message.sender_uuid).profile.name;
+        //String name = searchUser(my_uuid).profile.name;
         String date = message.time.toString();
         String content = message.content;
         String uuid = message.uuid.toString();
-        return String.format("{(%s)%s at %s: <%s>}\n", uuid, name, date, content);
+        //return String.format("{(%s)%s at %s: <%s>}\n", uuid, name, date, content);
+        return String.format("{(%s) at %s: <%s>}\n", uuid, date, content);
+
     }
 
     /**
@@ -1322,16 +1419,71 @@ class ClientWorker implements Runnable{
         }
     }
 
-    @Override
-    public void run() {
-        new ClientWorker();
+
+    /**
+     * pass a username and return the uuid of the user
+     *
+     * @param username the username of the user
+     * @return return the uuid of the user
+     */
+    public UUID getUserUUID(String username) {
+        GetUserNameRequest getUserNameRequest = new GetUserNameRequest(username);
+        GetUserNameResponse response;
+        try {
+            response = (GetUserNameResponse) send(getUserNameRequest);
+            if (searchUser(response.user_uuid) != null) {
+                return response.user_uuid;
+            } else {
+                return null;
+            }
+        } catch (UserNotFoundException e) {
+            JOptionPane.showMessageDialog(null, "User does not exist!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-//    public UUID getUserUUID() {
-//        Re
-//    }
 
-
+    /**
+     * @param name      the name of the user
+     * @param ageString the age of the user with a string type
+     * @return return true if no error
+     */
+    public boolean manageProfile(String name, String ageString) {
+        int age = 0;
+        try {
+            age = Integer.parseInt(ageString);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Invalid age!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        Profile profile = new Profile(name, age);
+        EditProfileRequest request = new EditProfileRequest(profile);
+        try {
+            send(request);
+            return true;
+        } catch (IllegalContentException e) {
+            e.printStackTrace();
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } catch (RequestFailedException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
+
+
+
 
 
