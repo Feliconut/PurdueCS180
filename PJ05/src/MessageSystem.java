@@ -143,14 +143,13 @@ public class MessageSystem {
         return conversation;
     }
 
-    public Conversation setAdmin(UUID admin_uuid, UUID conversation_uuid) throws AuthorizationException, ConversationNotFoundException, UserNotFoundException {
+    public void setAdmin(UUID admin_uuid, UUID conversation_uuid) throws AuthorizationException, ConversationNotFoundException, UserNotFoundException {
         Conversation conversation = getConversation(conversation_uuid);
 
         if (Set.of(conversation.user_uuids).contains(admin_uuid)) {
             conversation.admin_uuid = admin_uuid;
             conversationDatabase.put(conversation_uuid, conversation);
             eventBagHandler.add(getUser(admin_uuid));
-            return conversation;
         } else {
             throw new AuthorizationException();
         }

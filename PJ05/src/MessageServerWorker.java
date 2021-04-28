@@ -347,7 +347,7 @@ public class MessageServerWorker extends Thread {
             throw new AuthorizationException();
         } else {
             UUID conversation_uuid = setConversationAdminRequest.conversation_uuid;
-            system.setAdmin(currentUser.uuid, conversation_uuid);
+            system.setAdmin(setConversationAdminRequest.admin_uuid, conversation_uuid);
             return new Response(true, "", setConversationAdminRequest.uuid);
         }
     }
