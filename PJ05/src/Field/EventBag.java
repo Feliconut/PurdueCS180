@@ -97,44 +97,44 @@ public class EventBag {
     // getters of final values
 
     public User[] getNewUsers() {
-        return (User[]) new_users.toArray();
+        return new_users.toArray(new User[0]);
     }
 
     public Conversation[] getNewConversations() {
-        return (Conversation[]) new_conversations.toArray();
+        return new_conversations.toArray(new Conversation[0]);
     }
 
     public HashMap<UUID, Message[]> getNewMessages() {
         HashMap<UUID, Message[]> res = new HashMap<>();
         for (UUID uuid :
                 new_messages.keySet()) {
-            res.put(uuid, (Message[]) new_messages.get(uuid).toArray());
+            res.put(uuid, new_messages.get(uuid).toArray(new Message[0]));
         }
         return res;
     }
 
     public User[] getUpdatedUsers() {
-        return (User[]) updated_users.toArray();
+        return updated_users.toArray(new User[0]);
     }
 
     public Conversation[] getUpdatedConversations() {
-        return (Conversation[]) updated_conversations.toArray();
+        return updated_conversations.toArray(new Conversation[0]);
     }
 
     public Message[] getUpdatedMessages() {
-        return (Message[]) updated_messages.toArray();
+        return updated_messages.toArray(new Message[0]);
     }
 
     public UUID[] getRemovedUsers() {
-        return (UUID[]) removed_users.toArray();
+        return removed_users.toArray(new UUID[0]);
     }
 
     public UUID[] getRemovedConversations() {
-        return (UUID[]) removed_conversations.toArray();
+        return removed_conversations.toArray(new UUID[0]);
     }
 
     public UUID[] getRemovedMessages() {
-        return (UUID[]) removed_messages.toArray();
+        return removed_messages.toArray(new UUID[0]);
     }
 
 }

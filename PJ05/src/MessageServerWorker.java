@@ -58,8 +58,8 @@ public class MessageServerWorker extends Thread {
                         response = process((DeleteMessageRequest) request);
                     } else if (request instanceof EditMessageRequest) {
                         response = process((EditMessageRequest) request);
-                    } else if (request instanceof GetAllUserNamesRequest) {
-                        response = process(request);
+//                    } else if (request instanceof GetAllUserNamesRequest) {
+//                        response = process(request);
                     } else if (request instanceof GetConversationRequest) {
                         response = process((GetConversationRequest) request);
                     } else if (request instanceof GetMessageRequest) {
@@ -84,6 +84,8 @@ public class MessageServerWorker extends Thread {
                         response = process((RegisterRequest) request);
                     } else if (request instanceof RemoveUserFromConversationRequest) {
                         response = process((RemoveUserFromConversationRequest) request);
+                    } else if (request instanceof RenameConversationRequest) {
+                        response = process((RenameConversationRequest) request);
                     } else if (request instanceof SetConversationAdminRequest) {
                         response = process((SetConversationAdminRequest) request);
                     } else if (request instanceof UpdateMessageRequest) {
@@ -132,13 +134,13 @@ public class MessageServerWorker extends Thread {
 
     //log in
     //authenticateRequest. To test user's login circumstances.
-    Response process(AuthenticateRequest authenticateRequest) throws UserNotFoundException, InvalidPasswordException,
+    AuthenticateResponse process(AuthenticateRequest authenticateRequest) throws UserNotFoundException, InvalidPasswordException,
             InvalidUsernameException, LoggedInException {
         Credential credential = authenticateRequest.credential;
 
         User user = system.signIn(credential); // Validates the credential.
         currentUser = user; // Mark this ServerWorker as authenticated.
-        return new Response(true, "Login successful!", authenticateRequest.uuid);
+        return new AuthenticateResponse(true, "Login successful!", authenticateRequest.uuid, user.uuid);
 
     }
 
@@ -160,7 +162,11 @@ public class MessageServerWorker extends Thread {
         if (currentUser == null) {
             throw new NotLoggedInException();
         } else {
-            system.editProfile(currentUser.uuid, profile);
+            try {
+                system.editProfile(currentUser.uuid, profile);
+            } catch (UserNotFoundException e) {
+                e.printStackTrace();
+            }
             return new Response(true, "", editProfileRequest.uuid);
         }
     }
@@ -347,7 +353,7 @@ public class MessageServerWorker extends Thread {
             throw new AuthorizationException();
         } else {
             UUID conversation_uuid = setConversationAdminRequest.conversation_uuid;
-            system.setAdmin(currentUser.uuid, conversation_uuid);
+            system.setAdmin(setConversationAdminRequest.admin_uuid, conversation_uuid);
             return new Response(true, "", setConversationAdminRequest.uuid);
         }
     }
