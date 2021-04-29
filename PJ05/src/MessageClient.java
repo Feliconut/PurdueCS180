@@ -8,6 +8,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * PJ5-MessageClient
@@ -34,60 +35,19 @@ public class MessageClient implements Runnable {
 
 
 class Window {
-    private final JLabel rgNameLb = new JLabel("Name");
-    private final JLabel rgAgeLb = new JLabel("Age");
-    private final JLabel rgUserLb = new JLabel("Username");
-    private final JLabel rgPassLb = new JLabel("Password");
-    private final TextField rgNameTf = new TextField(20);
-    private final TextField rgAgeTf = new TextField(20);
-    private final TextField rgUserTf = new TextField(20);
-    private final JPasswordField rgPassTf = new JPasswordField(20);
-    private final Button rgOkBtn = new Button("OK");
-    private final Button rgCancelBtn = new Button("Cancel");
-    private final Button logOutBtnM = new Button("LOG OUT");
-    private final Button settingBtnM = new Button("SETTING");
-    JList<UUID> list;
-    private final Button registerButtonSign;
-    private final JLabel titleLbSign;
-    private final JLabel usernameLbSign;
-    private final JLabel passwordLbSign;
-    private final Button okButtonSign;
-    private final TextField usernameTfSign;
-    private final JPasswordField passwordTfSign;
-    private final ClientWorker clientWorker = new ClientWorker(this);
     private String my_uuidString;
-    private final JLabel my_uuid = new JLabel();
-    private final JLabel chatroomLbM = new JLabel("Chat Rooms");
-    private final JLabel newChatLbM = new JLabel("Create a new chat");
-    private final JLabel groupNameLbM = new JLabel("Enter a group name");
-    private final TextField groupNameTfM = new TextField(20);
-    private final JLabel inviteLbM = new JLabel("Invite by usernames:");
-    private final JTextField inviteTfM = new JTextField(20);
-    private Button addBtnM = new Button("ADD");
-    private final Button startBtnM = new Button("CREATE");
-    private final JLabel groupInfoLb = new JLabel();
+    private final ClientWorker clientWorker = new ClientWorker(this);
     private ArrayList<UUID> my_conversation_uuids;
-    private final DefaultListModel<UUID> conversationModel = new DefaultListModel<>();
-    private final Button backBtnSetting = new Button("Back");
-    private final Button deleteBtnSetting = new Button("DELETE ACCOUNT");
-    private final Button manageProfileBtnSetting = new Button("MANAGE PROFILE");
-    //private Button exportBtnSetting = new Button("EXPORT CHAT HISTORY");
-    private final Button profileBtnSetting = new Button("MY PROFILE");
-    private final JLabel nameLbProfile = new JLabel("Name");
-    private final JLabel ageLbProfile = new JLabel("age");
-    private final TextField nameTfProfile = new TextField(20);
-    private final TextField ageTfProfile = new TextField(20);
-    private final Button okBtnProfile = new Button("OK");
-    private final Button cancelBtnProfile = new Button("Cancel");
-    private final TextField inputTfChat = new TextField(30);
-    private final Button sendBtnChat = new Button("SEND");
-    private final Button deleteBtnChat = new Button("Delete the group");
-    private final Button renameBtnChat = new Button("Rename the group");
-    private String groupNameChat;
-    private final Button addUserToChatBtn = new Button("Invite");
-    private final Button exportBtnChat = new Button("Export");
+    JList<UUID> list;
 
     public Window() {
+        final Button registerButtonSign;
+        final JLabel titleLbSign;
+        final JLabel usernameLbSign;
+        final JLabel passwordLbSign;
+        final Button okButtonSign;
+        final TextField usernameTfSign;
+        final JPasswordField passwordTfSign;
         //set frame
         JFrame frame = new JFrame("sign-in");
         frame.setSize(600, 400);
@@ -149,8 +109,11 @@ class Window {
                 // frame.dispose();
             }
             if (e.getSource() == okButtonSign) {
-                my_uuidString = clientWorker.signIn().toString();
-                if (my_uuidString != null) {
+                String username = usernameTfSign.getText();
+                String password = Arrays.toString(passwordTfSign.getPassword());
+                UUID my_uuid = clientWorker.signIn(username, password);
+                if (my_uuid != null) {
+                    my_uuidString = my_uuid.toString();
                     mainWindow();
                     frame.dispose();
                 } else {
@@ -164,6 +127,17 @@ class Window {
     }
 
     public void registerWindow() {
+        final JLabel rgNameLb = new JLabel("Name");
+        final JLabel rgAgeLb = new JLabel("Age");
+        final JLabel rgUserLb = new JLabel("Username");
+        final JLabel rgPassLb = new JLabel("Password");
+        final TextField rgNameTf = new TextField(20);
+        final TextField rgAgeTf = new TextField(20);
+        final TextField rgUserTf = new TextField(20);
+        final JPasswordField rgPassTf = new JPasswordField(20);
+        final Button rgOkBtn = new Button("OK");
+        final Button rgCancelBtn = new Button("Cancel");
+
         //set frame
         JFrame registerFrame = new JFrame("Register");
         registerFrame.setSize(600, 400);
@@ -218,21 +192,15 @@ class Window {
             }
             if (e.getSource() == rgOkBtn) {
                 String name = rgNameTf.getText();
-                int age = 0;
-                if (rgAgeTf.getText() != null) {
-                    try {
-                        age = Integer.parseInt(rgAgeTf.getText());
-                    } catch (NumberFormatException ee) {
-                        ee.printStackTrace();
-                    }
-                }
-                System.out.println(age);
+                String ageString = rgAgeTf.getText();
+                //System.out.println(age);
                 String username = rgUserTf.getText();
                 String password = Arrays.toString(rgPassTf.getPassword());
-                boolean register = clientWorker.register(username, password, name, age);
+                boolean register = clientWorker.register(username, password, name, ageString);
 
-                registerFrame.dispose();
-
+                if (register) {
+                    registerFrame.dispose();
+                }
 
                 rgAgeTf.setText(null);
                 rgNameTf.setText(null);
@@ -252,6 +220,19 @@ class Window {
     private ArrayList<UUID> invitedUsers = new ArrayList<>();
 
     public void mainWindow() {
+        final Button logOutBtnM = new Button("LOG OUT");
+        final Button settingBtnM = new Button("SETTING");
+        final JLabel my_uuid = new JLabel();
+        final JLabel chatroomLbM = new JLabel("Chat Rooms");
+        final JLabel newChatLbM = new JLabel("Create a new chat");
+        final JLabel groupNameLbM = new JLabel("Enter a group name");
+        final TextField groupNameTfM = new TextField(20);
+        final JLabel inviteLbM = new JLabel("Invite by usernames:");
+        final JTextField inviteTfM = new JTextField(20);
+        Button addBtnM = new Button("ADD");
+        final Button startBtnM = new Button("CREATE");
+        final JLabel groupInfoLb = new JLabel();
+        final DefaultListModel<UUID> conversationModel = new DefaultListModel<>();
         my_uuid.setText(String.format("my uuid: %s", my_uuidString));
         //set up frame
         JFrame mainFrame = new JFrame("Main");
@@ -434,6 +415,11 @@ class Window {
     }
 
     public void settingWindow() {
+        final Button backBtnSetting = new Button("Back");
+        final Button deleteBtnSetting = new Button("DELETE ACCOUNT");
+        final Button manageProfileBtnSetting = new Button("MANAGE PROFILE");
+        //private Button exportBtnSetting = new Button("EXPORT CHAT HISTORY");
+        final Button profileBtnSetting = new Button("MY PROFILE");
         //set frame
         JFrame settingFrame = new JFrame("Setting");
         settingFrame.setSize(600, 400);
@@ -488,16 +474,18 @@ class Window {
                     }
                 }
             }
-//            if (e.getSource() == exportBtnSetting) {
-//
-//            }
 
             if (e.getSource() == profileBtnSetting) {
-                Profile profile = clientWorker.getMyProfile();
+                Profile profile = clientWorker.getProfile();
+
                 String name = profile.name;
                 int age = profile.age;
-                String message = String.format("Name: %s\n" +
-                        "Age: %d\n", name, age);
+
+                String message = String.format("""
+                        Name: %s
+                        Age: %d
+                        """, name, age);
+
                 JOptionPane.showMessageDialog(settingFrame, message, "Profile",
                         JOptionPane.INFORMATION_MESSAGE);
             }
@@ -510,6 +498,13 @@ class Window {
     }
 
     public void manageProfileWindow() {
+        final JLabel nameLbProfile = new JLabel("Name");
+        final JLabel ageLbProfile = new JLabel("age");
+        final TextField nameTfProfile = new TextField(20);
+        final TextField ageTfProfile = new TextField(20);
+        final Button okBtnProfile = new Button("OK");
+        final Button cancelBtnProfile = new Button("Cancel");
+
         //set frame
         JFrame profileFrame = new JFrame("Manage Profile");
         profileFrame.setSize(600, 400);
@@ -547,6 +542,7 @@ class Window {
         ActionListener actionListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+
                 if (e.getSource() == okBtnProfile) {
                     String name = nameTfProfile.getText();
                     String age = ageTfProfile.getText();
@@ -558,6 +554,7 @@ class Window {
                         settingWindow();
                         nameTfProfile.setText(null);
                         ageTfProfile.setText(null);
+
                     } else {
                         nameTfProfile.setText(null);
                         ageTfProfile.setText(null);
@@ -576,6 +573,14 @@ class Window {
     }
 
     public void chatWindow(Conversation currentConversation) {
+        final TextField inputTfChat = new TextField(30);
+        final Button sendBtnChat = new Button("SEND");
+        //final Button deleteBtnChat = new Button("Delete the group");
+        final Button renameBtnChat = new Button("Rename the group");
+        AtomicReference<String> groupNameChat = new AtomicReference<>("Chat");
+        final Button addUserToChatBtn = new Button("Invite");
+        final Button exportBtnChat = new Button("Export");
+
         //set frame
         JFrame chatFrame = new JFrame("Chat");
         chatFrame.setSize(400, 400);
@@ -662,10 +667,10 @@ class Window {
 //                }
 //            }
             if (e.getSource() == renameBtnChat) {
-                groupNameChat = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
-                        "Rename", JOptionPane.PLAIN_MESSAGE);
-                if (clientWorker.renameConversation(groupNameChat)) {
-                    chatFrame.setTitle(groupNameChat);
+                groupNameChat.set(JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
+                        "Rename", JOptionPane.PLAIN_MESSAGE));
+                if (clientWorker.renameConversation(groupNameChat.get())) {
+                    chatFrame.setTitle(groupNameChat.get());
                 }
             }
             if (e.getSource() == sendBtnChat) {
@@ -691,29 +696,29 @@ class Window {
     }
 
 
-    public String getSignInUsername() {
-        return usernameTfSign.getText();
-    }
+//    public String getSignInUsername() {
+//        return usernameTfSign.getText();
+//    }
+//
+//    public String getSignInPassword() {
+//        return Arrays.toString(passwordTfSign.getPassword());
+//    }
 
-    public String getSignInPassword() {
-        return Arrays.toString(passwordTfSign.getPassword());
-    }
-
-    public String getRgUsername() {
-        return rgUserTf.getText();
-    }
-
-    public String getRgPassword() {
-        return Arrays.toString(rgPassTf.getPassword());
-    }
-
-    public String getRgName() {
-        return rgNameTf.getText();
-    }
-
-    public String getRgAgeString() {
-        return rgAgeTf.getText();
-    }
+//    public String getRgUsername() {
+//        return rgUserTf.getText();
+//    }
+//
+//    public String getRgPassword() {
+//        return Arrays.toString(rgPassTf.getPassword());
+//    }
+//
+//    public String getRgName() {
+//        return rgNameTf.getText();
+//    }
+//
+//    public String getRgAgeString() {
+//        return rgAgeTf.getText();
+//    }
 
 
 }
@@ -755,9 +760,9 @@ class ClientWorker implements Runnable {
         return conversation_uuid_list;
     }
 
-    public Profile getMyProfile() {
-        return profile;
-    }
+//    public Profile getMyProfile() {
+//        return profile;
+//    }
 
     public UUID getMy_uuid() {
         return my_uuid;
@@ -819,21 +824,20 @@ class ClientWorker implements Runnable {
      * The method sends an authenticate request and receives
      * a response
      */
-    public UUID signIn() {
-        String username = window.getSignInUsername();
-        String password = window.getSignInPassword();
-
+    public UUID signIn(String username, String password) {
+        AuthenticateResponse response;
         try {
             credential = new Credential(username, password);
             AuthenticateRequest authenticateRequest = new AuthenticateRequest(credential);
-            Response response = send(authenticateRequest);
-            my_uuid = response.uuid;
+            response = (AuthenticateResponse) send(authenticateRequest);
+            my_uuid = response.user_uuid;
             //if success get the user's information
             getProfile();
             getAllConversationUid();
             getAllConversation();
             getExistMessageHistory();
             return my_uuid;
+
         } catch (UserNotFoundException e) {
             JOptionPane.showMessageDialog(null, "User does not exist!",
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -846,6 +850,12 @@ class ClientWorker implements Runnable {
 
         } catch (RequestParsingException e) {
             e.printStackTrace();
+            return null;
+
+        } catch (LoggedInException e) {
+            JOptionPane.showMessageDialog(null,
+                    "You have already logged in!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
             return null;
 
         } catch (RequestFailedException e) {
@@ -867,65 +877,67 @@ class ClientWorker implements Runnable {
      * The method sends a register request to the server and receives a
      * registerResponse that contains the user's uuid.
      */
-    public boolean register(String username, String password, String name, int age) {
+    public boolean register(String username, String password, String name, String ageString) {
         RegisterResponse response;
-//        int age;
-//        try {
-//            age = Integer.parseInt(ageString);
-//        } catch (NumberFormatException e) {
-//            JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
-//                    JOptionPane.ERROR_MESSAGE);
-//            return false;
-//        }
-        if (username != null && password != null && name != null && age != 0) {
-            try {
-                Credential rgCredential = new Credential(username, password);
 
-                Profile rgProfile = new Profile(name, age);
-
-                RegisterRequest registerRequest = new RegisterRequest(rgCredential, rgProfile);
-
-                response = (RegisterResponse) send(registerRequest);
-                //UUID my_uuid = response.uuid;
-                JOptionPane.showMessageDialog(null, "Registered successfully",
-                        "Register", JOptionPane.INFORMATION_MESSAGE);
-                return true;
-
-
-            } catch (RequestParsingException e) {
-                JOptionPane.showMessageDialog(null, "Error", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                return false;
-
-            } catch (UserExistsException e) {
-                JOptionPane.showMessageDialog(null, "The username has been taken!",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                return false;
-
-            } catch (InvalidUsernameException e) {
-                JOptionPane.showMessageDialog(null, "Invalid username!", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                return false;
-
-            } catch (InvalidPasswordException e) {
-                JOptionPane.showMessageDialog(null, "Invalid password!", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                return false;
-
-            } catch (RequestFailedException e) {
-                JOptionPane.showMessageDialog(null, "Request failed!", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                return false;
-
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(null, "IO exception!", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
-                return false;
-
-            }
+        if (username.equals("") || password.equals("") || name.equals("") || ageString.equals("")) {
+            JOptionPane.showMessageDialog(null, "Text fields cannot be blank! ",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
+
+        try {
+            Credential rgCredential = new Credential(username, password);
+
+            Profile rgProfile = new Profile(name, Integer.parseInt(ageString));
+
+            RegisterRequest registerRequest = new RegisterRequest(rgCredential, rgProfile);
+
+            response = (RegisterResponse) send(registerRequest);
+            //UUID my_uuid = response.uuid;
+            JOptionPane.showMessageDialog(null, "Registered successfully",
+                    "Register", JOptionPane.INFORMATION_MESSAGE);
+            return true;
+
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+
+        } catch (RequestParsingException e) {
+            JOptionPane.showMessageDialog(null, "Error", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+
+        } catch (UserExistsException e) {
+            JOptionPane.showMessageDialog(null, "The username has been taken!",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+
+        } catch (InvalidUsernameException e) {
+            JOptionPane.showMessageDialog(null, "Invalid username!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+
+        } catch (InvalidPasswordException e) {
+            JOptionPane.showMessageDialog(null, "Invalid password!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+
+        } catch (RequestFailedException e) {
+            JOptionPane.showMessageDialog(null, "Request failed!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "IO exception!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            return false;
+
+        }
+
         return false;
     }
 
@@ -990,17 +1002,28 @@ class ClientWorker implements Runnable {
     /**
      * send a getUserRequest
      */
-    public void getProfile() {
+    public Profile getProfile() {
         Response response;
         GetUserRequest getUserRequest = new GetUserRequest(my_uuid);
+
         try {
             response = send(getUserRequest);
             profile = ((GetUserResponse) response).user.profile;
+            return profile;
+
+        } catch (UserNotFoundException e) {
+            JOptionPane.showMessageDialog(null, "User not found!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
         } catch (IOException e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "IO Exception",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
         } catch (RequestFailedException e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Request failed!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
+        return null;
     }
 
 
@@ -1022,11 +1045,12 @@ class ClientWorker implements Runnable {
     }
 
     /**
-     * get all the conversation uid of a user
+     * get all the existed conversation uid of a user
      */
     public void getAllConversationUid() {
         ListAllConversationsRequest listAllConversationsRequest = new ListAllConversationsRequest();
         ListAllConversationsResponse response;
+
         try {
             response = (ListAllConversationsResponse) send(listAllConversationsRequest);
             if (response.conversation_uuids != null) {
@@ -1268,10 +1292,10 @@ class ClientWorker implements Runnable {
         try {
             response = (PostMessageResponse) send(postMessageRequest);
             return true;
-        }catch (IllegalContentException e) {
+        } catch (IllegalContentException e) {
             JOptionPane.showMessageDialog(null, "Illegal content!",
                     "Error", JOptionPane.ERROR_MESSAGE);
-        }catch (MessageNotFoundException e) {
+        } catch (MessageNotFoundException e) {
             JOptionPane.showMessageDialog(null, "Message not found!",
                     "Error", JOptionPane.ERROR_MESSAGE);
         } catch (NotLoggedInException e) {
