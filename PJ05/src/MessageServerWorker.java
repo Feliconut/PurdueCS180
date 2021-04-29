@@ -58,8 +58,8 @@ public class MessageServerWorker extends Thread {
                         response = process((DeleteMessageRequest) request);
                     } else if (request instanceof EditMessageRequest) {
                         response = process((EditMessageRequest) request);
-                    } else if (request instanceof GetAllUserNamesRequest) {
-                        response = process(request);
+//                    } else if (request instanceof GetAllUserNamesRequest) {
+//                        response = process(request);
                     } else if (request instanceof GetConversationRequest) {
                         response = process((GetConversationRequest) request);
                     } else if (request instanceof GetMessageRequest) {
@@ -84,6 +84,8 @@ public class MessageServerWorker extends Thread {
                         response = process((RegisterRequest) request);
                     } else if (request instanceof RemoveUserFromConversationRequest) {
                         response = process((RemoveUserFromConversationRequest) request);
+                    } else if (request instanceof RenameConversationRequest) {
+                        response = process((RenameConversationRequest) request);
                     } else if (request instanceof SetConversationAdminRequest) {
                         response = process((SetConversationAdminRequest) request);
                     } else if (request instanceof UpdateMessageRequest) {
@@ -160,7 +162,11 @@ public class MessageServerWorker extends Thread {
         if (currentUser == null) {
             throw new NotLoggedInException();
         } else {
-            system.editProfile(currentUser.uuid, profile);
+            try {
+                system.editProfile(currentUser.uuid, profile);
+            } catch (UserNotFoundException e) {
+                e.printStackTrace();
+            }
             return new Response(true, "", editProfileRequest.uuid);
         }
     }

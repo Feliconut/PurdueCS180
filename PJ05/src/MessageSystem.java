@@ -174,11 +174,11 @@ public class MessageSystem {
         User user = getUser(user_uuid);
         UUID[] uuid = conversation.user_uuids;
         ArrayList<UUID> modified_uuids = new ArrayList<>(Arrays.asList(uuid));
-            modified_uuids.add(user_uuid);
-            conversation.user_uuids = modified_uuids.toArray(new UUID[0]);
-            conversationDatabase.put(conversation_uuid, conversation);
-            eventBagHandler.update(conversation);
-        }
+        modified_uuids.add(user_uuid);
+        conversation.user_uuids = modified_uuids.toArray(new UUID[0]);
+        conversationDatabase.put(conversation_uuid, conversation);
+        eventBagHandler.update(conversation);
+    }
 
 
     public void quitConversation(UUID user_uuid, UUID conversation_uuid) throws ConversationNotFoundException, UserNotFoundException {
@@ -211,7 +211,7 @@ public class MessageSystem {
         message.content = edit_message;
         message.time = new Date();
         messageDatabase.put(message_uuid, message);
-
+//        eventBagHandler.update(message); //TODO find the conversation of the message
         return message;
     }
 
@@ -275,10 +275,12 @@ public class MessageSystem {
         return uuids.toArray(new UUID[0]);
     }
 
-    public Profile editProfile(UUID user_uuid, Profile new_profile) {
-        User user = userDatabase.get(user_uuid);
+    public Profile editProfile(UUID user_uuid, Profile new_profile) throws UserNotFoundException {
+        User user = getUser(user_uuid);
 
         user.profile = new_profile;
+        userDatabase.put(user.uuid, user);
+        eventBagHandler.update(user);
 
         return new_profile;
     }
