@@ -484,7 +484,7 @@ class Window {
             }
 
             if (e.getSource() == profileBtnSetting) {
-                Profile profile = clientWorker.getProfile();
+                Profile profile = clientWorker.getMyProfile();
 
                 String name = profile.name;
                 int age = profile.age;
@@ -554,7 +554,7 @@ class Window {
                 if (e.getSource() == okBtnProfile) {
                     String name = nameTfProfile.getText();
                     String age = ageTfProfile.getText();
-                    if (clientWorker.manageProfile(name, age)) {
+                    if (clientWorker.manageProfile(name, age) != null) {
                         JOptionPane.showMessageDialog(profileFrame,
                                 "Profile changed successfully!",
                                 "Manage Profile", JOptionPane.INFORMATION_MESSAGE);
@@ -756,7 +756,7 @@ class ClientWorker implements Runnable {
     private Window window;
     private User user;
     private Credential credential;
-    private Profile profile;
+    private Profile my_profile;
     private UUID my_uuid;
     //private UUID currentConversation_uuid;
     private Conversation currentConversation;
@@ -788,9 +788,9 @@ class ClientWorker implements Runnable {
         return conversation_uuid_list;
     }
 
-//    public Profile getMyProfile() {
-//        return profile;
-//    }
+    public Profile getMyProfile() {
+        return my_profile;
+    }
 
     public UUID getMy_uuid() {
         return my_uuid;
@@ -1034,10 +1034,12 @@ class ClientWorker implements Runnable {
     public Profile getProfile() {
         Response response;
         GetUserRequest getUserRequest = new GetUserRequest(my_uuid);
+        Profile profile;
 
         try {
             response = send(getUserRequest);
             profile = ((GetUserResponse) response).user.profile;
+            my_profile = profile;
             return profile;
 
         } catch (UserNotFoundException e) {
@@ -1619,11 +1621,11 @@ class ClientWorker implements Runnable {
      * @param ageString the age of the user with a string type
      * @return return true if no error
      */
-    public boolean manageProfile(String name, String ageString) {
+    public Profile manageProfile(String name, String ageString) {
         if (name.equals("") || ageString.equals("")) {
             JOptionPane.showMessageDialog(null,
                     "Text Fields cannot be blank!");
-            return false;
+            return null;
         }
 
         try {
@@ -1631,17 +1633,18 @@ class ClientWorker implements Runnable {
             Profile profile = new Profile(name, Integer.parseInt(ageString));
             EditProfileRequest request = new EditProfileRequest(profile);
             send(request);
-            return true;
+            my_profile = profile;
+            return my_profile;
 
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(null,
                     "Invalid age!", "Error",
                     JOptionPane.ERROR_MESSAGE);
-            return false;
+            return null;
 
         } catch (IllegalContentException e) {
             e.printStackTrace();
-            return false;
+            return null;
 
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "IO Exception",
@@ -1651,7 +1654,7 @@ class ClientWorker implements Runnable {
             JOptionPane.showMessageDialog(null, "Request failed!",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
-        return false;
+        return null;
     }
 
 //    public void getEventFeed() {
