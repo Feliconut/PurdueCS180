@@ -7,20 +7,20 @@ import java.util.UUID;
 public class Conversation extends Storable {
     public String name;
     public UUID[] user_uuids;
+    public UUID admin_uuid;
     public UUID[] message_uuids;
 
-    public Conversation(UUID uuid, String name, UUID[] user_uuids, UUID[] message_uuids) {
+    public Conversation(UUID uuid, String name, UUID[] user_uuids, UUID admin_uuid, UUID[] message_uuids) {
         super(uuid);
         this.name = name;
         this.user_uuids = user_uuids;
+        this.admin_uuid = admin_uuid;
         this.message_uuids = message_uuids;
+        assert Arrays.asList(user_uuids).contains(admin_uuid);
     }
 
-    public Conversation(String name, UUID[] user_uuids, UUID[] message_uuids) {
-        super();
-        this.name = name;
-        this.user_uuids = user_uuids;
-        this.message_uuids = message_uuids;
+    public Conversation(String name, UUID[] user_uuids, UUID admin_uuid, UUID[] message_uuids) {
+        this(UUID.randomUUID(), name, user_uuids, admin_uuid, message_uuids);
     }
 
     @Override
