@@ -141,6 +141,7 @@ public class MessageSystem {
     public Conversation createConversation(String conversation_name, UUID[] user_uuids, UUID admin_uuid) throws InvalidConversationNameException, UserNotFoundException {
         //create one conversation(默认uuids>0)
         Conversation conversation = new Conversation(conversation_name, user_uuids, admin_uuid, new UUID[0]);
+        conversation.user_uuids = Arrays.stream(conversation.user_uuids).distinct().toArray(UUID[]::new);
         conversationDatabase.put(conversation.uuid, conversation);
         eventBagHandler.add(conversation);
         return conversation;

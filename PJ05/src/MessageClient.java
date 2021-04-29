@@ -9,6 +9,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * PJ5-MessageClient
@@ -35,10 +36,10 @@ public class MessageClient implements Runnable {
 
 
 class Window {
-    private String my_uuidString;
     private final ClientWorker clientWorker = new ClientWorker(this);
-    private ArrayList<UUID> my_conversation_uuids;
     JList<UUID> list;
+    private String my_uuidString;
+    private ArrayList<UUID> my_conversation_uuids;
 
     public Window() {
         final Button registerButtonSign;
@@ -753,6 +754,10 @@ class Window {
 
 class ClientWorker implements Runnable {
     private static Socket socket;
+    //private final ArrayList<Message> currentMessageList = new ArrayList<>();
+    private final ArrayList<UUID> conversation_uuid_list = new ArrayList<>();
+    private final ArrayList<Conversation> conversation_list = new ArrayList<>();
+    private final HashMap<UUID, ArrayList<Message>> messageMap = new HashMap<>(); //UUID is the conversation uuid
     private Window window;
     private User user;
     private Credential credential;
@@ -760,10 +765,6 @@ class ClientWorker implements Runnable {
     private UUID my_uuid;
     //private UUID currentConversation_uuid;
     private Conversation currentConversation;
-    //private final ArrayList<Message> currentMessageList = new ArrayList<>();
-    private final ArrayList<UUID> conversation_uuid_list = new ArrayList<>();
-    private final ArrayList<Conversation> conversation_list = new ArrayList<>();
-    private final HashMap<UUID, Message[]> messageMap = new HashMap<>(); //UUID is the conversation uuid
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
 
@@ -1141,13 +1142,14 @@ class ClientWorker implements Runnable {
      */
     public void getExistMessageHistory() {
         try {
-            for (int i = 0; i < conversation_uuid_list.size(); i++) {
-                GetMessageHistoryRequest getMessage = new GetMessageHistoryRequest(conversation_uuid_list.get(i));
-                GetMessageHistoryResponse response;
-
-                response = (GetMessageHistoryResponse) send(getMessage);
-                messageMap.put(conversation_list.get(i).uuid, response.messages);
-
+            for (Conversation conversation : conversation_list) {
+                GetMessageHistoryResponse response = (GetMessageHistoryResponse) send(new GetMessageHistoryRequest(conversation.uuid));
+                messageMap.putIfAbsent(conversation.uuid, new ArrayList<>());
+                ArrayList<Message> messages = messageMap.get(conversation.uuid);
+                messages.addAll(Arrays.asList(response.messages));
+                // make unique collection of messages.
+                messages = (ArrayList<Message>) messages.stream().distinct().collect(Collectors.toList());
+                messageMap.put(conversation.uuid, messages);
             }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "IO Exception",
@@ -1216,7 +1218,6 @@ class ClientWorker implements Runnable {
         } catch (UserNotFoundException e) {
             JOptionPane.showMessageDialog(null, "User not found!",
                     "Error", JOptionPane.ERROR_MESSAGE);
-            ;
 
         } catch (ConversationNotFoundException e) {
             JOptionPane.showMessageDialog(null, "Conversation not found!",
@@ -1432,7 +1433,8 @@ class ClientWorker implements Runnable {
      * @return return the chat history
      */
     public ArrayList<Message> importCurrentHistory(UUID currentConversation_uuid) {
-        Message[] thisConversationHistory = messageMap.get(currentConversation_uuid);
+        messageMap.putIfAbsent(currentConversation_uuid, new ArrayList<>());
+        Message[] thisConversationHistory = messageMap.get(currentConversation_uuid).toArray(Message[]::new);
         if (thisConversationHistory != null) {
 //            currentMessageList.addAll(Arrays.asList(thisConversationHistory));
 //            return currentMessageList;
@@ -1456,18 +1458,12 @@ class ClientWorker implements Runnable {
     /**
      * save currentMessageList to map
      */
-    public void saveMessageToMap(UUID currentConversation_uuid, ArrayList<Message> messages) {
-        if (messages != null) {
-            Message[] messageList = new Message[messages.size()];
-            for (int i = 0; i < messages.size(); i++) {
-                messageList[i] = messages.get(i);
-            }
-            if (messageMap.containsKey(currentConversation_uuid)) {
-                messageMap.replace(currentConversation_uuid, messageList);
-            } else {
-                messageMap.put(currentConversation_uuid, messageList);
-            }
-        }
+    public void saveMessageToMap(UUID currentConversation_uuid, ArrayList<Message> new_messages) {
+        messageMap.putIfAbsent(currentConversation_uuid, new ArrayList<>());
+        ArrayList<Message> messages = messageMap.get(currentConversation_uuid);
+        messages.addAll(new_messages);
+        messages = (ArrayList<Message>) messages.stream().distinct().collect(Collectors.toList());
+        messageMap.put(currentConversation_uuid, messages);
     }
 
     /**
