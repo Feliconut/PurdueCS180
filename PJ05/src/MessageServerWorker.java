@@ -134,13 +134,13 @@ public class MessageServerWorker extends Thread {
 
     //log in
     //authenticateRequest. To test user's login circumstances.
-    Response process(AuthenticateRequest authenticateRequest) throws UserNotFoundException, InvalidPasswordException,
+    AuthenticateResponse process(AuthenticateRequest authenticateRequest) throws UserNotFoundException, InvalidPasswordException,
             InvalidUsernameException, LoggedInException {
         Credential credential = authenticateRequest.credential;
 
         User user = system.signIn(credential); // Validates the credential.
         currentUser = user; // Mark this ServerWorker as authenticated.
-        return new Response(true, "Login successful!", authenticateRequest.uuid);
+        return new AuthenticateResponse(true, "Login successful!", authenticateRequest.uuid, user.uuid);
 
     }
 
