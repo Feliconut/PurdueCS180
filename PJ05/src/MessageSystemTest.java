@@ -134,7 +134,7 @@ public class MessageSystemTest {
         fail("UserExistException did not throw when expected.");
     }
 
-    @Test(expected = MessageNotFoundException.class)
+    @Test (expected = MessageNotFoundException.class)
     public void deleteMessageExceptionExpected() throws MessageNotFoundException {
         try {
             MessageSystem ms5 = new MessageSystem("userFileTest", "messageFileTest"
@@ -150,70 +150,157 @@ public class MessageSystemTest {
             throw e;
         } catch (UserNotFoundException e) {
             e.printStackTrace();
-            fail();
+            fail("Exception occurs when not expected.");
         } catch (InvalidConversationNameException e) {
             e.printStackTrace();
-            fail();
+            fail("Exception occurs when not expected.");
         }
     }
 
-    @Test
-    public void deleteConversation() {
+    @Test (expected = ConversationNotFoundException.class)
+    public void deleteConversationExceptionExpected() throws ConversationNotFoundException {
+        try {
+            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
+                    , "conversationFileTest");
+            User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
+            User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
+            Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
+            Message message2 = new Message(student2.uuid, new Date(2022, 4, 26), "Hi");
+            UUID[] group1 = {student1.uuid, student2.uuid};
+            UUID[] messageGroup = {message1.uuid, message2.uuid};
+            Conversation conversationTest = new Conversation("Group1", group1, student1.uuid, messageGroup);
+            ms.deleteConversation(conversationTest.uuid);
+        } catch (ConversationNotFoundException e) {
+            String message = ""; // Exception prompt.
+            assertEquals(message, e.getMessage());
+            throw e;
+        }
+        fail("UserExistException did not throw when expected.");
+    }
+
+    @Test (expected = InvalidConversationNameException.class)
+    public void createConversationExceptionExpected() throws InvalidConversationNameException {
+        try {
+            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
+                    , "conversationFileTest");
+            User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
+            UUID[] uuids = {student1.uuid};
+            Conversation conversation = ms.createConversation(null, uuids);
+            // needed edit.
+        } catch (InvalidConversationNameException e) {
+            String message = ""; // Exception prompt.
+            assertEquals(message, e.getMessage());
+            throw e;
+        } catch (UserNotFoundException e) {
+            e.printStackTrace();
+            fail("Exception occurs when not expected.");
+        }
+        fail("UserExistException did not throw when expected.");
+    }
+
+    @Test (expected = ConversationNotFoundException.class)
+    public void setAdminExceptionExpected() throws ConversationNotFoundException {
+        try {
+            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
+                    , "conversationFileTest");
+            User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
+            Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
+            UUID[] messageGroup = {message1.uuid};
+            UUID[] uuids = {student1.uuid};
+            Conversation conversationTest = new Conversation("Group1", uuids, student1.uuid, messageGroup);
+            ms.setAdmin(student1.uuid, conversationTest.uuid);
+        } catch (ConversationNotFoundException e) {
+            String message = ""; // Exception prompt.
+            assertEquals(message, e.getMessage());
+            throw e;
+        }
+        fail("UserExistException did not throw when expected.");
     }
 
     @Test
-    public void addMessage() {
+    public void renameConversationTest() {
+        try {
+            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
+                    , "conversationFileTest");
+            User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
+            User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
+            UUID[] group1 = {student1.uuid, student2.uuid};
+            Conversation conversationTest = ms.createConversation("Group1", group1);
+            ms.renameConversation("group", conversationTest.uuid);
+        } catch (ConversationNotFoundException e) {
+            e.printStackTrace();
+            fail("Exception occurs when not expected.");
+        } catch (UserNotFoundException e) {
+            e.printStackTrace();
+            fail("Exception occurs when not expected.");
+        } catch (InvalidConversationNameException e) {
+            e.printStackTrace();
+            fail("Exception occurs when not expected.");
+        }
+    }
+
+    @Test (expected = ConversationNotFoundException.class)
+    public void renameConversationExceptionExpected() throws ConversationNotFoundException {
+        try {
+            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
+                    , "conversationFileTest");
+            User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
+            User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
+            UUID[] group1 = {student1.uuid, student2.uuid};
+            UUID[] messages = null;
+            Conversation conversation = new Conversation("Group", group1, student1.uuid, messages);
+            ms.renameConversation("group", conversation.uuid);
+        } catch (ConversationNotFoundException e) {
+            String message = ""; // Exception prompt.
+            assertEquals(message, e.getMessage());
+            throw e;
+        }
+        fail("UserExistException did not throw when expected.");
     }
 
     @Test
-    public void createConversation() {
+    public void addUser2ConversationTest() {
+        try {
+            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
+                    , "conversationFileTest");
+            User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
+            User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
+            UUID[] group1 = {student1.uuid};
+            Conversation conversationTest = ms.createConversation("Group1", group1);
+            ms.addUser2Conversation(student2.uuid, conversationTest.uuid);
+        } catch (UserNotFoundException e) {
+            e.printStackTrace();
+            fail("Exception occurs when not expected.");
+        } catch (ConversationNotFoundException e) {
+            e.printStackTrace();
+            fail("Exception occurs when not expected.");
+        } catch (InvalidConversationNameException e) {
+            e.printStackTrace();
+            fail("Exception occurs when not expected.");
+        }
     }
 
-    @Test
-    public void setAdmin() {
+    @Test (expected = UserNotFoundException.class)
+    public void addUser2ConversationExceptionExpected() throws UserNotFoundException {
+        try {
+            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
+                    , "conversationFileTest");
+            User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
+            UUID[] group1 = {student1.uuid};
+            Conversation conversationTest = ms.createConversation("Group1", group1);
+            ms.addUser2Conversation(UUID.randomUUID(), conversationTest.uuid);
+        } catch (UserNotFoundException e) {
+            String message = ""; // Exception prompt.
+            assertEquals(message, e.getMessage());
+            throw e;
+        } catch (ConversationNotFoundException e) {
+            e.printStackTrace();
+            fail("Exception occurs when not expected.");
+        } catch (InvalidConversationNameException e) {
+            e.printStackTrace();
+            fail("Exception occurs when not expected.");
+        }
+        fail("UserExistException did not throw when expected.");
     }
 
-    @Test
-    public void renameConversation() {
-    }
-
-    @Test
-    public void addUser2Conversation() {
-    }
-
-    @Test
-    public void removeUserFormConversation() {
-    }
-
-    @Test
-    public void quitConversation() {
-    }
-
-    @Test
-    public void allUser() {
-    }
-
-    @Test
-    public void editMessage() {
-    }
-
-    @Test
-    public void listAllUUID() {
-    }
-
-    @Test
-    public void getMessages() {
-    }
-
-    @Test
-    public void getConversationMessages() {
-    }
-
-    @Test
-    public void getMessage() {
-    }
-
-    @Test
-    public void getUserConversations() {
-    }
 }
