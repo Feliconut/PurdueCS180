@@ -333,6 +333,7 @@ class Window {
                     Conversation conversation = clientWorker.getConversation(list.getSelectedValue());
                     //clientWorker.setToNewConversation(list.getSelectedValue());
                     chatWindow(conversation);
+                    mainFrame.dispose();
                 }
 
                 if (e.getClickCount() == 1) {
@@ -691,9 +692,12 @@ class Window {
 //                }
 //            }
             if (e.getSource() == renameBtnChat) {
-                groupNameChat.set(JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
-                        "Rename", JOptionPane.PLAIN_MESSAGE));
-                if (clientWorker.renameConversation(groupNameChat.get(), currentConversation.uuid)) {
+                String new_name = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
+                        "Rename", JOptionPane.PLAIN_MESSAGE);
+                // TODO cancel
+                // TODO enter nothing (name=="") or (name==null)
+                if (clientWorker.renameConversation(new_name, currentConversation.uuid)) {
+                    groupNameChat.set(new_name);
                     chatFrame.setTitle(groupNameChat.get());
                 }
             }
