@@ -1,5 +1,5 @@
-import Field.*;
 import Exceptions.*;
+import Field.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -7,7 +7,8 @@ import org.junit.Test;
 import java.util.Date;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class MessageSystemTest {
 
@@ -24,13 +25,13 @@ public class MessageSystemTest {
     @Test
     public void getUser() {
         try {
-            MessageSystem messageSystem = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem messageSystem = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
             // expected successful test case for add, remove method.
-            messageSystem.addUser(student1.credential, student1.profile);
-            messageSystem.addUser(student2.credential, student2.profile);
+            student1 = messageSystem.addUser(student1.credential, student1.profile);
+            student2 = messageSystem.addUser(student2.credential, student2.profile);
             messageSystem.deleteUser(student2.uuid);
             assertEquals(student1, messageSystem.getUser(student1.credential.usrName));
             assertEquals(student1, messageSystem.getUser(student1.uuid));
