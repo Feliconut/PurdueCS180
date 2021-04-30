@@ -281,10 +281,9 @@ public class MessageSystem {
         for (UUID uuid : conversationDatabase.uuids()) {
             try {
                 Conversation conversation = getConversation(uuid);
-                UUID[] user_uuids = conversation.user_uuids;
                 for (UUID conversation_user_uuid :
-                        user_uuids) {
-                    if (conversation_user_uuid == user_uuid) {
+                        conversation.user_uuids) {
+                    if (conversation_user_uuid.equals(user_uuid)) {
                         uuids.add(conversation.uuid);
                     }
                 }

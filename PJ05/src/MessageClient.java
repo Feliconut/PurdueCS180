@@ -398,8 +398,9 @@ class Window {
             }
             if (e.getSource() == addBtnM) {
                 String username = inviteTfM.getText();
-                UUID user_uuid = clientWorker.getUser(username).uuid;
-                if (user_uuid != null) {
+                User user = clientWorker.getUser(username);
+                if (user != null) {
+                    UUID user_uuid = user.uuid;
                     showUsernameTa.append(String.format("%s ", username));
 //                    usernameString.append();
 //                    showUsernameTa.setText(String.valueOf(usernameString));

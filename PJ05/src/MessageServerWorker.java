@@ -235,6 +235,8 @@ public class MessageServerWorker extends Thread {
             throw new NotLoggedInException();
         } else if (content.length() > 1000 || content.equals("")) {
             throw new IllegalContentException("Message cannot be empty or too long");
+        } else if (message.sender_uuid.equals(currentUser.uuid)) {
+            throw new AuthorizationException("You are not the author of this message");
         } else {
             Message replaced_message = system.editMessage(content, message.uuid);
             return new EditMessageResponse(true, "", editMessageRequest.uuid, replaced_message.time);
@@ -250,7 +252,7 @@ public class MessageServerWorker extends Thread {
         }
         UUID message_uuid = deleteMessageRequest.message_uuid;
         Message message = system.getMessage(message_uuid);
-        if (message.sender_uuid == currentUser.uuid) {
+        if (message.sender_uuid.equals(currentUser.uuid)) {
             system.deleteMessage(message_uuid);
         } else {
             throw new AuthorizationException();
