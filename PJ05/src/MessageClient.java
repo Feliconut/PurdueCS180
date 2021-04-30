@@ -391,6 +391,7 @@ class Window {
                 for (int i = 0; i < invitedUsers.size(); i++) {
                     user_uuids[i] = invitedUsers.get(i);
                 }
+
                 Conversation conversation = clientWorker.createConversation(groupName, user_uuids);
                 UUID newConversation_uuid = conversation.uuid;
                 conversationModel.addElement(newConversation_uuid); //add the conversation to the list displayed
@@ -650,7 +651,7 @@ class Window {
         };
         chatFrame.addWindowListener(windowListener);
 
-        //if left clicked, edit message.
+        //if left clicked twice, edit message.
         //if right clicked, delete message.
         chatList.addMouseListener(new MouseAdapter() {
             @Override
@@ -663,6 +664,8 @@ class Window {
                     if (answer == JOptionPane.YES_OPTION) {
                         if (clientWorker.deleteMessage(chatList.getSelectedValue())) {
                             model.removeElement(chatList.getSelectedValue());
+                            assert messagesList != null;
+                            messagesList.remove(chatList.getSelectedIndex());
                         }
                     }
                 }
@@ -670,15 +673,19 @@ class Window {
                 if (e.getClickCount() == 2) {
                     String edit = JOptionPane.showInputDialog(chatFrame, "Edit the selected message:",
                             "Edit", JOptionPane.INFORMATION_MESSAGE);
-                    EditMessageResponse response = clientWorker.editMessage(chatList.getSelectedValue(), edit);
-                    String content = chatList.getSelectedValue();
-                    UUID message_uuid = UUID.fromString(content.substring(content.indexOf("(") + 1,
-                            content.indexOf(")")));
-                    Date date = response.dateEdited;
-                    Message message = new Message(message_uuid, clientWorker.getMy_uuid(),
-                            date, edit, currentConversation.uuid);
-                    String new_message = clientWorker.messageString(message);
-                    model.set(chatList.getSelectedIndex(), new_message);
+                    if (!edit.equals("")) {
+                        EditMessageResponse response = clientWorker.editMessage(chatList.getSelectedValue(), edit);
+                        String content = chatList.getSelectedValue();
+                        UUID message_uuid = UUID.fromString(content.substring(content.indexOf("(") + 1,
+                                content.indexOf(")")));
+                        Date date = response.dateEdited;
+                        Message new_message = new Message(message_uuid, clientWorker.getMy_uuid(),
+                                date, edit, currentConversation.uuid);
+                        assert messagesList != null;
+                        messagesList.set(chatList.getSelectedIndex(), new_message);
+                        String new_messageString = clientWorker.messageString(new_message);
+                        model.set(chatList.getSelectedIndex(), new_messageString);
+                    }
                 }
             }
         });
@@ -710,18 +717,23 @@ class Window {
                 }
             }
             if (e.getSource() == sendBtnChat) {
-                Message message = new Message(clientWorker.getMy_uuid(),
-                        new Date(), inputTfChat.getText(), currentConversation.uuid);
-                String messageString = clientWorker.messageString(message);
-                if (clientWorker.sendMessage(currentConversation.uuid, message)) {
-                    model.addElement(messageString);
-                    inputTfChat.setText(null);
+                if (inputTfChat.getText() != null) {
+                    Message message = new Message(clientWorker.getMy_uuid(),
+                            new Date(), inputTfChat.getText(), currentConversation.uuid);
+                    if (clientWorker.sendMessage(currentConversation.uuid, message)) {
+                        String messageString = clientWorker.messageString(message);
+                        model.addElement(messageString);
+                        assert messagesList != null;
+                        messagesList.add(message);
+                        inputTfChat.setText(null);
+                    }
                 }
 
             }
             if (e.getSource() == exportBtnChat) {
                 clientWorker.saveMessageToMap(currentConversation.uuid, messagesList);
-                clientWorker.export(messagesList);
+                ArrayList<Message> messages = clientWorker.getMessages(currentConversation.uuid);
+                clientWorker.export(messages);
             }
             if (e.getSource() == backBtn) {
                 clientWorker.saveMessageToMap(currentConversation.uuid, messagesList);
@@ -821,6 +833,10 @@ class ClientWorker implements Runnable {
             }
         }
         return "No conversation";
+    }
+
+    public ArrayList<Message> getMessages(UUID conversation_uuid) {
+        return messageMap.get(conversation_uuid);
     }
 
     /**
@@ -1455,6 +1471,7 @@ class ClientWorker implements Runnable {
             return new ArrayList<>(Arrays.asList(thisConversationHistory));
         }
         return null;
+
     }
 
 
@@ -1506,7 +1523,8 @@ class ClientWorker implements Runnable {
                     pw.write(String.format("%s,", sender));
                     String time = messageList.get(i).time.toString();
                     pw.write(String.format("%s,", time));
-                    pw.write(String.format("%s,", messageList.get(i).content));
+                    pw.write(String.format("%s", messageList.get(i).content));
+                    pw.println();
                 }
             }
             JOptionPane.showMessageDialog(null, "Export successfully!",
