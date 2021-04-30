@@ -363,6 +363,7 @@ class Window {
                 //TODO update the model list that displays the conversation list
             }
         };
+        mainFrame.addWindowListener(windowListener);
 
         ActionListener actionListener = e -> {
             if (e.getSource() == settingBtnM) {
@@ -603,9 +604,9 @@ class Window {
         //set display window
         DefaultListModel<String> model = new DefaultListModel<>();
         //if there was exist messages, add them to model
-        if (!messagesList.isEmpty()) {
-            for (int i = 0; i < messagesList.size(); i++) {
-                model.addElement(clientWorker.messageString(messagesList.get(i)));
+        if (messagesList != null) {
+            for (Message message : messagesList) {
+                model.addElement(clientWorker.messageString(message));
             }
         }
         JList<String> chatList = new JList<>(model);
@@ -666,11 +667,18 @@ class Window {
                     }
                 }
 
-                if (e.getButton() == MouseEvent.BUTTON1) {
+                if (e.getClickCount() == 2) {
                     String edit = JOptionPane.showInputDialog(chatFrame, "Edit the selected message:",
                             "Edit", JOptionPane.INFORMATION_MESSAGE);
-                    clientWorker.editMessage(chatList.getSelectedValue(), edit);
-                    model.setElementAt(edit, list.getSelectedIndex());
+                    EditMessageResponse response = clientWorker.editMessage(chatList.getSelectedValue(), edit);
+                    String content = chatList.getSelectedValue();
+                    UUID message_uuid = UUID.fromString(content.substring(content.indexOf("(") + 1,
+                            content.indexOf(")")));
+                    Date date = response.dateEdited;
+                    Message message = new Message(message_uuid, clientWorker.getMy_uuid(),
+                            date, edit, currentConversation.uuid);
+                    String new_message = clientWorker.messageString(message);
+                    model.set(chatList.getSelectedIndex(), new_message);
                 }
             }
         });
@@ -694,11 +702,11 @@ class Window {
             if (e.getSource() == renameBtnChat) {
                 String new_name = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
                         "Rename", JOptionPane.PLAIN_MESSAGE);
-                // TODO cancel
-                // TODO enter nothing (name=="") or (name==null)
-                if (clientWorker.renameConversation(new_name, currentConversation.uuid)) {
-                    groupNameChat.set(new_name);
-                    chatFrame.setTitle(groupNameChat.get());
+                if (!new_name.equals("")) {
+                    if (clientWorker.renameConversation(new_name, currentConversation.uuid)) {
+                        groupNameChat.set(new_name);
+                        chatFrame.setTitle(groupNameChat.get());
+                    }
                 }
             }
             if (e.getSource() == sendBtnChat) {
@@ -716,6 +724,7 @@ class Window {
                 clientWorker.export(messagesList);
             }
             if (e.getSource() == backBtn) {
+                clientWorker.saveMessageToMap(currentConversation.uuid, messagesList);
                 chatFrame.dispose();
                 mainWindow();
             }
@@ -890,6 +899,7 @@ class ClientWorker implements Runnable {
             JOptionPane.showMessageDialog(null,
                     "You have already logged in!",
                     "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
             return null;
 
         } catch (RequestFailedException e) {
@@ -1036,7 +1046,7 @@ class ClientWorker implements Runnable {
     /**
      * send a getUserRequest
      */
-    public Profile getProfile() {
+    public void getProfile() {
         Response response;
         GetUserRequest getUserRequest = new GetUserRequest(my_uuid);
         Profile profile;
@@ -1045,7 +1055,6 @@ class ClientWorker implements Runnable {
             response = send(getUserRequest);
             profile = ((GetUserResponse) response).user.profile;
             my_profile = profile;
-            return profile;
 
         } catch (UserNotFoundException e) {
             JOptionPane.showMessageDialog(null, "User not found!",
@@ -1059,7 +1068,6 @@ class ClientWorker implements Runnable {
             JOptionPane.showMessageDialog(null, "Request failed!",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
-        return null;
     }
 
 
@@ -1385,6 +1393,7 @@ class ClientWorker implements Runnable {
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
                     "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
         return false;
     }
@@ -1425,6 +1434,7 @@ class ClientWorker implements Runnable {
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
                     "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
         return false;
     }
@@ -1521,7 +1531,7 @@ class ClientWorker implements Runnable {
         String content = message.content;
         String uuid = message.uuid.toString();
         //return String.format("{(%s)%s at %s: <%s>}\n", uuid, name, date, content);
-        return String.format("{(%s) at %s: <%s>}\n", uuid, date, content);
+        return String.format("{<%s> at %s (%s)}\n", content, date, uuid);
 
     }
 
@@ -1558,12 +1568,16 @@ class ClientWorker implements Runnable {
         return false;
     }
 
-    public void editMessage(String oldContent, String newContent) {
+    public EditMessageResponse editMessage(String oldContent, String newContent) {
         UUID message_uuid = UUID.fromString(oldContent.substring(oldContent.indexOf("(") + 1, oldContent.indexOf(")")));
         EditMessageRequest editMessageRequest = new EditMessageRequest(message_uuid, newContent);
+        EditMessageResponse response;
         try {
-            send(editMessageRequest);
-
+            response = (EditMessageResponse) send(editMessageRequest);
+//            Message new_message = new Message(response.)
+//            String edit_message = messageString(response.);
+            //TODO return messageString(response.meg_uuid);
+            return (EditMessageResponse) response;
         } catch (NotLoggedInException e) {
             JOptionPane.showMessageDialog(null, "You have been logged out!",
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -1580,6 +1594,7 @@ class ClientWorker implements Runnable {
             JOptionPane.showMessageDialog(null, "Request failed!",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
+        return null;
     }
 
 
