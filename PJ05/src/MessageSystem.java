@@ -20,7 +20,7 @@ public class MessageSystem {
     public User signIn(Credential credential) throws LoggedInException, UserNotFoundException, InvalidPasswordException {
         User user = getUser(credential);
         eventBagHandler.signIn(user.uuid);
-        return user;
+        return new User(user);
     }
 
     public void signOut(UUID user_uuid) throws NotLoggedInException {
@@ -36,7 +36,7 @@ public class MessageSystem {
             User user = userDatabase.get(uuid);
             Credential userCredential = user.credential;
             if (userCredential.usrName.equals(name)) {
-                return user;
+                return new User(user);
             }
         }
 
@@ -51,7 +51,7 @@ public class MessageSystem {
             throw new UserNotFoundException();
 
         } else {
-            return user;
+            return new User(user);
         }
 
     }
@@ -60,7 +60,7 @@ public class MessageSystem {
 
         User user = getUser(credential.usrName);
         if (user.credential.passwd.equals(credential.passwd)) {
-            return user;
+            return new User(user);
         } else {
             throw new InvalidPasswordException();
         }
@@ -72,7 +72,7 @@ public class MessageSystem {
         if (conversation == null) {
             throw new ConversationNotFoundException();
         } else {
-            return conversation;
+            return new Conversation(conversation);
         }
     }
 
@@ -117,7 +117,7 @@ public class MessageSystem {
         } else {
 
             eventBagHandler.remove(conversation);
-            return conversation;
+            return new Conversation(conversation);
         }
     }
 
@@ -222,7 +222,7 @@ public class MessageSystem {
         message.time = new Date();
         messageDatabase.put(message.uuid, message);
 //        eventBagHandler.update(message); //TODO find the conversation of the message
-        return message;
+        return new Message(message);
     }
 
     public UUID[] listAllUUID(UUID conversation_uuid) throws ConversationNotFoundException {
@@ -266,7 +266,7 @@ public class MessageSystem {
         if (message == null) {
             throw new MessageNotFoundException();
         } else {
-            return message;
+            return new Message(message);
         }
 
     }

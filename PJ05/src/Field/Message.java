@@ -24,4 +24,13 @@ public class Message extends Storable {
         this.content = content;
         this.conversation_uuid = conversation_uuid;
     }
+
+    public Message(Message message) {
+        this(
+                message.uuid,
+                message.sender_uuid,
+                message.time,
+                message.content,
+                message.conversation_uuid);
+    }
 }
