@@ -42,8 +42,8 @@ public class MessageServerWorker extends Thread {
 
                     if (request instanceof AuthenticateRequest) {
                         response = process((AuthenticateRequest) request);
-                    } else if (request instanceof GetUserNameRequest) {
-                        response = process((GetUserNameRequest) request);
+                    } else if (request instanceof GetUserByNameRequest) {
+                        response = process((GetUserByNameRequest) request);
                     } else if (request instanceof EditProfileRequest) {
                         response = process((EditProfileRequest) request);
                     } else if (request instanceof AddUser2ConversationRequest) {
@@ -58,8 +58,6 @@ public class MessageServerWorker extends Thread {
                         response = process((DeleteMessageRequest) request);
                     } else if (request instanceof EditMessageRequest) {
                         response = process((EditMessageRequest) request);
-//                    } else if (request instanceof GetAllUserNamesRequest) {
-//                        response = process(request);
                     } else if (request instanceof GetConversationRequest) {
                         response = process((GetConversationRequest) request);
                     } else if (request instanceof GetMessageRequest) {
@@ -146,13 +144,13 @@ public class MessageServerWorker extends Thread {
     }
 
     //getUserNameRequest
-    GetUserNameResponse process(GetUserNameRequest getUserNameRequest) throws UserNotFoundException {
-        String name = getUserNameRequest.name;
+    GetUserByNameResponse process(GetUserByNameRequest getUserByNameRequest) throws UserNotFoundException {
+        String name = getUserByNameRequest.username;
         if (name == null) {
             throw new UserNotFoundException();
         } else {
             User user = system.getUser(name);
-            return new GetUserNameResponse(true, "", getUserNameRequest.uuid, user.uuid);
+            return new GetUserByNameResponse(true, "", getUserByNameRequest.uuid, user);
         }
 
     }
@@ -231,11 +229,12 @@ public class MessageServerWorker extends Thread {
 
         Message message = system.getMessage(editMessageRequest.messsage_uuid);
         String content = editMessageRequest.content;
+        content = content.strip();
 
         if (currentUser == null) {
             throw new NotLoggedInException();
-        } else if (content.length() > 1000 || content.contains("**")) {
-            throw new IllegalContentException();
+        } else if (content.length() > 1000 || content.equals("")) {
+            throw new IllegalContentException("Message cannot be empty or too long");
         } else {
             Message replaced_message = system.editMessage(content, message.uuid);
             return new EditMessageResponse(true, "", editMessageRequest.uuid, replaced_message.time);

@@ -9,7 +9,6 @@ import java.io.*;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 /**
  * PJ5-MessageClient
@@ -20,26 +19,19 @@ import java.util.stream.Collectors;
  * @version April
  */
 
-public class MessageClient implements Runnable {
+public class MessageClient {
     private static final BufferedReader bfr = null;
     private static final PrintWriter pw = null;
 
     public static void main(String[] args) {
-        new ClientWorker().connectToSocket();
-    }
-
-    public void run() {
         new Window();
     }
 
 }
 
-
 class Window {
     private final ClientWorker clientWorker = new ClientWorker(this);
-    JList<UUID> list;
-    private String my_uuidString;
-    private ArrayList<UUID> my_conversation_uuids;
+    JList<UUID> conversationList;
 
     public Window() {
         final Button registerButtonSign;
@@ -114,7 +106,6 @@ class Window {
                 String password = Arrays.toString(passwordTfSign.getPassword());
                 UUID my_uuid = clientWorker.signIn(username, password);
                 if (my_uuid != null) {
-                    my_uuidString = my_uuid.toString();
                     mainWindow();
                     frame.dispose();
                 } else {
@@ -235,7 +226,7 @@ class Window {
         final Button startBtnM = new Button("CREATE");
         final JLabel groupInfoLb = new JLabel();
         final DefaultListModel<UUID> conversationModel = new DefaultListModel<>();
-        my_uuid.setText(String.format("my uuid: %s", my_uuidString));
+        my_uuid.setText(String.format("my uuid: %s", clientWorker.current_user.uuid));
         //set up frame
         JFrame mainFrame = new JFrame("Main");
         mainFrame.setSize(600, 400);
@@ -266,20 +257,20 @@ class Window {
 //        for (UUID my_conversation_uuid : my_conversation_uuids) {
 //            conversationModel.addElement(my_conversation_uuid);
 //        }
-        ArrayList<UUID> uuid_list = clientWorker.getConversation_uuid_list();
+        UUID[] uuid_list = clientWorker.getConversation_uuid_list();
         if (uuid_list != null) {
             for (UUID uuid : uuid_list) {
                 conversationModel.addElement(uuid);
             }
         }
-        list = new JList<UUID>(conversationModel);
-        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        conversationList = new JList<>(conversationModel);
+        conversationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         //add to chatroomP
         Panel chatroomLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
         chatroomLbP.add(chatroomLbM);
         chatroomP.add(chatroomLbP);
-        JScrollPane jsp = new JScrollPane(list);
+        JScrollPane jsp = new JScrollPane(conversationList);
         jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         chatroomP.add(jsp);
         Panel groupInfoP = new Panel();
@@ -326,18 +317,18 @@ class Window {
         //if the list is clicked twice open up the selected conversation
         //if the list is clicked once show the conversation name in the label below
         //if the list is right-clicked pop up delete message
-        list.addMouseListener(new MouseAdapter() {
+        conversationList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    Conversation conversation = clientWorker.getConversation(list.getSelectedValue());
+                    Conversation conversation = clientWorker.getConversation(conversationList.getSelectedValue());
                     //clientWorker.setToNewConversation(list.getSelectedValue());
                     chatWindow(conversation);
                     mainFrame.dispose();
                 }
 
                 if (e.getClickCount() == 1) {
-                    String groupName = clientWorker.getConversation(list.getSelectedValue()).name;
+                    String groupName = clientWorker.getConversation(conversationList.getSelectedValue()).name;
                     groupInfoLb.setText(String.format("Group name: %s", groupName));
                 }
 
@@ -347,8 +338,8 @@ class Window {
                             "Delete", JOptionPane.YES_NO_OPTION);
 
                     if (answer == JOptionPane.YES_OPTION) {
-                        if (clientWorker.deleteConversation(list.getSelectedValue())) {
-                            conversationModel.remove(list.getSelectedIndex());
+                        if (clientWorker.deleteConversation(conversationList.getSelectedValue())) {
+                            conversationModel.remove(conversationList.getSelectedIndex());
                             groupInfoLb.setText(null);
                         }
                     }
@@ -380,6 +371,8 @@ class Window {
                     JOptionPane.showMessageDialog(null,
                             "Log out successfully!",
                             "Log out", JOptionPane.INFORMATION_MESSAGE);
+                    // return to login window
+                    new Window();
                 }
             }
             if (e.getSource() == startBtnM) {
@@ -391,7 +384,6 @@ class Window {
                 for (int i = 0; i < invitedUsers.size(); i++) {
                     user_uuids[i] = invitedUsers.get(i);
                 }
-
                 Conversation conversation = clientWorker.createConversation(groupName, user_uuids);
                 UUID newConversation_uuid = conversation.uuid;
                 conversationModel.addElement(newConversation_uuid); //add the conversation to the list displayed
@@ -406,7 +398,7 @@ class Window {
             }
             if (e.getSource() == addBtnM) {
                 String username = inviteTfM.getText();
-                UUID user_uuid = clientWorker.getUserUUID(username);
+                UUID user_uuid = clientWorker.getUser(username).uuid;
                 if (user_uuid != null) {
                     showUsernameTa.append(String.format("%s ", username));
 //                    usernameString.append();
@@ -488,7 +480,7 @@ class Window {
             }
 
             if (e.getSource() == profileBtnSetting) {
-                Profile profile = clientWorker.getMyProfile();
+                Profile profile = clientWorker.current_user.profile;
 
                 String name = profile.name;
                 int age = profile.age;
@@ -558,7 +550,7 @@ class Window {
                 if (e.getSource() == okBtnProfile) {
                     String name = nameTfProfile.getText();
                     String age = ageTfProfile.getText();
-                    if (clientWorker.manageProfile(name, age) != null) {
+                    if (clientWorker.setProfile(name, age) != null) {
                         JOptionPane.showMessageDialog(profileFrame,
                                 "Profile changed successfully!",
                                 "Manage Profile", JOptionPane.INFORMATION_MESSAGE);
@@ -585,7 +577,7 @@ class Window {
     }
 
     public void chatWindow(Conversation currentConversation) {
-        ArrayList<Message> messagesList = clientWorker.importCurrentHistory(currentConversation.uuid);
+        Message[] messagesList = clientWorker.getConversationMessages(currentConversation.uuid);
         final TextField inputTfChat = new TextField(30);
         final Button sendBtnChat = new Button("SEND");
         //final Button deleteBtnChat = new Button("Delete the group");
@@ -640,7 +632,6 @@ class Window {
             @Override
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
-                clientWorker.saveMessageToMap(currentConversation.uuid, messagesList);
                 //clientWorker.setToNewConversation();
             }
 
@@ -651,7 +642,7 @@ class Window {
         };
         chatFrame.addWindowListener(windowListener);
 
-        //if left clicked twice, edit message.
+        //if left clicked, edit message.
         //if right clicked, delete message.
         chatList.addMouseListener(new MouseAdapter() {
             @Override
@@ -664,8 +655,6 @@ class Window {
                     if (answer == JOptionPane.YES_OPTION) {
                         if (clientWorker.deleteMessage(chatList.getSelectedValue())) {
                             model.removeElement(chatList.getSelectedValue());
-                            assert messagesList != null;
-                            messagesList.remove(chatList.getSelectedIndex());
                         }
                     }
                 }
@@ -673,18 +662,15 @@ class Window {
                 if (e.getClickCount() == 2) {
                     String edit = JOptionPane.showInputDialog(chatFrame, "Edit the selected message:",
                             "Edit", JOptionPane.INFORMATION_MESSAGE);
-                    if (!edit.equals("")) {
-                        EditMessageResponse response = clientWorker.editMessage(chatList.getSelectedValue(), edit);
+                    Date date = clientWorker.editMessage(chatList.getSelectedValue(), edit);
+                    if (date != null) {
                         String content = chatList.getSelectedValue();
                         UUID message_uuid = UUID.fromString(content.substring(content.indexOf("(") + 1,
                                 content.indexOf(")")));
-                        Date date = response.dateEdited;
-                        Message new_message = new Message(message_uuid, clientWorker.getMy_uuid(),
+                        Message message = new Message(message_uuid, clientWorker.current_user.uuid,
                                 date, edit, currentConversation.uuid);
-                        assert messagesList != null;
-                        messagesList.set(chatList.getSelectedIndex(), new_message);
-                        String new_messageString = clientWorker.messageString(new_message);
-                        model.set(chatList.getSelectedIndex(), new_messageString);
+                        String new_message = clientWorker.messageString(message);
+                        model.set(chatList.getSelectedIndex(), new_message);
                     }
                 }
             }
@@ -717,26 +703,20 @@ class Window {
                 }
             }
             if (e.getSource() == sendBtnChat) {
-                if (inputTfChat.getText() != null) {
-                    Message message = new Message(clientWorker.getMy_uuid(),
-                            new Date(), inputTfChat.getText(), currentConversation.uuid);
-                    if (clientWorker.sendMessage(currentConversation.uuid, message)) {
-                        String messageString = clientWorker.messageString(message);
-                        model.addElement(messageString);
-                        assert messagesList != null;
-                        messagesList.add(message);
-                        inputTfChat.setText(null);
-                    }
+                Message message = new Message(clientWorker.current_user.uuid,
+                        new Date(), inputTfChat.getText(), currentConversation.uuid);
+                message = clientWorker.postMessage(currentConversation.uuid, message);
+                if (message != null) { // post successful
+                    String messageString = clientWorker.messageString(message);
+                    model.addElement(messageString);
+                    inputTfChat.setText(null);
                 }
 
             }
             if (e.getSource() == exportBtnChat) {
-                clientWorker.saveMessageToMap(currentConversation.uuid, messagesList);
-                ArrayList<Message> messages = clientWorker.getMessages(currentConversation.uuid);
-                clientWorker.export(messages);
+                clientWorker.export(messagesList);
             }
             if (e.getSource() == backBtn) {
-                clientWorker.saveMessageToMap(currentConversation.uuid, messagesList);
                 chatFrame.dispose();
                 mainWindow();
             }
@@ -750,93 +730,32 @@ class Window {
     }
 
 
-//    public String getSignInUsername() {
-//        return usernameTfSign.getText();
-//    }
-//
-//    public String getSignInPassword() {
-//        return Arrays.toString(passwordTfSign.getPassword());
-//    }
-
-//    public String getRgUsername() {
-//        return rgUserTf.getText();
-//    }
-//
-//    public String getRgPassword() {
-//        return Arrays.toString(rgPassTf.getPassword());
-//    }
-//
-//    public String getRgName() {
-//        return rgNameTf.getText();
-//    }
-//
-//    public String getRgAgeString() {
-//        return rgAgeTf.getText();
-//    }
-
-
 }
 
-class ClientWorker implements Runnable {
-    private static Socket socket;
-    //private final ArrayList<Message> currentMessageList = new ArrayList<>();
-    private final ArrayList<UUID> conversation_uuid_list = new ArrayList<>();
-    private final ArrayList<Conversation> conversation_list = new ArrayList<>();
-    private final HashMap<UUID, ArrayList<Message>> messageMap = new HashMap<>(); //UUID is the conversation uuid
+class ClientWorker {
+    private final HashMap<UUID, Conversation> conversationHashMap = new HashMap<>();
+    private final HashMap<UUID, User> userHashMap = new HashMap<>();
+    private final HashMap<UUID, Message> messageHashMap = new HashMap<>();
+    private final HashMap<UUID, ArrayList<UUID>> conversationMessageHashmap = new HashMap<>();
+    protected User current_user;
+    private Socket socket;
     private Window window;
-    private User user;
-    private Credential credential;
-    private Profile my_profile;
-    private UUID my_uuid;
-    //private UUID currentConversation_uuid;
-    private Conversation currentConversation;
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
 
-    public ClientWorker() {
 
+    public ClientWorker() {
+        connectToSocket();
     }
 
     public ClientWorker(Window window) {
+        this();
         this.window = window;
     }
 
-    @Override
-    public void run() {
-        new ClientWorker();
-    }
 
-//    public UUID getCurrentConversation_uuid() {
-//        return currentConversation_uuid;
-//    }
-
-    public ArrayList<UUID> getConversation_uuid_list() {
-        return conversation_uuid_list;
-    }
-
-    public Profile getMyProfile() {
-        return my_profile;
-    }
-
-    public UUID getMy_uuid() {
-        return my_uuid;
-    }
-
-    /**
-     * @param conversation_uuid the uuid of the conversation
-     * @return return the name of the conversation
-     */
-    public String getGroupName(UUID conversation_uuid) {
-        for (int i = 0; i < conversation_list.size(); i++) {
-            if (conversation_list.get(i).uuid.equals(conversation_uuid)) {
-                return conversation_list.get(i).name;
-            }
-        }
-        return "No conversation";
-    }
-
-    public ArrayList<Message> getMessages(UUID conversation_uuid) {
-        return messageMap.get(conversation_uuid);
+    public UUID[] getConversation_uuid_list() {
+        return conversationHashMap.keySet().toArray(new UUID[0]);
     }
 
     /**
@@ -885,17 +804,13 @@ class ClientWorker implements Runnable {
     public UUID signIn(String username, String password) {
         AuthenticateResponse response;
         try {
-            credential = new Credential(username, password);
+            Credential credential = new Credential(username, password);
             AuthenticateRequest authenticateRequest = new AuthenticateRequest(credential);
             response = (AuthenticateResponse) send(authenticateRequest);
-            my_uuid = response.user_uuid;
-            //if success get the user's information
-            getProfile(); //get the user's profile
-            if (getAllConversationUid()) {
-                getAllConversation(); //get all the conversations
-                getExistMessageHistory();
-            }
-            return my_uuid;
+            current_user = getUser(response.user_uuid);
+            getAllConversation(); //get all the conversations
+            getExistMessageHistory();
+            return current_user.uuid;
 
         } catch (UserNotFoundException e) {
             JOptionPane.showMessageDialog(null, "User does not exist!",
@@ -953,8 +868,8 @@ class ClientWorker implements Runnable {
 
             RegisterRequest registerRequest = new RegisterRequest(rgCredential, rgProfile);
 
-            response = (RegisterResponse) send(registerRequest);
-            //UUID my_uuid = response.uuid;
+            send(registerRequest);
+
             JOptionPane.showMessageDialog(null, "Registered successfully",
                     "Register", JOptionPane.INFORMATION_MESSAGE);
             return true;
@@ -1028,20 +943,13 @@ class ClientWorker implements Runnable {
 
             socket = new Socket(hostname, port);
 
-            if (socket.isConnected()) {
-                SwingUtilities.invokeLater(new MessageClient());
-            }
-
-
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(null, "Invalid input!", "Connecting...",
                     JOptionPane.ERROR_MESSAGE);
-            return;
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Connection failed!", "Connecting...",
                     JOptionPane.ERROR_MESSAGE);
-            return;
-        } //connection established
+        }
     }
 
     /**
@@ -1051,38 +959,11 @@ class ClientWorker implements Runnable {
         LogOutRequest logOutRequest = new LogOutRequest();
         try {
             send(logOutRequest);
+            current_user = null;
         } catch (IOException e) {
             e.printStackTrace();
         } catch (RequestFailedException e) {
             e.printStackTrace();
-        }
-    }
-
-
-    /**
-     * send a getUserRequest
-     */
-    public void getProfile() {
-        Response response;
-        GetUserRequest getUserRequest = new GetUserRequest(my_uuid);
-        Profile profile;
-
-        try {
-            response = send(getUserRequest);
-            profile = ((GetUserResponse) response).user.profile;
-            my_profile = profile;
-
-        } catch (UserNotFoundException e) {
-            JOptionPane.showMessageDialog(null, "User not found!",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-
-        } catch (RequestFailedException e) {
-            JOptionPane.showMessageDialog(null, "Request failed!",
-                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -1091,7 +972,7 @@ class ClientWorker implements Runnable {
      * send a delete account request
      */
     public boolean deleteAccount() {
-        DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(credential);
+        DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(current_user.credential);
         try {
             send(deleteAccountRequest);
             return true;
@@ -1110,20 +991,14 @@ class ClientWorker implements Runnable {
      * conversation_uuid_list and return true. If the user does
      * not have any conversations, return false.
      */
-    public boolean getAllConversationUid() {
+    public UUID[] getAllConversationUid() {
         ListAllConversationsRequest listAllConversationsRequest = new ListAllConversationsRequest();
         ListAllConversationsResponse response;
 
         try {
             response = (ListAllConversationsResponse) send(listAllConversationsRequest);
-            if (response.conversation_uuids.length != 0) {
-                System.out.println(Arrays.toString(response.conversation_uuids));
-                conversation_uuid_list.addAll(Arrays.asList(response.conversation_uuids));
-                return true;
+            return response.conversation_uuids;
 
-            } else {
-                return false;
-            }
         } catch (NotLoggedInException e) {
             JOptionPane.showMessageDialog(null, "You have been logged out!",
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -1136,7 +1011,7 @@ class ClientWorker implements Runnable {
             JOptionPane.showMessageDialog(null, "Request failed!",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
-        return false;
+        return null;
     }
 
     /**
@@ -1144,13 +1019,16 @@ class ClientWorker implements Runnable {
      */
     public void getAllConversation() {
         try {
-            for (UUID uuid : conversation_uuid_list) {
+            for (UUID uuid : getAllConversationUid()) {
                 GetConversationRequest getConversation = new GetConversationRequest(uuid);
                 GetConversationResponse response;
-
-                response = (GetConversationResponse) send(getConversation);
-                conversation_list.add(response.conversation);
-
+                try {
+                    response = (GetConversationResponse) send(getConversation);
+                    Conversation conversation = response.conversation;
+                    conversationHashMap.put(conversation.uuid, conversation);
+                } catch (ConversationNotFoundException e) {
+                    e.printStackTrace(); // shouldn't happen
+                }
             }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "IO Exception",
@@ -1170,14 +1048,17 @@ class ClientWorker implements Runnable {
      */
     public void getExistMessageHistory() {
         try {
-            for (Conversation conversation : conversation_list) {
+            for (Conversation conversation : conversationHashMap.values()) {
                 GetMessageHistoryResponse response = (GetMessageHistoryResponse) send(new GetMessageHistoryRequest(conversation.uuid));
-                messageMap.putIfAbsent(conversation.uuid, new ArrayList<>());
-                ArrayList<Message> messages = messageMap.get(conversation.uuid);
-                messages.addAll(Arrays.asList(response.messages));
-                // make unique collection of messages.
-                messages = (ArrayList<Message>) messages.stream().distinct().collect(Collectors.toList());
-                messageMap.put(conversation.uuid, messages);
+                conversationMessageHashmap.putIfAbsent(conversation.uuid, new ArrayList<>());
+                ArrayList<UUID> message_uuids = conversationMessageHashmap.get(conversation.uuid);
+                for (Message message :
+                        response.messages) {
+                    if (!message_uuids.contains(message.uuid)) {
+                        message_uuids.add(message.uuid);
+                    }
+                    messageHashMap.put(message.uuid, message);
+                }
             }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "IO Exception",
@@ -1205,8 +1086,8 @@ class ClientWorker implements Runnable {
             send(dr);
             JOptionPane.showMessageDialog(null, "Successfully deleted",
                     "Delete Conversation", JOptionPane.INFORMATION_MESSAGE);
-            conversation_uuid_list.remove(conversation_uuid);
-            messageMap.remove(conversation_uuid);
+            conversationHashMap.remove(conversation_uuid);
+            conversationMessageHashmap.remove(conversation_uuid);
             return true;
 
         } catch (NotLoggedInException e) {
@@ -1263,16 +1144,22 @@ class ClientWorker implements Runnable {
 
 
     /**
-     * Search for a user by the uuid
+     * Search for a user by the uuid.
      *
      * @param user_uuid the uuid of the user
      * @return return the user
      */
-    public User searchUser(UUID user_uuid) {
-        GetUserRequest getUser = new GetUserRequest(user_uuid);
-        GetUserResponse response;
+    public User getUser(UUID user_uuid) {
+        // try local cache
+        User user = userHashMap.get(user_uuid);
+        if (user != null) {
+            return user;
+        }
+
+        // try remote fetch
         try {
-            response = (GetUserResponse) send(getUser);
+            GetUserResponse response = (GetUserResponse) send(new GetUserRequest(user_uuid));
+            userHashMap.put(user_uuid, user);
             return response.user;
 
         } catch (UserNotFoundException e) {
@@ -1303,30 +1190,14 @@ class ClientWorker implements Runnable {
      * @return the uuid of the group
      */
     public Conversation createConversation(String groupName, UUID[] user_uuids) {
-        //String[] uuidsString;
-        //UUID[] uuids;
-//        try {
-//            uuidsString = inviteString.split(",");
-//        } catch (NumberFormatException | NullPointerException e) {
-//            JOptionPane.showMessageDialog(null,
-//                    "Please separate the uuids by commas!",
-//                    "Error",
-//                    JOptionPane.ERROR_MESSAGE);
-//            return null;
-//        }
-//        uuids = new UUID[uuidsString.length];
-//        for (int i = 0; i < uuidsString.length; i++) {
-//            UUID uuid = UUID.fromString(uuidsString[i]);
-//            uuids[i] = uuid;
-//        }
         CreateConversationRequest createRequest = new CreateConversationRequest(user_uuids, groupName);
         CreateConversationResponse response;
 
         try {
             response = (CreateConversationResponse) send(createRequest);
-            conversation_uuid_list.add(response.conversation_uuid);
-            //currentConversation_uuid = response.conversation_uuid;
-            return getConversation(response.conversation_uuid);
+            Conversation conversation = getConversation(response.conversation_uuid);
+            conversationHashMap.put(conversation.uuid, conversation);
+            return conversation;
 
         } catch (NotLoggedInException e) {
             JOptionPane.showMessageDialog(null, "You have been logged out!",
@@ -1352,15 +1223,24 @@ class ClientWorker implements Runnable {
     }
 
     /**
-     * @param uuid the uuid of the conversation
+     * @param conversation_uuid the uuid of the conversation
      * @return return the conversation
      */
-    public Conversation getConversation(UUID uuid) {
-        GetConversationRequest getConversationRequest = new GetConversationRequest(uuid);
-        GetConversationResponse response;
+    public Conversation getConversation(UUID conversation_uuid) {
+        // try local
+        Conversation conversation = conversationHashMap.get(conversation_uuid);
+        if (conversation != null) {
+            return new Conversation(conversation);
+        }
+
+
+        // try fetch
+        GetConversationRequest getConversationRequest = new GetConversationRequest(conversation_uuid);
         try {
-            response = (GetConversationResponse) send(getConversationRequest);
-            return response.conversation;
+            GetConversationResponse response = (GetConversationResponse) send(getConversationRequest);
+            conversation = response.conversation;
+            conversationHashMap.put(conversation_uuid, conversation);
+            return conversation;
 
         } catch (ConversationNotFoundException e) {
             JOptionPane.showMessageDialog(null, "Conversation not found!",
@@ -1388,10 +1268,13 @@ class ClientWorker implements Runnable {
      * @param name the name of the conversation
      * @return return true if success
      */
-    public boolean renameConversation(String name, UUID currentConversation_uuid) {
-        RenameConversationRequest renameRequest = new RenameConversationRequest(currentConversation_uuid, name);
+    public boolean renameConversation(String name, UUID conversation_uuid) {
+        RenameConversationRequest renameRequest = new RenameConversationRequest(conversation_uuid, name);
         try {
             send(renameRequest);
+            Conversation conversation = new Conversation(getConversation(conversation_uuid));
+            conversation.name = name;
+            conversationHashMap.put(conversation_uuid, conversation);
             return true;
 
         } catch (ConversationNotFoundException e) {
@@ -1422,14 +1305,22 @@ class ClientWorker implements Runnable {
      * @return return true if message was successfully send, false
      * if the message was not send
      */
-    public boolean sendMessage(UUID conversation_uuid, Message message) {
+    public Message postMessage(UUID conversation_uuid, Message message) {
         PostMessageRequest postMessageRequest = new PostMessageRequest(conversation_uuid, message);
         PostMessageResponse response;
 
         try {
             response = (PostMessageResponse) send(postMessageRequest);
             //currentMessageList.add(message);
-            return true;
+            Message new_message = new Message(response.message_uuid, message.sender_uuid,
+                    response.date, message.content, message.conversation_uuid);
+
+            messageHashMap.put(new_message.uuid, new_message);
+            conversationMessageHashmap.putIfAbsent(conversation_uuid, new ArrayList<>());
+            ArrayList<UUID> message_uuids = conversationMessageHashmap.get(conversation_uuid);
+            message_uuids.add(new_message.uuid);
+            conversationMessageHashmap.put(conversation_uuid, message_uuids);
+            return new_message;
 
         } catch (IllegalContentException e) {
             JOptionPane.showMessageDialog(null, "Illegal content!",
@@ -1452,7 +1343,7 @@ class ClientWorker implements Runnable {
                     "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
-        return false;
+        return null;
     }
 
 
@@ -1462,70 +1353,41 @@ class ClientWorker implements Runnable {
      *
      * @return return the chat history
      */
-    public ArrayList<Message> importCurrentHistory(UUID currentConversation_uuid) {
-        messageMap.putIfAbsent(currentConversation_uuid, new ArrayList<>());
-        Message[] thisConversationHistory = messageMap.get(currentConversation_uuid).toArray(Message[]::new);
-        if (thisConversationHistory != null) {
-//            currentMessageList.addAll(Arrays.asList(thisConversationHistory));
-//            return currentMessageList;
-            return new ArrayList<>(Arrays.asList(thisConversationHistory));
+    public Message[] getConversationMessages(UUID conversation_uuid) {
+        conversationMessageHashmap.putIfAbsent(conversation_uuid, new ArrayList<>());
+        ArrayList<UUID> message_uuids = conversationMessageHashmap.get(conversation_uuid);
+        ArrayList<Message> messages = new ArrayList<>();
+        for (UUID uuid :
+                message_uuids) {
+            Message message;
+            try {
+                message = getMessage(uuid); // might throw
+                messages.add(message);
+            } catch (MessageNotFoundException e) {
+                // sometimes the message is removed but its uuid still links to the conversation.
+                message_uuids.remove(uuid);
+            }
         }
-        return null;
-
+        return messages.toArray(new Message[0]);
     }
 
-
-    /**
-     * If the user entered a previously existed conversation, use importCurrentHistory
-     * before using saveMessage method.
-     *
-     * @param message when send button is clicked, add the message to currentMessageList
-     */
-//    public void saveMessage(Message message) {
-//        currentMessageList.add(message);
-//    }
-
-
-    /**
-     * save currentMessageList to map
-     */
-    public void saveMessageToMap(UUID currentConversation_uuid, ArrayList<Message> new_messages) {
-        messageMap.putIfAbsent(currentConversation_uuid, new ArrayList<>());
-        ArrayList<Message> messages = messageMap.get(currentConversation_uuid);
-        messages.addAll(new_messages);
-        messages = (ArrayList<Message>) messages.stream().distinct().collect(Collectors.toList());
-        messageMap.put(currentConversation_uuid, messages);
-    }
-
-    /**
-     * When the user exit current conversation, save the
-     * messages, set currentConversation_uuid to null, and
-     * clear the currentMessageList
-     */
-//    public void setToNewConversation(UUID conversation_uuid) {
-//        saveMessageToMap();
-//        currentConversation_uuid = conversation_uuid;
-//        currentMessageList.clear();
-//    }
 
     /**
      * Export the current conversation history
      */
-    public void export(ArrayList<Message> messageList) {
+    public void export(Message[] messages) {
         try (PrintWriter pw = new PrintWriter("Conversation_History")) {
             pw.write("Message Sender,");
             pw.write("Timestamp,");
             pw.write("contents\n");
 
-            if (messageList != null) {
-                for (int i = 0; i < messageList.size(); i++) {
-                    String sender = searchUser(messageList.get(i).sender_uuid).profile.name;
-                    pw.write(String.format("%s,", sender));
-                    String time = messageList.get(i).time.toString();
-                    pw.write(String.format("%s,", time));
-                    pw.write(String.format("%s", messageList.get(i).content));
-                    pw.println();
-                }
+            for (Message message :
+                    messages) {
+                String sender = getUser(message.sender_uuid).profile.name;
+                pw.write(String.format("%s,", sender));
+                String time = message.time.toString();
+                pw.write(String.format("%s,", time));
+                pw.write(String.format("%s,", message.content));
             }
             JOptionPane.showMessageDialog(null, "Export successfully!",
                     "export", JOptionPane.INFORMATION_MESSAGE);
@@ -1556,16 +1418,17 @@ class ClientWorker implements Runnable {
     /**
      * The method sends a deleteMessage request and receives a response
      *
-     * @param content the content of the string
+     * @param messageString the content of the string
      * @return true if the message was successfully deleted, false if
      * an error occurred
      */
-    public boolean deleteMessage(String content) {
-        UUID message_uuid = UUID.fromString(content.substring(content.indexOf("(") + 1, content.indexOf(")")));
+    public boolean deleteMessage(String messageString) {
+        UUID message_uuid = UUID.fromString(messageString.substring(messageString.indexOf("(") + 1, messageString.indexOf(")")));
         DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(message_uuid);
 
         try {
             send(deleteMessageRequest);
+            messageHashMap.remove(message_uuid);
             return true;
         } catch (MessageNotFoundException e) {
             JOptionPane.showMessageDialog(null, "Message not found!", "Error",
@@ -1586,16 +1449,17 @@ class ClientWorker implements Runnable {
         return false;
     }
 
-    public EditMessageResponse editMessage(String oldContent, String newContent) {
-        UUID message_uuid = UUID.fromString(oldContent.substring(oldContent.indexOf("(") + 1, oldContent.indexOf(")")));
-        EditMessageRequest editMessageRequest = new EditMessageRequest(message_uuid, newContent);
-        EditMessageResponse response;
+    public Date editMessage(String oldMessageString, String new_content) {
+        UUID message_uuid = UUID.fromString(oldMessageString.substring(oldMessageString.indexOf("(") + 1, oldMessageString.indexOf(")")));
         try {
-            response = (EditMessageResponse) send(editMessageRequest);
-//            Message new_message = new Message(response.)
-//            String edit_message = messageString(response.);
-            //TODO return messageString(response.meg_uuid);
-            return (EditMessageResponse) response;
+            EditMessageResponse response = (EditMessageResponse) send(new EditMessageRequest(message_uuid, new_content));
+            Date date = response.dateEdited;
+
+            Message message = getMessage(message_uuid);
+            message.content = new_content;
+            message.time = date;
+            messageHashMap.put(message_uuid, message);
+            return date;
         } catch (NotLoggedInException e) {
             JOptionPane.showMessageDialog(null, "You have been logged out!",
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -1607,12 +1471,52 @@ class ClientWorker implements Runnable {
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "IO Exception",
                     "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalContentException e) {
+            JOptionPane.showMessageDialog(null, "Illegal Content " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
         return null;
+    }
+
+    private Message getMessage(UUID message_uuid) throws MessageNotFoundException {
+        // try local
+        Message message = messageHashMap.get(message_uuid);
+        if (message != null) {
+            return message;
+        }
+
+        // try remote
+        GetMessageRequest request = new GetMessageRequest(message_uuid);
+        try {
+            GetMessageResponse response = (GetMessageResponse) send(request);
+            message = response.message;
+            if (message == null) {
+                throw new MessageNotFoundException();
+            } else {
+                messageHashMap.put(message.uuid, message);
+                return message;
+            }
+
+        } catch (NotLoggedInException e) {
+            JOptionPane.showMessageDialog(null, "You have been logged out!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+        } catch (MessageNotFoundException e) {
+            throw e;
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "IO Exception",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+        } catch (RequestFailedException ignored) {
+            JOptionPane.showMessageDialog(null, "Request failed!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        throw new MessageNotFoundException();
     }
 
 
@@ -1622,16 +1526,14 @@ class ClientWorker implements Runnable {
      * @param username the username of the user
      * @return return the uuid of the user
      */
-    public UUID getUserUUID(String username) {
-        GetUserNameRequest getUserNameRequest = new GetUserNameRequest(username);
-        GetUserNameResponse response;
+    public User getUser(String username) {
+        GetUserByNameRequest getUserByNameRequest = new GetUserByNameRequest(username);
+        GetUserByNameResponse response;
         try {
-            response = (GetUserNameResponse) send(getUserNameRequest);
-            if (searchUser(response.user_uuid) != null) {
-                return response.user_uuid;
-            } else {
-                return null;
-            }
+            response = (GetUserByNameResponse) send(getUserByNameRequest);
+            User user = response.user;
+            userHashMap.put(user.uuid, user);
+            return user;
         } catch (UserNotFoundException e) {
             JOptionPane.showMessageDialog(null, "User does not exist!", "Error",
                     JOptionPane.ERROR_MESSAGE);
@@ -1654,7 +1556,7 @@ class ClientWorker implements Runnable {
      * @param ageString the age of the user with a string type
      * @return return true if no error
      */
-    public Profile manageProfile(String name, String ageString) {
+    public Profile setProfile(String name, String ageString) {
         if (name.equals("") || ageString.equals("")) {
             JOptionPane.showMessageDialog(null,
                     "Text Fields cannot be blank!");
@@ -1662,12 +1564,10 @@ class ClientWorker implements Runnable {
         }
 
         try {
-
             Profile profile = new Profile(name, Integer.parseInt(ageString));
-            EditProfileRequest request = new EditProfileRequest(profile);
-            send(request);
-            my_profile = profile;
-            return my_profile;
+            send(new EditProfileRequest(profile));
+            current_user.profile = profile;
+            return profile;
 
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(null,
