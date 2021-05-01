@@ -67,6 +67,7 @@ public class EventBag {
     }
 
     public void putNewMessage(UUID conversation_uuid, Message message) {
+        new_messages.putIfAbsent(conversation_uuid, new ArrayList<>());
         new_messages.get(conversation_uuid).add(message);
     }
 

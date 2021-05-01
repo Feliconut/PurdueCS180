@@ -51,8 +51,8 @@ public class MessageServerWorker extends Thread {
 
                     if (request instanceof AuthenticateRequest) {
                         response = process((AuthenticateRequest) request);
-                    } else if (request instanceof GetUserNameRequest) {
-                        response = process((GetUserNameRequest) request);
+                    } else if (request instanceof GetUserByNameRequest) {
+                        response = process((GetUserByNameRequest) request);
                     } else if (request instanceof EditProfileRequest) {
                         response = process((EditProfileRequest) request);
                     } else if (request instanceof AddUser2ConversationRequest) {
@@ -67,8 +67,6 @@ public class MessageServerWorker extends Thread {
                         response = process((DeleteMessageRequest) request);
                     } else if (request instanceof EditMessageRequest) {
                         response = process((EditMessageRequest) request);
-                    } else if (request instanceof GetAllUserNamesRequest) {
-                        response = process(request);
                     } else if (request instanceof GetConversationRequest) {
                         response = process((GetConversationRequest) request);
                     } else if (request instanceof GetMessageRequest) {
@@ -93,6 +91,8 @@ public class MessageServerWorker extends Thread {
                         response = process((RegisterRequest) request);
                     } else if (request instanceof RemoveUserFromConversationRequest) {
                         response = process((RemoveUserFromConversationRequest) request);
+                    } else if (request instanceof RenameConversationRequest) {
+                        response = process((RenameConversationRequest) request);
                     } else if (request instanceof SetConversationAdminRequest) {
                         response = process((SetConversationAdminRequest) request);
                     } else if (request instanceof UpdateMessageRequest) {
@@ -109,6 +109,7 @@ public class MessageServerWorker extends Thread {
                 if (objectOutputStream == null) {
                     objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                 }
+                System.out.println(response.toString());
                 objectOutputStream.writeObject(response);
 
                 // exceptions are regarding system failure
@@ -141,24 +142,24 @@ public class MessageServerWorker extends Thread {
 
     //log in
     //authenticateRequest. To test user's login circumstances.
-    Response process(AuthenticateRequest authenticateRequest) throws UserNotFoundException, InvalidPasswordException,
+    AuthenticateResponse process(AuthenticateRequest authenticateRequest) throws UserNotFoundException, InvalidPasswordException,
             InvalidUsernameException, LoggedInException {
         Credential credential = authenticateRequest.credential;
 
         User user = system.signIn(credential); // Validates the credential.
         currentUser = user; // Mark this ServerWorker as authenticated.
-        return new Response(true, "Login successful!", authenticateRequest.uuid);
+        return new AuthenticateResponse(true, "Login successful!", authenticateRequest.uuid, user.uuid);
 
     }
 
     //getUserNameRequest
-    GetUserNameResponse process(GetUserNameRequest getUserNameRequest) throws UserNotFoundException {
-        String name = getUserNameRequest.name;
+    GetUserByNameResponse process(GetUserByNameRequest getUserByNameRequest) throws UserNotFoundException {
+        String name = getUserByNameRequest.username;
         if (name == null) {
             throw new UserNotFoundException();
         } else {
             User user = system.getUser(name);
-            return new GetUserNameResponse(true, "", getUserNameRequest.uuid, user.uuid);
+            return new GetUserByNameResponse(true, "", getUserByNameRequest.uuid, user);
         }
 
     }
@@ -169,7 +170,11 @@ public class MessageServerWorker extends Thread {
         if (currentUser == null) {
             throw new NotLoggedInException();
         } else {
-            system.editProfile(currentUser.uuid, profile);
+            try {
+                system.editProfile(currentUser.uuid, profile);
+            } catch (UserNotFoundException e) {
+                e.printStackTrace();
+            }
             return new Response(true, "", editProfileRequest.uuid);
         }
     }
@@ -180,6 +185,7 @@ public class MessageServerWorker extends Thread {
         if (currentUser == null) {
             throw new NotLoggedInException();
         } else {
+            system.signOut(currentUser.uuid);
             currentUser = null;
             return new Response(true, "Logout successfully!", logOutRequest.uuid);
         }
@@ -230,15 +236,16 @@ public class MessageServerWorker extends Thread {
     EditMessageResponse process(EditMessageRequest editMessageRequest) throws NotLoggedInException,
             MessageNotFoundException, AuthorizationException, IllegalContentException, ConversationNotFoundException {
 
-        Message edit_message = system.getMessage(editMessageRequest.messsage_uuid);
-        String message = edit_message.content;
+        Message message = system.getMessage(editMessageRequest.messsage_uuid);
+        String content = editMessageRequest.content;
+        content = content.strip();
 
         if (currentUser == null) {
             throw new NotLoggedInException();
-        } else if (message.length() > 1000 || message.contains("**")) {
-            throw new IllegalContentException();
+        } else if (content.length() > 1000 || content.equals("")) {
+            throw new IllegalContentException("Message cannot be empty or too long");
         } else {
-            Message replaced_message = system.editMessage(message, editMessageRequest.messsage_uuid);
+            Message replaced_message = system.editMessage(content, message.uuid);
             return new EditMessageResponse(true, "", editMessageRequest.uuid, replaced_message.time);
         }
 
@@ -293,7 +300,7 @@ public class MessageServerWorker extends Thread {
         String name = renameConversationRequest.name;
         if (currentUser == null) {
             throw new NotLoggedInException();
-        } else if (name.contains("**")) {
+        } else if (name == null || name.equals("")) {
             throw new InvalidConversationNameException();
         } else if (renameConversationRequest.conversation_uuid == null) {
             throw new UserNotFoundException();
@@ -394,16 +401,12 @@ public class MessageServerWorker extends Thread {
     }
 
     //listAllConversationsRequest
-    ListAllConversationsResponse process(ListAllConversationsRequest listAllConversationsRequest) throws NotLoggedInException, ConversationNotFoundException {
-        UUID uuid = listAllConversationsRequest.uuid;
-        UUID[] uuids = system.getUserConversations(uuid);
-
-        if (currentUser == null) {
-            throw new NotLoggedInException();
-        } else if (uuids == null) {
-            throw new ConversationNotFoundException();
-        } else {
+    ListAllConversationsResponse process(ListAllConversationsRequest listAllConversationsRequest) throws NotLoggedInException {
+        try {
+            UUID[] uuids = system.getUserConversations(currentUser);
             return new ListAllConversationsResponse(true, "", listAllConversationsRequest.uuid, uuids);
+        } catch (UserNotFoundException e) {
+            throw new NotLoggedInException();
         }
     }
 

@@ -29,7 +29,7 @@ public class MessageSystem {
     public User signIn(Credential credential) throws LoggedInException, UserNotFoundException, InvalidPasswordException {
         User user = getUser(credential);
         eventBagHandler.signIn(user.uuid);
-        return user;
+        return new User(user);
     }
 
     public void signOut(UUID user_uuid) throws NotLoggedInException {
@@ -45,7 +45,7 @@ public class MessageSystem {
             User user = userDatabase.get(uuid);
             Credential userCredential = user.credential;
             if (userCredential.usrName.equals(name)) {
-                return user;
+                return new User(user);
             }
         }
 
@@ -60,7 +60,7 @@ public class MessageSystem {
             throw new UserNotFoundException();
 
         } else {
-            return user;
+            return new User(user);
         }
 
     }
@@ -69,7 +69,7 @@ public class MessageSystem {
 
         User user = getUser(credential.usrName);
         if (user.credential.passwd.equals(credential.passwd)) {
-            return user;
+            return new User(user);
         } else {
             throw new InvalidPasswordException();
         }
@@ -81,7 +81,7 @@ public class MessageSystem {
         if (conversation == null) {
             throw new ConversationNotFoundException();
         } else {
-            return conversation;
+            return new Conversation(conversation);
         }
     }
 
@@ -121,12 +121,17 @@ public class MessageSystem {
     public Conversation deleteConversation(UUID uuid) throws ConversationNotFoundException {
         Conversation conversation;
         conversation = conversationDatabase.remove(uuid);
-        eventBagHandler.remove(conversation);
-        return conversation;
+        if (conversation == null) {
+            throw new ConversationNotFoundException();
+        } else {
+
+            eventBagHandler.remove(conversation);
+            return new Conversation(conversation);
+        }
     }
 
 
-    public Message addMessage(UUID conversation_uuid, UUID sender_uuid, String content) throws MessageNotFoundException, ConversationNotFoundException {
+    public Message addMessage(UUID conversation_uuid, UUID sender_uuid, String content) throws ConversationNotFoundException {
         // want to add the a message to it's conversation and return the message
         Date date = new Date();
         Message message = new Message(sender_uuid, date, content, conversation_uuid);
@@ -136,17 +141,25 @@ public class MessageSystem {
         modified_uuids.add(message.uuid);
         conversation.message_uuids = modified_uuids.toArray(new UUID[0]);
         conversationDatabase.put(conversation_uuid, conversation);
-        eventBagHandler.addUpdate(getConversation(conversation_uuid), message);
+        eventBagHandler.add(conversation, message);
+        eventBagHandler.update(conversation);
 
         return message;
     }
 
     public Conversation createConversation(String conversation_name, UUID[] user_uuids, UUID admin_uuid) throws InvalidConversationNameException, UserNotFoundException {
-        //create one conversation(默认uuids>0)
-        ArrayList<UUID> arrayList = new ArrayList<>(Arrays.asList(user_uuids));
-        // bug!!!!!!!!
-        UUID[] message_uuid = null;
-        Conversation conversation = new Conversation(conversation_name, user_uuids, admin_uuid, message_uuid);
+        // add admin to user_uuids
+        ArrayList<UUID> user_uuid_array = new ArrayList<>(Arrays.asList(user_uuids));
+        user_uuid_array.add(admin_uuid);
+        // make distinct
+        user_uuids = user_uuid_array.stream().distinct().toArray(UUID[]::new); // make user_uuids distinct
+        // check user exists
+        for (UUID user_uuid :
+                user_uuids) {
+            getUser(user_uuid);
+        }
+        // create conversation
+        Conversation conversation = new Conversation(conversation_name, user_uuids, admin_uuid, new UUID[0]);
         conversationDatabase.put(conversation.uuid, conversation);
         eventBagHandler.add(conversation);
         return conversation;
@@ -158,7 +171,7 @@ public class MessageSystem {
         if (Set.of(conversation.user_uuids).contains(admin_uuid)) {
             conversation.admin_uuid = admin_uuid;
             conversationDatabase.put(conversation_uuid, conversation);
-            eventBagHandler.add(getUser(admin_uuid));
+            eventBagHandler.update(conversation);
         } else {
             throw new AuthorizationException();
         }
@@ -170,28 +183,20 @@ public class MessageSystem {
         Conversation conversation = getConversation(conversation_uuid);
         conversation.name = conversation_name;
         conversationDatabase.put(conversation_uuid, conversation);
-
-
+        eventBagHandler.update(conversation);
     }
 
     public void addUser2Conversation(UUID user_uuid, UUID conversation_uuid) throws UserNotFoundException,
             ConversationNotFoundException {
         //拉user_uuid进入conversation_uuid这个群聊
-        ArrayList<UUID> modified_uuids = new ArrayList<>();
         Conversation conversation = conversationDatabase.get(conversation_uuid);
-        User user = userDatabase.get(user_uuid);
-        if (user == null) {
-            throw new UserNotFoundException();
-        } else if (conversation == null) {
-            throw new ConversationNotFoundException();
-        } else {
-            UUID[] uuid = conversation.user_uuids;
-            modified_uuids.addAll(Arrays.asList(uuid));
-            modified_uuids.add(user_uuid);
-            conversation.user_uuids = modified_uuids.toArray(new UUID[0]);
-            conversationDatabase.put(conversation_uuid, conversation);
-            eventBagHandler.update(conversation);
-        }
+        User user = getUser(user_uuid);
+        UUID[] uuid = conversation.user_uuids;
+        ArrayList<UUID> modified_uuids = new ArrayList<>(Arrays.asList(uuid));
+        modified_uuids.add(user_uuid);
+        conversation.user_uuids = modified_uuids.toArray(new UUID[0]);
+        conversationDatabase.put(conversation_uuid, conversation);
+        eventBagHandler.update(conversation);
     }
 
 
@@ -218,15 +223,15 @@ public class MessageSystem {
         return uuids.toArray(new UUID[0]);
     }
 
-    public Message editMessage(String edit_message, UUID message_uuid) throws MessageNotFoundException {
+    public Message editMessage(String content, UUID message_uuid) throws MessageNotFoundException {
         //message为更改后的内容
         //生成当前时间
         Message message = getMessage(message_uuid);
-        message.content = edit_message;
+        message.content = content;
         message.time = new Date();
-        messageDatabase.put(message_uuid, message);
-
-        return message;
+        messageDatabase.put(message.uuid, message);
+//        eventBagHandler.update(message); //TODO find the conversation of the message
+        return new Message(message);
     }
 
     public UUID[] listAllUUID(UUID conversation_uuid) throws ConversationNotFoundException {
@@ -264,24 +269,36 @@ public class MessageSystem {
         }
     }
 
-    public Message getMessage(UUID conversation_uuid) throws MessageNotFoundException {
+    public Message getMessage(UUID message_uuid) throws MessageNotFoundException {
         //一条信息
-        Message message = messageDatabase.get(conversation_uuid);
+        Message message = messageDatabase.get(message_uuid);
         if (message == null) {
             throw new MessageNotFoundException();
         } else {
-            return message;
+            return new Message(message);
         }
 
     }
 
 
-    public UUID[] getUserConversations(UUID user_uuid) throws ConversationNotFoundException {
+    public UUID[] getUserConversations(User user) throws UserNotFoundException {
+        if (user == null) {
+            throw new UserNotFoundException();
+        }
+        UUID user_uuid = user.uuid;
         ArrayList<UUID> uuids = new ArrayList<>();
         for (UUID uuid : conversationDatabase.uuids()) {
-            Conversation conversation = getConversation(uuid);
-            if (conversation.uuid == user_uuid) {
-                uuids.add(conversation.uuid);
+            try {
+                Conversation conversation = getConversation(uuid);
+                UUID[] user_uuids = conversation.user_uuids;
+                for (UUID conversation_user_uuid :
+                        user_uuids) {
+                    if (conversation_user_uuid == user_uuid) {
+                        uuids.add(conversation.uuid);
+                    }
+                }
+            } catch (ConversationNotFoundException e) {
+                e.printStackTrace();
             }
         }
 
@@ -289,15 +306,24 @@ public class MessageSystem {
         return uuids.toArray(new UUID[0]);
     }
 
-    public Profile editProfile(UUID user_uuid, Profile new_profile) {
-        User user = userDatabase.get(user_uuid);
+    public Profile editProfile(UUID user_uuid, Profile new_profile) throws UserNotFoundException {
+        User user = getUser(user_uuid);
 
         user.profile = new_profile;
+        userDatabase.put(user.uuid, user);
+        eventBagHandler.update(user);
 
         return new_profile;
     }
 
 
+    public User getUser(User user) throws UserNotFoundException {
+        if (user == null) {
+            throw new UserNotFoundException();
+        } else {
+            return getUser(user.uuid);
+        }
+    }
 }
 
 class EventBagHandler {

@@ -27,5 +27,14 @@ public class Conversation extends Storable {
         assert Arrays.asList(user_uuids).contains(admin_uuid);
     }
 
+    public Conversation(Conversation conversation) {
+        this(
+                conversation.uuid,
+                conversation.name,
+                conversation.user_uuids,
+                conversation.admin_uuid,
+                conversation.message_uuids);
+    }
+
 
 }
