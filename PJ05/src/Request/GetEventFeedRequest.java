@@ -1,7 +1,5 @@
 package Request;
 
-import java.util.Date;
-
 /**
  * Project5-- GetEventFeedRequest
  * <p>
@@ -11,16 +9,14 @@ import java.util.Date;
  * @version 04/30/2021
  */
 public class GetEventFeedRequest extends Request {
-    public final Date dateForm;
 
-    public GetEventFeedRequest(Date dateForm) {
-        this.dateForm = dateForm;
+    public GetEventFeedRequest() {
+        super();
     }
 
     @Override
     public String toString() {
         return "GetEventFeedRequest{" +
-                "dateForm=" + dateForm +
                 ", uuid=" + uuid +
                 '}';
     }
