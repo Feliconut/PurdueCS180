@@ -4,6 +4,14 @@ import Field.Message;
 
 import java.util.UUID;
 
+/**
+ * Project5-- UpdateMessageResponse
+ * <p>
+ * It is the response to update the message
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class UpdateMessageResponse extends Response {
     public final Message message;
     public final UUID uuid;

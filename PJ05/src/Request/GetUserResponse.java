@@ -4,6 +4,14 @@ import Field.User;
 
 import java.util.UUID;
 
+/**
+ * Project5-- GetUserResponse
+ * <p>
+ * It is the response to find a user.
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class GetUserResponse extends Response {
     public final User user;
 

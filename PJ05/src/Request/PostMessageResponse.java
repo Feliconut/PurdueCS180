@@ -3,6 +3,14 @@ package Request;
 import java.util.Date;
 import java.util.UUID;
 
+/**
+ * Project5-- PostMessageResponse
+ * <p>
+ * It is the response to post a message
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class PostMessageResponse extends Response {
     public final Date date;
     public final UUID message_uuid;

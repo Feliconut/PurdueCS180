@@ -3,6 +3,14 @@ package Request;
 import Field.Credential;
 import Field.Profile;
 
+/**
+ * Project5-- RegisterRequest
+ * <p>
+ * It is the request to let user register
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class RegisterRequest extends Request {
 
     public final Credential credential;

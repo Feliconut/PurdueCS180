@@ -10,6 +10,15 @@ import java.net.SocketException;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Project5-- server worker
+ * <p>
+ * This class will deal with a bunch of request send from client and
+ * give a specific response based on its request
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class MessageServerWorker extends Thread {
 
     private final Socket socket;

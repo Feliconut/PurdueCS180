@@ -3,11 +3,20 @@ package Request;
 import java.util.Date;
 import java.util.UUID;
 
+/**
+ * Project5-- ListAllMessagesRequest
+ * <p>
+ * It is the request to list all messages of a conversation
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class ListAllMessagesRequest extends Request {
 
     public final UUID conversation_uuid;
     public final Date start;
     public final Date end;
+
     public ListAllMessagesRequest(UUID conversation_Id) {
         this(conversation_Id, null);
     }

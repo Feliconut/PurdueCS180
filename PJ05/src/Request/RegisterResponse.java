@@ -2,6 +2,14 @@ package Request;
 
 import java.util.UUID;
 
+/**
+ * Project5-- RegisterResponse
+ * <p>
+ * It is the response of when register
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class RegisterResponse extends Response {
     public final UUID uuid;
 

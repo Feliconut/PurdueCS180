@@ -3,6 +3,14 @@ package Request;
 import java.util.Arrays;
 import java.util.UUID;
 
+/**
+ * Project5-- ListAllMessagesResponse
+ * <p>
+ * It is the response to list all message in a conversation
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class ListAllMessagesResponse extends Response {
     public final UUID[] user_messages;
 

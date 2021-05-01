@@ -3,6 +3,15 @@ import Field.*;
 
 import java.util.*;
 
+/**
+ * Project5-- server worker's method
+ * <p>
+ * This class will do some specific work based on the command send form server worker
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
+
 public class MessageSystem {
     private final Database<User> userDatabase;
     private final Database<Message> messageDatabase;
