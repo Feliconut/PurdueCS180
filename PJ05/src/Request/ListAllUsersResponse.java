@@ -3,6 +3,14 @@ package Request;
 import java.util.Arrays;
 import java.util.UUID;
 
+/**
+ * Project5-- ListAllUsersResponse
+ * <p>
+ * It is the response to list all user of a conversation
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class ListAllUsersResponse extends Response {
 
     public final UUID[] user_uuids;

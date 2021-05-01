@@ -5,6 +5,14 @@ import Field.Message;
 import java.util.Arrays;
 import java.util.UUID;
 
+/**
+ * Project5-- GetMessageHistoryResponse
+ * <p>
+ * It is the response to get all the message of a uuid
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class GetMessageHistoryResponse extends Response {
     public final Message[] messages;
 

@@ -3,6 +3,14 @@ package Request;
 import java.util.Date;
 import java.util.UUID;
 
+/**
+ * Project5-- EditMessageResponse
+ * <p>
+ * It is the response to edit a message
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class EditMessageResponse extends Response {
     public final Date dateEdited;
 

@@ -9,6 +9,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
 
+/**
+ * Project5-- GetEventFeedResponse
+ * <p>
+ * It is the response to find all the message event during a time period
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class GetEventFeedResponse extends Response {
     public final User[] new_users;
     public final Conversation[] new_conversations;

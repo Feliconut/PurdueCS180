@@ -2,6 +2,14 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * Project5-- server master
+ * <p>
+ * This class will make sure every user have their own thread to connect to server
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class MessageServerMaster {
     public static void main(String[] args) throws IOException {
 

@@ -2,6 +2,14 @@ package Request;
 
 import java.util.UUID;
 
+/**
+ * Project5-- SetConversationAdminRequest
+ * <p>
+ * It is the request to set the admin of conversation
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class SetConversationAdminRequest extends Request {
     public final UUID admin_uuid;
     public final UUID conversation_uuid;

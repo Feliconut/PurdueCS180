@@ -2,6 +2,14 @@ package Request;
 
 import java.util.UUID;
 
+/**
+ * Project5-- CreateConversationResponse
+ * <p>
+ * It is the response to create a conversation
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class CreateConversationResponse extends Response {
     public final UUID conversation_uuid;
 

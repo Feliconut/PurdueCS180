@@ -4,6 +4,14 @@ import Field.Conversation;
 
 import java.util.UUID;
 
+/**
+ * Project5-- GetConversationResponse
+ * <p>
+ * It is the response to find a conversation by their uuid
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class GetConversationResponse extends Response {
     public final Conversation conversation;
 

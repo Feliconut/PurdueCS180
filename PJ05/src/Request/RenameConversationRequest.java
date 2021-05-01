@@ -2,6 +2,14 @@ package Request;
 
 import java.util.UUID;
 
+/**
+ * Project5-- RenameConversationRequest
+ * <p>
+ * It is the request to rename the conversation
+ *
+ * @author team 84
+ * @version 04/30/2021
+ */
 public class RenameConversationRequest extends Request {
     public final UUID conversation_uuid;
     public final String name;
