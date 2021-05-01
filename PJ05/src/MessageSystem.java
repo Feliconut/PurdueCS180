@@ -258,7 +258,7 @@ public class MessageSystem {
         return (UUID[]) uuids.toArray();
     }
 
-    public Profile editProfile() {
+    public Profile editProfile(UUID user_uuid, Profile new_profile) throws UserNotFoundException {
         return null;
     }
 
