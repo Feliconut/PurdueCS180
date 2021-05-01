@@ -235,7 +235,7 @@ public class MessageServerWorker extends Thread {
             throw new NotLoggedInException();
         } else if (content.length() > 1000 || content.equals("")) {
             throw new IllegalContentException("Message cannot be empty or too long");
-        } else if (message.sender_uuid.equals(currentUser.uuid)) {
+        } else if (!message.sender_uuid.equals(currentUser.uuid)) {
             throw new AuthorizationException("You are not the author of this message");
         } else {
             Message replaced_message = system.editMessage(content, message.uuid);

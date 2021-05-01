@@ -654,7 +654,7 @@ class Window {
                             "Are you sure to delete the selected message?",
                             "Alert", JOptionPane.YES_NO_OPTION);
                     if (answer == JOptionPane.YES_OPTION) {
-                        if (clientWorker.deleteMessage(chatList.getSelectedValue())) {
+                        if (clientWorker.deleteMessage(chatList.getSelectedValue(), currentConversation.uuid)) {
                             model.removeElement(chatList.getSelectedValue());
                         }
                     }
@@ -715,7 +715,13 @@ class Window {
 
             }
             if (e.getSource() == exportBtnChat) {
-                clientWorker.export(messagesList);
+                if (messagesList != null) {
+                    clientWorker.export(currentConversation.uuid);
+                } else {
+                    JOptionPane.showMessageDialog(chatFrame,
+                            "No messages to export!", "Export",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
             }
             if (e.getSource() == backBtn) {
                 chatFrame.dispose();
@@ -1376,19 +1382,26 @@ class ClientWorker {
     /**
      * Export the current conversation history
      */
-    public void export(Message[] messages) {
+    public void export(UUID conversation_uuid) {
+        //get messages from map
+        ArrayList<UUID> messages_uuids = conversationMessageHashmap.get(conversation_uuid);
+        Message[] message = new Message[messages_uuids.size()];
+        for (int i = 0; i < messages_uuids.size(); i++) {
+            message[i] = messageHashMap.get(messages_uuids.get(i));
+        }
+
         try (PrintWriter pw = new PrintWriter("Conversation_History")) {
             pw.write("Message Sender,");
             pw.write("Timestamp,");
             pw.write("contents\n");
 
-            for (Message message :
-                    messages) {
-                String sender = getUser(message.sender_uuid).profile.name;
+            for (Message value : message) {
+                String sender = getUser(value.sender_uuid).profile.name;
                 pw.write(String.format("%s,", sender));
-                String time = message.time.toString();
+                String time = value.time.toString();
                 pw.write(String.format("%s,", time));
-                pw.write(String.format("%s,", message.content));
+                pw.write(String.format("%s", value.content));
+                pw.println();
             }
             JOptionPane.showMessageDialog(null, "Export successfully!",
                     "export", JOptionPane.INFORMATION_MESSAGE);
@@ -1423,13 +1436,16 @@ class ClientWorker {
      * @return true if the message was successfully deleted, false if
      * an error occurred
      */
-    public boolean deleteMessage(String messageString) {
+    public boolean deleteMessage(String messageString, UUID conversation_uuid) {
         UUID message_uuid = UUID.fromString(messageString.substring(messageString.indexOf("(") + 1, messageString.indexOf(")")));
         DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(message_uuid);
 
         try {
             send(deleteMessageRequest);
             messageHashMap.remove(message_uuid);
+            ArrayList<UUID> message_uuids = conversationMessageHashmap.get(conversation_uuid);
+            message_uuids.remove(message_uuid);
+            conversationMessageHashmap.put(conversation_uuid, message_uuids);
             return true;
         } catch (MessageNotFoundException e) {
             JOptionPane.showMessageDialog(null, "Message not found!", "Error",
@@ -1479,6 +1495,7 @@ class ClientWorker {
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
                     "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
         return null;
     }
