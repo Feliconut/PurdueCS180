@@ -289,13 +289,18 @@ public class MessageServerWorker extends Thread {
     }
 
     //deleteConversationRequest
-    Response process(DeleteConversationRequest deleteConversationRequest) throws NotLoggedInException, ConversationNotFoundException {
+    Response process(DeleteConversationRequest deleteConversationRequest) throws NotLoggedInException, ConversationNotFoundException, AuthorizationException {
 
-        Conversation conversation = system.deleteConversation(deleteConversationRequest.conversation_uuid);
-        if (conversation == null) {
-            throw new ConversationNotFoundException();
+        if (currentUser == null) {
+            throw new NotLoggedInException();
         }
-        return new Response(true, "", deleteConversationRequest.uuid);
+        Conversation conversation = system.getConversation(deleteConversationRequest.conversation_uuid);
+        if (conversation.admin_uuid.equals(currentUser.uuid)) {
+            system.deleteConversation(deleteConversationRequest.conversation_uuid);
+            return new Response(true, "", deleteConversationRequest.uuid);
+        } else {
+            throw new AuthorizationException();
+        }
     }
 
     //renameConversationRequest
