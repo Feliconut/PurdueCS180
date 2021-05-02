@@ -230,7 +230,11 @@ public class MessageSystem {
         message.content = content;
         message.time = new Date();
         messageDatabase.put(message.uuid, message);
-//        eventBagHandler.update(message); //TODO find the conversation of the message
+        try {
+            eventBagHandler.add(getConversation(message.conversation_uuid), message);
+        } catch (ConversationNotFoundException e) {
+            e.printStackTrace();
+        }
         return new Message(message);
     }
 
@@ -290,10 +294,9 @@ public class MessageSystem {
         for (UUID uuid : conversationDatabase.uuids()) {
             try {
                 Conversation conversation = getConversation(uuid);
-                UUID[] user_uuids = conversation.user_uuids;
                 for (UUID conversation_user_uuid :
-                        user_uuids) {
-                    if (conversation_user_uuid == user_uuid) {
+                        conversation.user_uuids) {
+                    if (conversation_user_uuid.equals(user_uuid)) {
                         uuids.add(conversation.uuid);
                     }
                 }

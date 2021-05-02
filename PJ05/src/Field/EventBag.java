@@ -52,7 +52,7 @@ public class EventBag {
     private synchronized static <T extends Storable> void putUpdatedObject(T obj, ArrayList<T> db, Class<T> clazz) {
         for (Storable storable :
                 db) {
-            if (storable.uuid == obj.uuid) {
+            if (storable.uuid.equals(obj.uuid)) {
                 db.remove(clazz.cast(storable));
             }
         }

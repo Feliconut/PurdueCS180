@@ -29,9 +29,118 @@ public class MessageClient {
 
 }
 
+class ListDisplay<T extends Storable> {
+
+    final DefaultListModel<String> displayListModel;
+    private final JList<String> displayList;
+    private final ArrayList<UUID> uuids;
+    private final JScrollPane jsp;
+
+    public ListDisplay() {
+        this.displayListModel = new DefaultListModel<>();
+        this.displayList = new JList<>(displayListModel);
+        this.uuids = new ArrayList<>();
+        displayList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        jsp = new JScrollPane(displayList);
+        jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+    }
+
+    public JScrollPane getJsp() {
+        return jsp;
+    }
+
+    public void addListener(java.awt.event.MouseListener l) {
+        displayList.addMouseListener(l);
+    }
+
+    public void setBounds(int x, int y, int width, int height) {
+        jsp.setBounds(x, y, width, height);
+    }
+
+    public UUID getSelectedUUID() {
+
+        return uuids.get(displayList.getSelectedIndex());
+
+    }
+
+    public UUID removeSelected() {
+        int index = displayList.getSelectedIndex();
+        UUID uuid = uuids.get(index);
+
+        displayList.remove(index);
+        uuids.remove(index);
+
+        return uuid;
+    }
+
+    public void add(T obj) {
+        add(obj, null);
+    }
+
+
+    public void add(T obj, String display) {
+        if (display == null) {
+            display = makeDisplay(obj);
+        }
+        try {
+            remove(obj.uuid);
+        } catch (IndexOutOfBoundsException ignored) {
+        }
+        displayListModel.addElement(display);
+        uuids.add(obj.uuid);
+    }
+
+    private String makeDisplay(T obj) {
+        String display;
+        if (obj instanceof Conversation) {
+            Conversation conversation = (Conversation) obj;
+            display = String.format("%s (%d people)", conversation.name, conversation.user_uuids.length);
+        } else if (obj instanceof Message) {
+            Message message = (Message) obj;
+            display = String.format("%s (sent by <unknown> at %s)", message.content, message.time.toString());
+        } else if (obj instanceof User) {
+            User user = (User) obj;
+            display = String.format("%s (%s, %d years old)", user.credential.usrName, user.profile.name, user.profile.age);
+        } else {
+            display = obj.toString();
+        }
+        return display;
+
+    }
+
+    public void update(T obj, String display) {
+        int index = uuids.indexOf(obj.uuid);
+        if (index == -1) {
+            add(obj, display); // add the object if it does not exist
+        } else {
+            update(obj, display, index);
+        }
+    }
+
+    public void update(T obj) {
+        update(obj, null);
+    }
+
+    private void update(T obj, String display, int index) {
+        if (display != null) {
+            displayListModel.set(index, display);
+        } else {
+            displayListModel.set(index, makeDisplay(obj));
+        }
+    }
+
+    public void remove(UUID uuid) {
+        int index = uuids.indexOf(uuid);
+        uuids.remove(index);
+        displayListModel.remove(index);
+    }
+
+}
+
 class Window {
     private final ClientWorker clientWorker = new ClientWorker(this);
-    JList<UUID> conversationList;
 
     public Window() {
         final Button registerButtonSign;
@@ -46,26 +155,33 @@ class Window {
         frame.setSize(600, 400);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
 
         //set panels
         Box vertical = Box.createVerticalBox();
         Panel topPanel = new Panel(new FlowLayout(FlowLayout.RIGHT));
-        Panel titlePanel = new Panel();
+        Panel titlePanel = new Panel(new FlowLayout(FlowLayout.CENTER));
         Panel userPanel = new Panel();
+        userPanel.setLayout(new BoxLayout(userPanel, BoxLayout.X_AXIS));
+        //userPanel.setBounds(100,100,100,10);
         Panel passwordPanel = new Panel();
+        passwordPanel.setLayout(new BoxLayout(passwordPanel, BoxLayout.X_AXIS));
+        //passwordPanel.setBounds(100,140,100,10);
         Panel okPanel = new Panel();
+
 
         //set buttons and labels
         registerButtonSign = new Button("Register");
         okButtonSign = new Button("OK");
         titleLbSign = new JLabel("<html><center><font size='20'>PJ5 Messaging</font></center></html>");
-        usernameLbSign = new JLabel("Username");
-        passwordLbSign = new JLabel("Password");
+        usernameLbSign = new JLabel("Username ");
+        passwordLbSign = new JLabel("Password  ");
         usernameTfSign = new TextField(20);
+        //usernameLbSign.setBounds(75,200, 450, 10);
         passwordTfSign = new JPasswordField(20);
-        passwordTfSign.setSize(usernameTfSign.getSize());
-        passwordTfSign.setEchoChar('*');
+        //usernameLbSign.setBounds(75,230, 450, 10);
+
+        //passwordTfSign.setSize(usernameTfSign.getSize());
+        //passwordTfSign.setEchoChar('*');
 
         //add to top panel
         topPanel.add(registerButtonSign);
@@ -74,12 +190,16 @@ class Window {
         titlePanel.add(titleLbSign);
 
         //add to username panel
+        userPanel.add(Box.createHorizontalStrut(100));
         userPanel.add(usernameLbSign);
         userPanel.add(usernameTfSign);
+        userPanel.add(Box.createHorizontalStrut(100));
 
         //add to password panel
+        passwordPanel.add(Box.createHorizontalStrut(100));
         passwordPanel.add(passwordLbSign);
         passwordPanel.add(passwordTfSign);
+        passwordPanel.add(Box.createHorizontalStrut(100));
 
         //add to ok panel
         okPanel.add(okButtonSign);
@@ -89,10 +209,15 @@ class Window {
         vertical.add(Box.createVerticalStrut(50));
         vertical.add(titlePanel);
         vertical.add(userPanel);
+        vertical.add(Box.createVerticalStrut(10));
         vertical.add(passwordPanel);
         vertical.add(okPanel);
-        vertical.add(Box.createVerticalStrut(50));
+        vertical.add(Box.createVerticalStrut(100));
         frame.add(vertical);
+
+        frame.setVisible(true);
+        frame.pack();
+
 
         // clientWorker = new ClientWorker(this);
         //actionListener
@@ -119,13 +244,13 @@ class Window {
     }
 
     public void registerWindow() {
-        final JLabel rgNameLb = new JLabel("Name");
-        final JLabel rgAgeLb = new JLabel("Age");
+        final JLabel rgNameLb = new JLabel("Name  ");
+        final JLabel rgAgeLb = new JLabel("Age  ");
         final JLabel rgUserLb = new JLabel("Username");
-        final JLabel rgPassLb = new JLabel("Password");
-        final TextField rgNameTf = new TextField(20);
-        final TextField rgAgeTf = new TextField(20);
-        final TextField rgUserTf = new TextField(20);
+        final JLabel rgPassLb = new JLabel("Password ");
+        final TextField rgNameTf = new TextField(28);
+        final TextField rgAgeTf = new TextField(28);
+        final TextField rgUserTf = new TextField(28);
         final JPasswordField rgPassTf = new JPasswordField(20);
         final Button rgOkBtn = new Button("OK");
         final Button rgCancelBtn = new Button("Cancel");
@@ -135,47 +260,67 @@ class Window {
         registerFrame.setSize(600, 400);
         registerFrame.setLocationRelativeTo(null);
         registerFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        registerFrame.setVisible(true);
 
         //set panel
-        Box box = Box.createVerticalBox();
+        Panel panel = new Panel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        //Box box = Box.createVerticalBox();
         Panel nameP = new Panel();
+        nameP.setLayout(new BoxLayout(nameP, BoxLayout.X_AXIS));
         Panel ageP = new Panel();
+        ageP.setLayout(new BoxLayout(ageP, BoxLayout.X_AXIS));
         Panel userP = new Panel();
+        userP.setLayout(new BoxLayout(userP, BoxLayout.X_AXIS));
         Panel passP = new Panel();
+        passP.setLayout(new BoxLayout(passP, BoxLayout.X_AXIS));
         Panel bottomP = new Panel();
-        box.add(Box.createVerticalStrut(70));
-        box.add(nameP);
-        box.add(ageP);
-        box.add(userP);
-        box.add(passP);
-        box.add(bottomP);
-        box.add(Box.createVerticalStrut(70));
+        panel.add(Box.createVerticalStrut(70));
+        panel.add(nameP);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(ageP);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(userP);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(passP);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(bottomP);
+        panel.add(Box.createVerticalStrut(70));
 
         //add to nameP
+        nameP.add(Box.createHorizontalStrut(50));
         nameP.add(rgNameLb);
         nameP.add(Box.createHorizontalStrut(20));
         nameP.add(rgNameTf);
+        nameP.add(Box.createHorizontalStrut(50));
 
         //add to ageP
+        ageP.add(Box.createHorizontalStrut(50));
         ageP.add(rgAgeLb);
         ageP.add(Box.createHorizontalStrut(30));
         ageP.add(rgAgeTf);
+        ageP.add(Box.createHorizontalStrut(50));
 
         //add to userP
+        userP.add(Box.createHorizontalStrut(50));
         userP.add(rgUserLb);
         userP.add(rgUserTf);
+        userP.add(Box.createHorizontalStrut(50));
 
         //add to passP
+        passP.add(Box.createHorizontalStrut(50));
         passP.add(rgPassLb);
         passP.add(rgPassTf);
+        passP.add(Box.createHorizontalStrut(50));
 
         //add to bottomP
         bottomP.add(rgOkBtn);
         bottomP.add(rgCancelBtn);
 
         //add to frame
-        registerFrame.add(box);
+        registerFrame.add(panel);
+
+        registerFrame.setVisible(true);
+        registerFrame.pack();
 
         //ClientWorker clientWorker = new ClientWorker(this);
         ActionListener actionListener = e -> {
@@ -209,7 +354,9 @@ class Window {
 
 
     public void mainWindow() {
-        JTextArea showUsernameTa = new JTextArea("Invited:");
+        final ListDisplay<Conversation> conversationListDisplay = new ListDisplay<>();
+        JTextArea showUsernameTa = new JTextArea("Invited: ");
+        showUsernameTa.setLineWrap(true);
         //private StringBuilder usernameString = new StringBuilder();
         ArrayList<UUID> invitedUsers = new ArrayList<>();
 
@@ -217,23 +364,31 @@ class Window {
         final Button settingBtnM = new Button("SETTING");
         final JLabel my_uuid = new JLabel();
         final JLabel chatroomLbM = new JLabel("Chat Rooms");
-        final JLabel newChatLbM = new JLabel("Create a new chat");
+        chatroomLbM.setFont(new Font("Serif", Font.BOLD, 15));
+        final JLabel newChatLbM = new JLabel("New Chat");
+        newChatLbM.setFont(new Font("Serif", Font.BOLD, 15));
         final JLabel groupNameLbM = new JLabel("Enter a group name");
-        final TextField groupNameTfM = new TextField(20);
+        final TextField groupNameTfM = new TextField(10);
         final JLabel inviteLbM = new JLabel("Invite by usernames:");
         final JTextField inviteTfM = new JTextField(20);
         Button addBtnM = new Button("ADD");
         final Button startBtnM = new Button("CREATE");
         final JLabel groupInfoLb = new JLabel();
-        final DefaultListModel<UUID> conversationModel = new DefaultListModel<>();
+        final JLabel groupMemberLb = new JLabel();
+        // UUID name
+        // display: <index> name (X users)
+        // index --> UUID
         my_uuid.setText(String.format("my uuid: %s", clientWorker.current_user.uuid));
+
         //set up frame
         JFrame mainFrame = new JFrame("Main");
+        Panel bigPanel = new Panel();
+        bigPanel.setLayout(new BoxLayout(bigPanel, BoxLayout.Y_AXIS));
         mainFrame.setSize(600, 400);
         mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         mainFrame.setLocationRelativeTo(null);
-        mainFrame.setVisible(true);
-        Box vBoxOut = Box.createVerticalBox();
+
+        //Box vBoxOut = Box.createVerticalBox();
 
         //set up top panel
         Panel topP = new Panel();
@@ -241,45 +396,60 @@ class Window {
         topP.add(logOutBtnM);
         topP.add(settingBtnM);
         topP.add(my_uuid);
-        vBoxOut.add(topP);
+        bigPanel.add(topP);
 
         //set up middle panel
-        Box hBox = Box.createHorizontalBox();
+        Panel midPanel = new Panel();
+        midPanel.setLayout(new BoxLayout(midPanel, BoxLayout.X_AXIS));
+        //Box hBox = Box.createHorizontalBox();
         Panel chatroomP = new Panel();
         Panel newChatP = new Panel();
-        hBox.add(chatroomP);
-        hBox.add(newChatP);
-        vBoxOut.add(hBox);
-        vBoxOut.add(Box.createVerticalStrut(50));
+        midPanel.add(chatroomP);
+        midPanel.add(Box.createHorizontalStrut(20));
+        midPanel.add(newChatP);
+//        hBox.add(chatroomP);
+//        hBox.add(newChatP);
+        bigPanel.add(Box.createVerticalStrut(50));
+        bigPanel.add(midPanel);
+        bigPanel.add(Box.createVerticalStrut(50));
 
         //set up the conversation list
 //        my_conversation_uuids = clientWorker.getConversation_uuid_list();
 //        for (UUID my_conversation_uuid : my_conversation_uuids) {
-//            conversationModel.addElement(my_conversation_uuid);
+//            conversationListModel.addElement(my_conversation_uuid);
 //        }
-        UUID[] uuid_list = clientWorker.getConversation_uuid_list();
-        if (uuid_list != null) {
-            for (UUID uuid : uuid_list) {
-                conversationModel.addElement(uuid);
-            }
+        for (Conversation conversation :
+                clientWorker.getAllConversation()) {
+            conversationListDisplay.add(conversation);
         }
-        conversationList = new JList<>(conversationModel);
-        conversationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        //        conversationList = new JList<>(conversationListModel);
+//        conversationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         //add to chatroomP
+        // Box vBoxInLeft = Box.createVerticalBox();
+        chatroomP.setLayout(new BoxLayout(chatroomP, BoxLayout.Y_AXIS));
+        //chatroomP.add(vBoxInLeft);
         Panel chatroomLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
-        chatroomLbP.add(chatroomLbM);
         chatroomP.add(chatroomLbP);
-        JScrollPane jsp = new JScrollPane(conversationList);
-        jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        chatroomP.add(jsp);
+        chatroomLbP.add(chatroomLbM);
+
+        chatroomP.add(Box.createVerticalStrut(5));
+        conversationListDisplay.setBounds(5, 20, chatroomP.getWidth() - 10, chatroomP.getHeight() - 50);
+        chatroomP.add(conversationListDisplay.getJsp());
+
         Panel groupInfoP = new Panel();
         groupInfoP.add(groupInfoLb);
+
+        Panel groupMemberP = new Panel();
+        groupMemberP.add(groupMemberLb);
+
         chatroomP.add(groupInfoP);
+        chatroomP.add(groupMemberP);
 
         //set up new chat panel
-        Box vBoxInRight = Box.createVerticalBox();
-        newChatP.add(vBoxInRight);
+        //Box vBoxInRight = Box.createVerticalBox();
+//        newChatP.add(vBoxInRight);
+        newChatP.setLayout(new BoxLayout(newChatP, BoxLayout.Y_AXIS));
         Panel newChatLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
         Panel labelP = new Panel(new FlowLayout(FlowLayout.LEFT));
         Panel addLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
@@ -289,47 +459,65 @@ class Window {
         Panel startP = new Panel();
 
         //add panels to box
-        vBoxInRight.add(newChatLbP);
-        //vBoxInRight.add(Box.createVerticalStrut(10));
-        vBoxInRight.add(labelP);
-        vBoxInRight.add(groupNameP);
+        newChatP.add(newChatLbP);
+        newChatP.add(Box.createVerticalStrut(5));
+        newChatP.add(labelP);
+        newChatP.add(groupNameP);
         //show username panel
         showUsernameTa.setEditable(false);
+        showUsernameTa.setColumns(10);
         JScrollPane showJsp = new JScrollPane(showUsernameTa);
-        vBoxInRight.add(showJsp);
 
-        vBoxInRight.add(addLbP);
+        newChatP.add(showJsp);
 
-        vBoxInRight.add(addP);
-        vBoxInRight.add(startP);
+        newChatP.add(addLbP);
+
+        newChatP.add(addP);
+        newChatP.add(startP);
 
         newChatLbP.add(newChatLbM);
         labelP.add(groupNameLbM);
-        groupNameP.add(groupNameTfM);
+        labelP.add(groupNameTfM);
         addLbP.add(inviteLbM);
-        addP.add(inviteTfM);
-        addP.add(addBtnM);
+        addLbP.add(inviteTfM);
+        addLbP.add(addBtnM);
         startP.add(startBtnM);
 
         //add panels to frame
-        mainFrame.add(vBoxOut);
-
+        //bigPanel.add(vBoxOut);
+        mainFrame.add(bigPanel);
+        mainFrame.setVisible(true);
+        mainFrame.pack();
         //if the list is clicked twice open up the selected conversation
         //if the list is clicked once show the conversation name in the label below
         //if the list is right-clicked pop up delete message
-        conversationList.addMouseListener(new MouseAdapter() {
+        conversationListDisplay.addListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    Conversation conversation = clientWorker.getConversation(conversationList.getSelectedValue());
+                    Conversation conversation = clientWorker.getConversation(conversationListDisplay.getSelectedUUID());
                     //clientWorker.setToNewConversation(list.getSelectedValue());
                     chatWindow(conversation);
                     mainFrame.dispose();
                 }
 
                 if (e.getClickCount() == 1) {
-                    String groupName = clientWorker.getConversation(conversationList.getSelectedValue()).name;
+                    //display group name
+                    String groupName = clientWorker.getConversation(conversationListDisplay.getSelectedUUID()).name;
                     groupInfoLb.setText(String.format("Group name: %s", groupName));
+
+                    //display group members
+                    UUID[] members = clientWorker.getConversation(conversationListDisplay.getSelectedUUID()).user_uuids;
+                    StringBuilder memberString = new StringBuilder();
+                    memberString.append("Group members: ");
+
+                    for (int i = 0; i < members.length; i++) {
+                        memberString.append(clientWorker.getUser(members[i]).credential.usrName);
+                        memberString.append(" ");
+                    }
+
+                    groupMemberLb.setText(String.valueOf(memberString));
+
                 }
 
                 if (e.getButton() == MouseEvent.BUTTON3) {
@@ -338,8 +526,7 @@ class Window {
                             "Delete", JOptionPane.YES_NO_OPTION);
 
                     if (answer == JOptionPane.YES_OPTION) {
-                        if (clientWorker.deleteConversation(conversationList.getSelectedValue())) {
-                            conversationModel.remove(conversationList.getSelectedIndex());
+                        if (clientWorker.deleteConversation(conversationListDisplay.getSelectedUUID())) {
                             groupInfoLb.setText(null);
                         }
                     }
@@ -352,6 +539,20 @@ class Window {
             public void windowActivated(WindowEvent e) {
                 super.windowActivated(e);
                 //TODO update the model list that displays the conversation list
+                GetEventFeedResponse response = clientWorker.getEventFeed();
+                for (Conversation conversation :
+                        response.new_conversations) {
+                    conversationListDisplay.update(conversation);
+                }
+                for (Conversation conversation :
+                        response.updated_conversations) {
+                    conversationListDisplay.update(conversation);
+                }
+                for (UUID uuid :
+                        response.removed_conversations) {
+                    conversationListDisplay.remove(uuid);
+                }
+
             }
         };
         mainFrame.addWindowListener(windowListener);
@@ -385,8 +586,8 @@ class Window {
                     user_uuids[i] = invitedUsers.get(i);
                 }
                 Conversation conversation = clientWorker.createConversation(groupName, user_uuids);
-                UUID newConversation_uuid = conversation.uuid;
-                conversationModel.addElement(newConversation_uuid); //add the conversation to the list displayed
+                conversationListDisplay.add(conversation);
+
                 chatWindow(conversation);
                 groupNameTfM.setText(null);
                 inviteTfM.setText(null);
@@ -398,8 +599,9 @@ class Window {
             }
             if (e.getSource() == addBtnM) {
                 String username = inviteTfM.getText();
-                UUID user_uuid = clientWorker.getUser(username).uuid;
-                if (user_uuid != null) {
+                User user = clientWorker.getUser(username);
+                if (user != null) {
+                    UUID user_uuid = user.uuid;
                     showUsernameTa.append(String.format("%s ", username));
 //                    usernameString.append();
 //                    showUsernameTa.setText(String.valueOf(usernameString));
@@ -577,7 +779,9 @@ class Window {
     }
 
     public void chatWindow(Conversation currentConversation) {
-        Message[] messagesList = clientWorker.getConversationMessages(currentConversation.uuid);
+
+        final UUID current_conversation_uuid = currentConversation.uuid;
+        Message[] messages = clientWorker.getConversationMessages(current_conversation_uuid);
         final TextField inputTfChat = new TextField(30);
         final Button sendBtnChat = new Button("SEND");
         //final Button deleteBtnChat = new Button("Delete the group");
@@ -586,26 +790,24 @@ class Window {
         final Button addUserToChatBtn = new Button("Invite");
         final Button exportBtnChat = new Button("Export");
         final Button backBtn = new Button("Back");
+        //JLabel groupMemberLb = new JLabel();
 
         //set frame
         JFrame chatFrame = new JFrame("Chat");
-        chatFrame.setSize(400, 400);
+        chatFrame.setSize(600, 400);
         chatFrame.setLocationRelativeTo(null);
         chatFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        chatFrame.setVisible(true);
 
+        final ListDisplay<Message> messageListDisplay = new ListDisplay<>();
         //set display window
-        DefaultListModel<String> model = new DefaultListModel<>();
         //if there was exist messages, add them to model
-        if (messagesList != null) {
-            for (Message message : messagesList) {
-                model.addElement(clientWorker.messageString(message));
+        if (messages != null) {
+            for (Message message : messages) {
+                messageListDisplay.add(message, clientWorker.messageString(message));
             }
         }
-        JList<String> chatList = new JList<>(model);
-        JScrollPane jsp = new JScrollPane(chatList);
-        jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        jsp.setBounds(0, 50, 400, 250);
+
+        messageListDisplay.setBounds(0, 50, 400, 250);
 
         //set panels
         Box box = Box.createVerticalBox();
@@ -622,29 +824,47 @@ class Window {
         //topP.add(deleteBtnChat);
         topP.add(exportBtnChat);
         topP.add(backBtn);
-        midP.add(jsp);
+        midP.add(messageListDisplay.getJsp());
         bottomP.add(inputTfChat);
         bottomP.add(sendBtnChat);
 
         //add to frame
         chatFrame.add(box);
+
+        chatFrame.pack();
+        chatFrame.setVisible(true);
+
         WindowListener windowListener = new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent e) {
-                super.windowClosing(e);
-                //clientWorker.setToNewConversation();
-            }
-
             public void windowActivated(WindowEvent e) {
                 super.windowActivated(e);
-                //TODO get event feed and update messages
+                GetEventFeedResponse response = clientWorker.getEventFeed();
+                Message[] messages = response.new_messages.get(current_conversation_uuid);
+                if (messages != null) {
+                    for (Message message :
+                            messages) {
+                        messageListDisplay.update(message, clientWorker.messageString(message));
+                    }
+
+                }
+                for (Message message :
+                        response.updated_messages) {
+                    if (Set.of(clientWorker.getConversation(current_conversation_uuid).message_uuids).contains(message.uuid)) {
+                        messageListDisplay.update(message, clientWorker.messageString(message));
+                    }
+                }
+                for (UUID uuid :
+                        response.removed_messages) {
+                    messageListDisplay.remove(uuid);
+                }
+
             }
         };
         chatFrame.addWindowListener(windowListener);
 
         //if left clicked, edit message.
         //if right clicked, delete message.
-        chatList.addMouseListener(new MouseAdapter() {
+        messageListDisplay.addListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
@@ -653,24 +873,21 @@ class Window {
                             "Are you sure to delete the selected message?",
                             "Alert", JOptionPane.YES_NO_OPTION);
                     if (answer == JOptionPane.YES_OPTION) {
-                        if (clientWorker.deleteMessage(chatList.getSelectedValue())) {
-                            model.removeElement(chatList.getSelectedValue());
-                        }
+                        UUID message_uuid = messageListDisplay.getSelectedUUID();
+                        clientWorker.deleteMessage(message_uuid, current_conversation_uuid);
+
                     }
                 }
 
                 if (e.getClickCount() == 2) {
-                    String edit = JOptionPane.showInputDialog(chatFrame, "Edit the selected message:",
+                    String new_content = JOptionPane.showInputDialog(chatFrame, "Edit the selected message:",
                             "Edit", JOptionPane.INFORMATION_MESSAGE);
-                    Date date = clientWorker.editMessage(chatList.getSelectedValue(), edit);
+                    UUID message_uuid = messageListDisplay.getSelectedUUID();
+                    Date date = clientWorker.editMessage(message_uuid, new_content);
                     if (date != null) {
-                        String content = chatList.getSelectedValue();
-                        UUID message_uuid = UUID.fromString(content.substring(content.indexOf("(") + 1,
-                                content.indexOf(")")));
                         Message message = new Message(message_uuid, clientWorker.current_user.uuid,
-                                date, edit, currentConversation.uuid);
-                        String new_message = clientWorker.messageString(message);
-                        model.set(chatList.getSelectedIndex(), new_message);
+                                date, new_content, current_conversation_uuid);
+                        messageListDisplay.update(message, clientWorker.messageString(message));
                     }
                 }
             }
@@ -696,7 +913,7 @@ class Window {
                 String new_name = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
                         "Rename", JOptionPane.PLAIN_MESSAGE);
                 if (!new_name.equals("")) {
-                    if (clientWorker.renameConversation(new_name, currentConversation.uuid)) {
+                    if (clientWorker.renameConversation(new_name, current_conversation_uuid)) {
                         groupNameChat.set(new_name);
                         chatFrame.setTitle(groupNameChat.get());
                     }
@@ -704,17 +921,23 @@ class Window {
             }
             if (e.getSource() == sendBtnChat) {
                 Message message = new Message(clientWorker.current_user.uuid,
-                        new Date(), inputTfChat.getText(), currentConversation.uuid);
-                message = clientWorker.postMessage(currentConversation.uuid, message);
+                        new Date(), inputTfChat.getText(), current_conversation_uuid);
+                message = clientWorker.postMessage(current_conversation_uuid, message);
                 if (message != null) { // post successful
                     String messageString = clientWorker.messageString(message);
-                    model.addElement(messageString);
+                    messageListDisplay.add(message, messageString);
                     inputTfChat.setText(null);
                 }
 
             }
             if (e.getSource() == exportBtnChat) {
-                clientWorker.export(messagesList);
+                if (messages != null) {
+                    clientWorker.export(current_conversation_uuid);
+                } else {
+                    JOptionPane.showMessageDialog(chatFrame,
+                            "No messages to export!", "Export",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
             }
             if (e.getSource() == backBtn) {
                 chatFrame.dispose();
@@ -801,7 +1024,9 @@ class ClientWorker {
      * The method sends an authenticate request and receives
      * a response
      */
-    public UUID signIn(String username, String password) {
+    public UUID
+
+    signIn(String username, String password) {
         AuthenticateResponse response;
         try {
             Credential credential = new Credential(username, password);
@@ -858,6 +1083,12 @@ class ClientWorker {
         if (username.equals("") || password.equals("") || name.equals("") || ageString.equals("")) {
             JOptionPane.showMessageDialog(null, "Text fields cannot be blank! ",
                     "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        if (Integer.parseInt(ageString) < 0 || Integer.parseInt(ageString) > 120) {
+            JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
             return false;
         }
 
@@ -1017,7 +1248,7 @@ class ClientWorker {
     /**
      * Get all the conversation existed and add to the conversation_list.
      */
-    public void getAllConversation() {
+    public Conversation[] getAllConversation() {
         try {
             for (UUID uuid : getAllConversationUid()) {
                 GetConversationRequest getConversation = new GetConversationRequest(uuid);
@@ -1030,6 +1261,7 @@ class ClientWorker {
                     e.printStackTrace(); // shouldn't happen
                 }
             }
+            return conversationHashMap.values().toArray(new Conversation[0]);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "IO Exception",
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -1039,7 +1271,7 @@ class ClientWorker {
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
 
-
+        return null;
     }
 
     /**
@@ -1375,19 +1607,26 @@ class ClientWorker {
     /**
      * Export the current conversation history
      */
-    public void export(Message[] messages) {
+    public void export(UUID conversation_uuid) {
+        //get messages from map
+        ArrayList<UUID> messages_uuids = conversationMessageHashmap.get(conversation_uuid);
+        Message[] message = new Message[messages_uuids.size()];
+        for (int i = 0; i < messages_uuids.size(); i++) {
+            message[i] = messageHashMap.get(messages_uuids.get(i));
+        }
+
         try (PrintWriter pw = new PrintWriter("Conversation_History")) {
             pw.write("Message Sender,");
             pw.write("Timestamp,");
             pw.write("contents\n");
 
-            for (Message message :
-                    messages) {
-                String sender = getUser(message.sender_uuid).profile.name;
+            for (Message value : message) {
+                String sender = getUser(value.sender_uuid).credential.usrName;
                 pw.write(String.format("%s,", sender));
-                String time = message.time.toString();
+                String time = value.time.toString();
                 pw.write(String.format("%s,", time));
-                pw.write(String.format("%s,", message.content));
+                pw.write(String.format("%s", value.content));
+                pw.println();
             }
             JOptionPane.showMessageDialog(null, "Export successfully!",
                     "export", JOptionPane.INFORMATION_MESSAGE);
@@ -1406,29 +1645,27 @@ class ClientWorker {
      * @return the message string
      */
     public String messageString(Message message) {
-        //String name = searchUser(my_uuid).profile.name;
-        String date = message.time.toString();
-        String content = message.content;
-        String uuid = message.uuid.toString();
-        //return String.format("{(%s)%s at %s: <%s>}\n", uuid, name, date, content);
-        return String.format("{<%s> at %s (%s)}\n", content, date, uuid);
-
+        User user = getUser(message.sender_uuid);
+        return String.format("%s (sent by %s at %s)", message.content, user.credential.usrName, message.time.toString());
     }
 
     /**
      * The method sends a deleteMessage request and receives a response
      *
-     * @param messageString the content of the string
+     * @param message_uuid      the uuid of the message
+     * @param conversation_uuid the uuid of the conversation
      * @return true if the message was successfully deleted, false if
      * an error occurred
      */
-    public boolean deleteMessage(String messageString) {
-        UUID message_uuid = UUID.fromString(messageString.substring(messageString.indexOf("(") + 1, messageString.indexOf(")")));
+    public boolean deleteMessage(UUID message_uuid, UUID conversation_uuid) {
         DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(message_uuid);
 
         try {
             send(deleteMessageRequest);
             messageHashMap.remove(message_uuid);
+            ArrayList<UUID> message_uuids = conversationMessageHashmap.get(conversation_uuid);
+            message_uuids.remove(message_uuid);
+            conversationMessageHashmap.put(conversation_uuid, message_uuids);
             return true;
         } catch (MessageNotFoundException e) {
             JOptionPane.showMessageDialog(null, "Message not found!", "Error",
@@ -1449,8 +1686,7 @@ class ClientWorker {
         return false;
     }
 
-    public Date editMessage(String oldMessageString, String new_content) {
-        UUID message_uuid = UUID.fromString(oldMessageString.substring(oldMessageString.indexOf("(") + 1, oldMessageString.indexOf(")")));
+    public Date editMessage(UUID message_uuid, String new_content) {
         try {
             EditMessageResponse response = (EditMessageResponse) send(new EditMessageRequest(message_uuid, new_content));
             Date date = response.dateEdited;
@@ -1478,6 +1714,7 @@ class ClientWorker {
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
                     "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
         return null;
     }
@@ -1562,6 +1799,11 @@ class ClientWorker {
                     "Text Fields cannot be blank!");
             return null;
         }
+        if (Integer.parseInt(ageString) < 0 || Integer.parseInt(ageString) > 120) {
+            JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
 
         try {
             Profile profile = new Profile(name, Integer.parseInt(ageString));
@@ -1590,9 +1832,79 @@ class ClientWorker {
         return null;
     }
 
-//    public void getEventFeed() {
-//        GetEventFeedRequest request = new GetEventFeedRequest();
-//    }
+
+    public GetEventFeedResponse getEventFeed() {
+        GetEventFeedRequest request = new GetEventFeedRequest();
+        GetEventFeedResponse response;
+
+        try {
+            response = (GetEventFeedResponse) send(request);
+
+            for (User user :
+                    response.new_users) {
+                userHashMap.put(user.uuid, user);
+            }
+            for (Conversation conversation :
+                    response.new_conversations) {
+                conversationHashMap.put(conversation.uuid, conversation);
+            }
+            for (UUID conversation_uuid :
+                    response.new_messages.keySet()) {
+                for (Message message : response.new_messages.get(conversation_uuid)) {
+                    messageHashMap.put(message.uuid, message);
+                    conversationMessageHashmap.putIfAbsent(conversation_uuid, new ArrayList<>());
+                    conversationMessageHashmap.get(conversation_uuid).add(message.uuid);
+
+                }
+            }
+            for (User user :
+                    response.updated_users) {
+                userHashMap.put(user.uuid, user);
+            }
+            for (Conversation conversation :
+                    response.updated_conversations) {
+                conversationHashMap.put(conversation.uuid, conversation);
+
+            }
+            for (Message message :
+                    response.updated_messages) {
+                messageHashMap.put(message.uuid, message);
+            }
+
+            for (UUID uuid :
+                    response.removed_users) {
+                userHashMap.remove(uuid);
+            }
+            for (UUID uuid :
+                    response.removed_conversations) {
+                conversationHashMap.remove(uuid);
+            }
+            for (UUID uuid :
+                    response.removed_messages) {
+                for (ArrayList<UUID> uuids : conversationMessageHashmap.values()) {
+                    uuids.remove(uuid);
+                }
+            }
+            return response;
+
+
+        } catch (NotLoggedInException e) {
+            JOptionPane.showMessageDialog(null, "You have been logged out!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "IO Exception",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+        } catch (RequestFailedException e) {
+//                JOptionPane.showMessageDialog(null, "Request failed!",
+//                        "Error", JOptionPane.ERROR_MESSAGE);
+            System.out.println("Nothing needs to be updated.");
+        }
+
+
+        return null;
+    }
 }
 
 

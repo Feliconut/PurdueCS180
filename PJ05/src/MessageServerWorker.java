@@ -69,6 +69,8 @@ public class MessageServerWorker extends Thread {
                         response = process((EditMessageRequest) request);
                     } else if (request instanceof GetConversationRequest) {
                         response = process((GetConversationRequest) request);
+                    } else if (request instanceof GetEventFeedRequest) {
+                        response = process((GetEventFeedRequest) request);
                     } else if (request instanceof GetMessageRequest) {
                         response = process((GetMessageRequest) request);
                     } else if (request instanceof GetMessageHistoryRequest) {
@@ -238,13 +240,15 @@ public class MessageServerWorker extends Thread {
 
         Message message = system.getMessage(editMessageRequest.messsage_uuid);
         String content = editMessageRequest.content;
-        content = content.strip();
 
         if (currentUser == null) {
             throw new NotLoggedInException();
         } else if (content.length() > 1000 || content.equals("")) {
             throw new IllegalContentException("Message cannot be empty or too long");
+        } else if (!message.sender_uuid.equals(currentUser.uuid)) {
+            throw new AuthorizationException("You are not the author of this message");
         } else {
+            content = content.strip();
             Message replaced_message = system.editMessage(content, message.uuid);
             return new EditMessageResponse(true, "", editMessageRequest.uuid, replaced_message.time);
         }
@@ -259,7 +263,7 @@ public class MessageServerWorker extends Thread {
         }
         UUID message_uuid = deleteMessageRequest.message_uuid;
         Message message = system.getMessage(message_uuid);
-        if (message.sender_uuid == currentUser.uuid) {
+        if (message.sender_uuid.equals(currentUser.uuid)) {
             system.deleteMessage(message_uuid);
         } else {
             throw new AuthorizationException();
