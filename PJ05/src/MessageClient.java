@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.Socket;
+import java.security.cert.PolicyNode;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -46,22 +47,26 @@ class Window {
         frame.setSize(600, 400);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
 
         //set panels
         Box vertical = Box.createVerticalBox();
         Panel topPanel = new Panel(new FlowLayout(FlowLayout.RIGHT));
-        Panel titlePanel = new Panel();
+        Panel titlePanel = new Panel(new FlowLayout(FlowLayout.CENTER));
         Panel userPanel = new Panel();
+        userPanel.setLayout(new BoxLayout(userPanel, BoxLayout.X_AXIS));
+        //userPanel.setBounds(100,100,100,10);
         Panel passwordPanel = new Panel();
+        passwordPanel.setLayout(new BoxLayout(passwordPanel, BoxLayout.X_AXIS));
+        //passwordPanel.setBounds(100,140,100,10);
         Panel okPanel = new Panel();
+
 
         //set buttons and labels
         registerButtonSign = new Button("Register");
         okButtonSign = new Button("OK");
         titleLbSign = new JLabel("<html><center><font size='20'>PJ5 Messaging</font></center></html>");
-        usernameLbSign = new JLabel("Username");
-        passwordLbSign = new JLabel("Password ");
+        usernameLbSign = new JLabel("Username ");
+        passwordLbSign = new JLabel("Password  ");
         usernameTfSign = new TextField(20);
         //usernameLbSign.setBounds(75,200, 450, 10);
         passwordTfSign = new JPasswordField(20);
@@ -77,12 +82,16 @@ class Window {
         titlePanel.add(titleLbSign);
 
         //add to username panel
+        userPanel.add(Box.createHorizontalStrut(100));
         userPanel.add(usernameLbSign);
         userPanel.add(usernameTfSign);
+        userPanel.add(Box.createHorizontalStrut(100));
 
         //add to password panel
+        passwordPanel.add(Box.createHorizontalStrut(100));
         passwordPanel.add(passwordLbSign);
         passwordPanel.add(passwordTfSign);
+        passwordPanel.add(Box.createHorizontalStrut(100));
 
         //add to ok panel
         okPanel.add(okButtonSign);
@@ -92,10 +101,15 @@ class Window {
         vertical.add(Box.createVerticalStrut(50));
         vertical.add(titlePanel);
         vertical.add(userPanel);
+        vertical.add(Box.createVerticalStrut(10));
         vertical.add(passwordPanel);
         vertical.add(okPanel);
-        vertical.add(Box.createVerticalStrut(50));
+        vertical.add(Box.createVerticalStrut(100));
         frame.add(vertical);
+
+        frame.setVisible(true);
+        frame.pack();
+
 
         // clientWorker = new ClientWorker(this);
         //actionListener
@@ -122,8 +136,8 @@ class Window {
     }
 
     public void registerWindow() {
-        final JLabel rgNameLb = new JLabel("Name");
-        final JLabel rgAgeLb = new JLabel("Age");
+        final JLabel rgNameLb = new JLabel("Name  ");
+        final JLabel rgAgeLb = new JLabel("Age  ");
         final JLabel rgUserLb = new JLabel("Username");
         final JLabel rgPassLb = new JLabel("Password ");
         final TextField rgNameTf = new TextField(28);
@@ -138,47 +152,67 @@ class Window {
         registerFrame.setSize(600, 400);
         registerFrame.setLocationRelativeTo(null);
         registerFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        registerFrame.setVisible(true);
 
         //set panel
-        Box box = Box.createVerticalBox();
+        Panel panel = new Panel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        //Box box = Box.createVerticalBox();
         Panel nameP = new Panel();
+        nameP.setLayout(new BoxLayout(nameP, BoxLayout.X_AXIS));
         Panel ageP = new Panel();
+        ageP.setLayout(new BoxLayout(ageP, BoxLayout.X_AXIS));
         Panel userP = new Panel();
+        userP.setLayout(new BoxLayout(userP, BoxLayout.X_AXIS));
         Panel passP = new Panel();
+        passP.setLayout(new BoxLayout(passP, BoxLayout.X_AXIS));
         Panel bottomP = new Panel();
-        box.add(Box.createVerticalStrut(70));
-        box.add(nameP);
-        box.add(ageP);
-        box.add(userP);
-        box.add(passP);
-        box.add(bottomP);
-        box.add(Box.createVerticalStrut(70));
+        panel.add(Box.createVerticalStrut(70));
+        panel.add(nameP);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(ageP);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(userP);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(passP);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(bottomP);
+        panel.add(Box.createVerticalStrut(70));
 
         //add to nameP
+        nameP.add(Box.createHorizontalStrut(50));
         nameP.add(rgNameLb);
         nameP.add(Box.createHorizontalStrut(20));
         nameP.add(rgNameTf);
+        nameP.add(Box.createHorizontalStrut(50));
 
         //add to ageP
+        ageP.add(Box.createHorizontalStrut(50));
         ageP.add(rgAgeLb);
         ageP.add(Box.createHorizontalStrut(30));
         ageP.add(rgAgeTf);
+        ageP.add(Box.createHorizontalStrut(50));
 
         //add to userP
+        userP.add(Box.createHorizontalStrut(50));
         userP.add(rgUserLb);
         userP.add(rgUserTf);
+        userP.add(Box.createHorizontalStrut(50));
 
         //add to passP
+        passP.add(Box.createHorizontalStrut(50));
         passP.add(rgPassLb);
         passP.add(rgPassTf);
+        passP.add(Box.createHorizontalStrut(50));
 
         //add to bottomP
         bottomP.add(rgOkBtn);
         bottomP.add(rgCancelBtn);
 
         //add to frame
-        registerFrame.add(box);
+        registerFrame.add(panel);
+
+        registerFrame.setVisible(true);
+        registerFrame.pack();
 
         //ClientWorker clientWorker = new ClientWorker(this);
         ActionListener actionListener = e -> {
@@ -221,7 +255,9 @@ class Window {
         final Button settingBtnM = new Button("SETTING");
         final JLabel my_uuid = new JLabel();
         final JLabel chatroomLbM = new JLabel("Chat Rooms");
-        final JLabel newChatLbM = new JLabel("Create a new chat");
+        chatroomLbM.setFont(new Font("Serif", Font.BOLD, 15));
+        final JLabel newChatLbM = new JLabel("New Chat");
+        newChatLbM.setFont(new Font("Serif", Font.BOLD, 15));
         final JLabel groupNameLbM = new JLabel("Enter a group name");
         final TextField groupNameTfM = new TextField(10);
         final JLabel inviteLbM = new JLabel("Invite by usernames:");
@@ -236,12 +272,12 @@ class Window {
         //set up frame
         JFrame mainFrame = new JFrame("Main");
         Panel bigPanel = new Panel();
+        bigPanel.setLayout(new BoxLayout(bigPanel, BoxLayout.Y_AXIS));
         mainFrame.setSize(600, 400);
         mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         mainFrame.setLocationRelativeTo(null);
-        mainFrame.setVisible(true);
 
-        Box vBoxOut = Box.createVerticalBox();
+        //Box vBoxOut = Box.createVerticalBox();
 
         //set up top panel
         Panel topP = new Panel();
@@ -249,17 +285,22 @@ class Window {
         topP.add(logOutBtnM);
         topP.add(settingBtnM);
         topP.add(my_uuid);
-        vBoxOut.add(topP);
+        bigPanel.add(topP);
 
         //set up middle panel
-        Box hBox = Box.createHorizontalBox();
+        Panel midPanel = new Panel();
+        midPanel.setLayout(new BoxLayout(midPanel, BoxLayout.X_AXIS));
+        //Box hBox = Box.createHorizontalBox();
         Panel chatroomP = new Panel();
         Panel newChatP = new Panel();
-        hBox.add(chatroomP);
-        hBox.add(Box.createHorizontalStrut(5));
-        hBox.add(newChatP);
-        vBoxOut.add(Box.createVerticalStrut(50));
-        vBoxOut.add(hBox);
+        midPanel.add(chatroomP);
+        midPanel.add(Box.createHorizontalStrut(20));
+        midPanel.add(newChatP);
+//        hBox.add(chatroomP);
+//        hBox.add(newChatP);
+        bigPanel.add(Box.createVerticalStrut(50));
+        bigPanel.add(midPanel);
+        bigPanel.add(Box.createVerticalStrut(50));
 
         //set up the conversation list
 //        my_conversation_uuids = clientWorker.getConversation_uuid_list();
@@ -276,16 +317,18 @@ class Window {
         conversationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         //add to chatroomP
-        Box vBoxInLeft = Box.createVerticalBox();
-        chatroomP.add(vBoxInLeft);
+       // Box vBoxInLeft = Box.createVerticalBox();
+        chatroomP.setLayout(new BoxLayout(chatroomP, BoxLayout.Y_AXIS));
+        //chatroomP.add(vBoxInLeft);
         Panel chatroomLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
-        vBoxInLeft.add(chatroomLbP);
+        chatroomP.add(chatroomLbP);
         chatroomLbP.add(chatroomLbM);
 
-        vBoxInLeft.add(Box.createVerticalStrut(5));
+        chatroomP.add(Box.createVerticalStrut(5));
         JScrollPane jsp = new JScrollPane(conversationList);
+        jsp.setBounds(5,20,chatroomP.getWidth()-10, chatroomP.getHeight()-50);
         jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        vBoxInLeft.add(jsp);
+        chatroomP.add(jsp);
 
         Panel groupInfoP = new Panel();
         groupInfoP.add(groupInfoLb);
@@ -293,12 +336,13 @@ class Window {
         Panel groupMemberP = new Panel();
         groupMemberP.add(groupMemberLb);
 
-        vBoxInLeft.add(groupInfoP);
-        vBoxInLeft.add(groupMemberP);
+        chatroomP.add(groupInfoP);
+        chatroomP.add(groupMemberP);
 
         //set up new chat panel
-        Box vBoxInRight = Box.createVerticalBox();
-        newChatP.add(vBoxInRight);
+        //Box vBoxInRight = Box.createVerticalBox();
+//        newChatP.add(vBoxInRight);
+        newChatP.setLayout(new BoxLayout(newChatP, BoxLayout.Y_AXIS));
         Panel newChatLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
         Panel labelP = new Panel(new FlowLayout(FlowLayout.LEFT));
         Panel addLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
@@ -308,33 +352,35 @@ class Window {
         Panel startP = new Panel();
 
         //add panels to box
-        vBoxInRight.add(newChatLbP);
-        vBoxInRight.add(Box.createVerticalStrut(5));
-        vBoxInRight.add(labelP);
-        vBoxInRight.add(groupNameP);
+        newChatP.add(newChatLbP);
+        newChatP.add(Box.createVerticalStrut(5));
+        newChatP.add(labelP);
+        newChatP.add(groupNameP);
         //show username panel
         showUsernameTa.setEditable(false);
         showUsernameTa.setColumns(10);
         JScrollPane showJsp = new JScrollPane(showUsernameTa);
-        vBoxInRight.add(showJsp);
 
-        vBoxInRight.add(addLbP);
+        newChatP.add(showJsp);
 
-        vBoxInRight.add(addP);
-        vBoxInRight.add(startP);
+        newChatP.add(addLbP);
+
+        newChatP.add(addP);
+        newChatP.add(startP);
 
         newChatLbP.add(newChatLbM);
         labelP.add(groupNameLbM);
         labelP.add(groupNameTfM);
         addLbP.add(inviteLbM);
-        addP.add(inviteTfM);
-        addP.add(addBtnM);
+        addLbP.add(inviteTfM);
+        addLbP.add(addBtnM);
         startP.add(startBtnM);
 
         //add panels to frame
-        bigPanel.add(vBoxOut);
+        //bigPanel.add(vBoxOut);
         mainFrame.add(bigPanel);
-
+        mainFrame.setVisible(true);
+        mainFrame.pack();
         //if the list is clicked twice open up the selected conversation
         //if the list is clicked once show the conversation name in the label below
         //if the list is right-clicked pop up delete message
@@ -851,7 +897,9 @@ class ClientWorker {
      * The method sends an authenticate request and receives
      * a response
      */
-    public UUID signIn(String username, String password) {
+    public UUID
+
+    signIn(String username, String password) {
         AuthenticateResponse response;
         try {
             Credential credential = new Credential(username, password);
@@ -1661,7 +1709,6 @@ class ClientWorker {
             if (response.new_conversations != null) {
                 Conversation[] newConversation = response.updated_conversations;
                 UUID[] conversation_uuids = new UUID[newConversation.length];
-
                 for (int i = 0; i < newConversation.length; i++) {
                     conversationHashMap.putIfAbsent(newConversation[i].uuid, newConversation[i]);
                     conversation_uuids[i] = newConversation[i].uuid;
