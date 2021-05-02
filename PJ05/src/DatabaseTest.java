@@ -1,8 +1,11 @@
-import Field.*;
+import Field.Credential;
+import Field.Profile;
+import Field.User;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.Arrays;
 
 import static org.junit.Assert.*;
@@ -17,6 +20,7 @@ public class DatabaseTest {
     @After
     public void tearDown() throws Exception {
         System.out.println("Test ends.");
+        (new File("testWriteFile.txt")).delete();
     }
 
 
