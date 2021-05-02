@@ -52,11 +52,11 @@ public class MessageSystemTest {
     public void getUserExceptionExpected() throws UserNotFoundException {
         // UserNotFoundException expected.
         try {
-            MessageSystem ms2 = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms2 = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
-            ms2.addUser(student2.credential, student2.profile);
+            student2 = ms2.addUser(student2.credential, student2.profile);
             ms2.getUser(student1.uuid);
         } catch (UserNotFoundException e) {
             String message = null; // Exception prompt.
@@ -73,8 +73,8 @@ public class MessageSystemTest {
     @Test
     public void getConversation() {
         try {
-            MessageSystem ms3 = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms3 = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
             Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
@@ -85,8 +85,8 @@ public class MessageSystemTest {
             // expected successful test case for addUser, addMessage, and remove method.
             Conversation conversation = ms3.createConversation("group1", group1);
             ms3.addUser2Conversation(student2.uuid, conversation.uuid);
-            ms3.addMessage(message1.sender_uuid, conversation.uuid, message1.content);
-            ms3.addMessage(message2.sender_uuid, conversation.uuid, message2.content);
+            message1 = ms3.addMessage(message1.sender_uuid, conversation.uuid, message1.content);
+            message2 = ms3.addMessage(message2.sender_uuid, conversation.uuid, message2.content);
             // 修改了addMessage method，添加了特定conversation_uuid，等整个写完要确认此处没有问题
             assertEquals(conversationTest, ms3.getConversation(conversation.uuid));
         } catch (MessageNotFoundException e) {
@@ -107,11 +107,11 @@ public class MessageSystemTest {
     @Test (expected = UserExistsException.class)
     public void addUserExceptionExpected() throws UserExistsException {
         try {
-            MessageSystem ms4 = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms4 = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
-            ms4.addUser(student1.credential, student1.profile);
-            ms4.addUser(student1.credential, student1.profile);
+            student1 = ms4.addUser(student1.credential, student1.profile);
+            student1 = ms4.addUser(student1.credential, student1.profile);
         } catch (UserExistsException e) {
             String message = null; // Exception prompt.
             assertEquals(message, e.getMessage());
@@ -123,8 +123,8 @@ public class MessageSystemTest {
     @Test (expected = UserNotFoundException.class)
     public void deleteUserExceptionExpected() throws UserNotFoundException {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             ms.deleteUser(student1.uuid);
         } catch (UserNotFoundException e) {
@@ -138,8 +138,8 @@ public class MessageSystemTest {
     @Test (expected = MessageNotFoundException.class)
     public void deleteMessageExceptionExpected() throws MessageNotFoundException {
         try {
-            MessageSystem ms5 = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms5 = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
             UUID[] uuids = {student1.uuid};
@@ -161,8 +161,8 @@ public class MessageSystemTest {
     @Test (expected = ConversationNotFoundException.class)
     public void deleteConversationExceptionExpected() throws ConversationNotFoundException {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
             Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
@@ -182,8 +182,8 @@ public class MessageSystemTest {
     @Test (expected = InvalidConversationNameException.class)
     public void createConversationExceptionExpected() throws InvalidConversationNameException {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             UUID[] uuids = {student1.uuid};
             Conversation conversation = ms.createConversation(null, uuids);
@@ -202,8 +202,8 @@ public class MessageSystemTest {
     @Test (expected = ConversationNotFoundException.class)
     public void setAdminExceptionExpected() throws ConversationNotFoundException {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
             UUID[] messageGroup = {message1.uuid};
@@ -221,8 +221,8 @@ public class MessageSystemTest {
     @Test
     public void renameConversationTest() {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
             UUID[] group1 = {student1.uuid, student2.uuid};
@@ -243,8 +243,8 @@ public class MessageSystemTest {
     @Test (expected = ConversationNotFoundException.class)
     public void renameConversationExceptionExpected() throws ConversationNotFoundException {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
             UUID[] group1 = {student1.uuid, student2.uuid};
@@ -262,8 +262,8 @@ public class MessageSystemTest {
     @Test
     public void addUser2ConversationTest() {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
             UUID[] group1 = {student1.uuid};
@@ -284,8 +284,8 @@ public class MessageSystemTest {
     @Test (expected = UserNotFoundException.class)
     public void addUser2ConversationExceptionExpected() throws UserNotFoundException {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             UUID[] group1 = {student1.uuid};
             Conversation conversationTest = ms.createConversation("Group1", group1);
@@ -305,41 +305,13 @@ public class MessageSystemTest {
     }
 
     @Test (expected = UserNotFoundException.class)
-    public void removeUserFromConversationTest() throws UserNotFoundException {
-        try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
-            User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
-            User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
-            ms.addUser(student1.credential, student1.profile);
-            UUID[] group1 = {student1.uuid};
-            Conversation conversationTest = ms.createConversation("Group1", group1);
-            ms.removeUserFromConversation(student2.uuid, conversationTest.uuid);
-        } catch (UserExistsException e) {
-            e.printStackTrace();
-            fail("Exception occurs when not expected.");
-        } catch (UserNotFoundException e) {
-            String message = null; // Exception prompt.
-            assertEquals(message, e.getMessage());
-            throw e;
-        } catch (InvalidConversationNameException e) {
-            e.printStackTrace();
-            fail("Exception occurs when not expected.");
-        } catch (ConversationNotFoundException e) {
-            e.printStackTrace();
-            fail("Exception occurs when not expected.");
-        }
-        fail("UserExistException did not throw when expected.");
-    }
-
-    @Test (expected = UserNotFoundException.class)
     public void quitConversationTestExceptionExpected() throws UserNotFoundException {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
-            ms.addUser(student1.credential, student1.profile);
+            student1 = ms.addUser(student1.credential, student1.profile);
             UUID[] group1 = {student1.uuid};
             Conversation conversationTest = ms.createConversation("Group1", group1);
             ms.quitConversation(student2.uuid, conversationTest.uuid);
@@ -363,10 +335,10 @@ public class MessageSystemTest {
     @Test
     public void quitConversationTest() {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
-            ms.addUser(student1.credential, student1.profile);
+            student1 = ms.addUser(student1.credential, student1.profile);
             UUID[] group1 = {student1.uuid};
             Conversation conversationTest = ms.createConversation("Group1", group1);
             ms.quitConversation(student1.uuid, conversationTest.uuid);
@@ -388,14 +360,14 @@ public class MessageSystemTest {
     @Test
     public void editMessageTest() {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
             UUID[] messageGroup = {message1.uuid};
             UUID[] uuids = {student1.uuid};
             Conversation conversationTest = new Conversation("Group1", uuids, student1.uuid, messageGroup);
-            ms.editMessage("Hi", message1.uuid);
+            message1 = ms.editMessage("Hi", message1.uuid);
         } catch (MessageNotFoundException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
@@ -405,14 +377,14 @@ public class MessageSystemTest {
     @Test (expected = MessageNotFoundException.class)
     public void editMessageExceptionExpected() throws MessageNotFoundException {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
             UUID[] messageGroup = null;
             UUID[] uuids = {student1.uuid};
             Conversation conversationTest = new Conversation("Group1", uuids, student1.uuid, messageGroup);
-            ms.editMessage("Hi", message1.uuid);
+            message1 = ms.editMessage("Hi", message1.uuid);
         } catch (MessageNotFoundException e) {
             String message = null; // Exception prompt.
             assertEquals(message, e.getMessage());
@@ -424,8 +396,8 @@ public class MessageSystemTest {
     @Test
     public void getConversationMessagesTest() {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
             UUID[] messageGroup = {message1.uuid};
@@ -443,15 +415,15 @@ public class MessageSystemTest {
     @Test (expected = ConversationNotFoundException.class)
     public void getConversationMessageExceptionExpected() throws ConversationNotFoundException {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
             UUID[] messageGroup = {message1.uuid};
             UUID[] uuids = {student1.uuid};
             Conversation conversationTest = new Conversation("Group1", uuids, student1.uuid, messageGroup);
-            ms.deleteConversation(conversationTest.uuid);
-            ms.getConversationMessages(conversationTest.uuid);
+            conversationTest = ms.deleteConversation(conversationTest.uuid);
+            Message[] messages = ms.getConversationMessages(conversationTest.uuid);
         } catch (ConversationNotFoundException e) {
             String message = null; // Exception prompt.
             assertEquals(message, e.getMessage());
@@ -463,8 +435,8 @@ public class MessageSystemTest {
     @Test
     public void getMessageTest() {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
             UUID[] messageGroup = {message1.uuid};
@@ -480,11 +452,11 @@ public class MessageSystemTest {
     @Test (expected = MessageNotFoundException.class)
     public void getMessageExceptionExpected() throws MessageNotFoundException {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
-            ms.getMessage(message1.uuid);
+            message1 = ms.getMessage(message1.uuid);
         } catch (MessageNotFoundException e) {
             String message = null; // Exception prompt.
             assertEquals(message, e.getMessage());
@@ -496,13 +468,13 @@ public class MessageSystemTest {
     @Test
     public void editProfileTest() {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             Profile profile = new Profile("name", 18);
-            ms.addUser(student1.credential, student1.profile);
-            ms.editProfile(student1.uuid, profile);
-            assertEquals(profile, student1.profile);
+            student1 = ms.addUser(student1.credential, student1.profile);
+            Profile profile1 = ms.editProfile(student1.uuid, profile);
+            assertEquals(profile, profile1);
         } catch (UserExistsException | UserNotFoundException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
@@ -512,11 +484,11 @@ public class MessageSystemTest {
     @Test (expected = UserNotFoundException.class)
     public void editProfileExceptionExpected() throws UserNotFoundException {
         try {
-            MessageSystem ms = new MessageSystem("userFileTest", "messageFileTest"
-                    , "conversationFileTest");
+            MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
+                    , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             Profile profile = new Profile("name", 18);
-            ms.editProfile(student1.uuid, profile);
+            Profile profile1 = ms.editProfile(student1.uuid, profile);
         } catch (UserNotFoundException e) {
             String message = null; // Exception prompt.
             assertEquals(message, e.getMessage());
