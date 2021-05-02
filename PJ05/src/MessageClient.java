@@ -172,7 +172,7 @@ class Window {
         //set buttons and labels
         registerButtonSign = new Button("Register");
         okButtonSign = new Button("OK");
-        titleLbSign = new JLabel("<html><center><font size='20'>PJ5 Messaging</font></center></html>");
+        titleLbSign = new JLabel("<html><center><font size='20'>Easy Chat</font></center></html>");
         usernameLbSign = new JLabel("Username ");
         passwordLbSign = new JLabel("Password  ");
         usernameTfSign = new TextField(20);
