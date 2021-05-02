@@ -69,6 +69,8 @@ public class MessageServerWorker extends Thread {
                         response = process((EditMessageRequest) request);
                     } else if (request instanceof GetConversationRequest) {
                         response = process((GetConversationRequest) request);
+                    } else if (request instanceof GetEventFeedRequest) {
+                        response = process((GetEventFeedRequest) request);
                     } else if (request instanceof GetMessageRequest) {
                         response = process((GetMessageRequest) request);
                     } else if (request instanceof GetMessageHistoryRequest) {

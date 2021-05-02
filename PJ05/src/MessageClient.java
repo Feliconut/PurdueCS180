@@ -7,7 +7,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.Socket;
-import java.security.cert.PolicyNode;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -30,9 +29,114 @@ public class MessageClient {
 
 }
 
+class ListDisplay<T extends Storable> {
+
+    final DefaultListModel<String> displayListModel;
+    private final JList<String> displayList;
+    private final ArrayList<UUID> uuids;
+    private final JScrollPane jsp;
+
+    public ListDisplay() {
+        this.displayListModel = new DefaultListModel<>();
+        this.displayList = new JList<>(displayListModel);
+        this.uuids = new ArrayList<>();
+        displayList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        jsp = new JScrollPane(displayList);
+        jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+    }
+
+    public JScrollPane getJsp() {
+        return jsp;
+    }
+
+    public void addListener(java.awt.event.MouseListener l) {
+        displayList.addMouseListener(l);
+    }
+
+    public void setBounds(int x, int y, int width, int height) {
+        jsp.setBounds(x, y, width, height);
+    }
+
+    public UUID getSelectedUUID() {
+
+        return uuids.get(displayList.getSelectedIndex());
+
+    }
+
+    public UUID removeSelected() {
+        int index = displayList.getSelectedIndex();
+        UUID uuid = uuids.get(index);
+
+        displayList.remove(index);
+        uuids.remove(index);
+
+        return uuid;
+    }
+
+    public void add(T obj) {
+        add(obj, null);
+    }
+
+
+    public void add(T obj, String display) {
+        if (display == null) {
+            display = makeDisplay(obj);
+        }
+        displayListModel.addElement(display);
+        uuids.add(obj.uuid);
+    }
+
+    private String makeDisplay(T obj) {
+        String display;
+        if (obj instanceof Conversation) {
+            Conversation conversation = (Conversation) obj;
+            display = String.format("%s (%d people)", conversation.name, conversation.user_uuids.length);
+        } else if (obj instanceof Message) {
+            Message message = (Message) obj;
+            display = String.format("%s (sent by <unknown> at %s)", message.content, message.time.toString());
+        } else if (obj instanceof User) {
+            User user = (User) obj;
+            display = String.format("%s (%s, %d years old)", user.credential.usrName, user.profile.name, user.profile.age);
+        } else {
+            display = obj.toString();
+        }
+        return display;
+
+    }
+
+    public void update(T obj, String display) {
+        int index = uuids.indexOf(obj.uuid);
+        if (index == 0) {
+            add(obj, display); // add the object if it does not exist
+        } else {
+            update(obj, display, index);
+        }
+    }
+
+    public void update(T obj) {
+        update(obj, null);
+    }
+
+    private void update(T obj, String display, int index) {
+        if (display != null) {
+            displayListModel.set(index, display);
+        } else {
+            displayListModel.set(index, makeDisplay(obj));
+        }
+    }
+
+    public void remove(UUID uuid) {
+        int index = uuids.indexOf(uuid);
+        uuids.remove(index);
+        displayListModel.remove(index);
+    }
+
+}
+
 class Window {
     private final ClientWorker clientWorker = new ClientWorker(this);
-    JList<UUID> conversationList;
 
     public Window() {
         final Button registerButtonSign;
@@ -246,6 +350,7 @@ class Window {
 
 
     public void mainWindow() {
+        final ListDisplay<Conversation> conversationListDisplay = new ListDisplay<>();
         JTextArea showUsernameTa = new JTextArea("Invited: ");
         showUsernameTa.setLineWrap(true);
         //private StringBuilder usernameString = new StringBuilder();
@@ -266,7 +371,9 @@ class Window {
         final Button startBtnM = new Button("CREATE");
         final JLabel groupInfoLb = new JLabel();
         final JLabel groupMemberLb = new JLabel();
-        final DefaultListModel<UUID> conversationModel = new DefaultListModel<>();
+        // UUID name
+        // display: <index> name (X users)
+        // index --> UUID
         my_uuid.setText(String.format("my uuid: %s", clientWorker.current_user.uuid));
 
         //set up frame
@@ -305,19 +412,17 @@ class Window {
         //set up the conversation list
 //        my_conversation_uuids = clientWorker.getConversation_uuid_list();
 //        for (UUID my_conversation_uuid : my_conversation_uuids) {
-//            conversationModel.addElement(my_conversation_uuid);
+//            conversationListModel.addElement(my_conversation_uuid);
 //        }
-        UUID[] uuid_list = clientWorker.getConversation_uuid_list();
-        if (uuid_list != null) {
-            for (UUID uuid : uuid_list) {
-                conversationModel.addElement(uuid);
-            }
+        for (Conversation conversation :
+                clientWorker.getAllConversation()) {
+            conversationListDisplay.add(conversation);
         }
-        conversationList = new JList<>(conversationModel);
-        conversationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        //        conversationList = new JList<>(conversationListModel);
+//        conversationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         //add to chatroomP
-       // Box vBoxInLeft = Box.createVerticalBox();
+        // Box vBoxInLeft = Box.createVerticalBox();
         chatroomP.setLayout(new BoxLayout(chatroomP, BoxLayout.Y_AXIS));
         //chatroomP.add(vBoxInLeft);
         Panel chatroomLbP = new Panel(new FlowLayout(FlowLayout.LEFT));
@@ -325,10 +430,8 @@ class Window {
         chatroomLbP.add(chatroomLbM);
 
         chatroomP.add(Box.createVerticalStrut(5));
-        JScrollPane jsp = new JScrollPane(conversationList);
-        jsp.setBounds(5,20,chatroomP.getWidth()-10, chatroomP.getHeight()-50);
-        jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        chatroomP.add(jsp);
+        conversationListDisplay.setBounds(5, 20, chatroomP.getWidth() - 10, chatroomP.getHeight() - 50);
+        chatroomP.add(conversationListDisplay.getJsp());
 
         Panel groupInfoP = new Panel();
         groupInfoP.add(groupInfoLb);
@@ -384,11 +487,11 @@ class Window {
         //if the list is clicked twice open up the selected conversation
         //if the list is clicked once show the conversation name in the label below
         //if the list is right-clicked pop up delete message
-        conversationList.addMouseListener(new MouseAdapter() {
+        conversationListDisplay.addListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    Conversation conversation = clientWorker.getConversation(conversationList.getSelectedValue());
+                    Conversation conversation = clientWorker.getConversation(conversationListDisplay.getSelectedUUID());
                     //clientWorker.setToNewConversation(list.getSelectedValue());
                     chatWindow(conversation);
                     mainFrame.dispose();
@@ -396,11 +499,11 @@ class Window {
 
                 if (e.getClickCount() == 1) {
                     //display group name
-                    String groupName = clientWorker.getConversation(conversationList.getSelectedValue()).name;
+                    String groupName = clientWorker.getConversation(conversationListDisplay.getSelectedUUID()).name;
                     groupInfoLb.setText(String.format("Group name: %s", groupName));
 
                     //display group members
-                    UUID[] members = clientWorker.getConversation(conversationList.getSelectedValue()).user_uuids;
+                    UUID[] members = clientWorker.getConversation(conversationListDisplay.getSelectedUUID()).user_uuids;
                     StringBuilder memberString = new StringBuilder();
                     memberString.append("Group members: ");
 
@@ -419,8 +522,8 @@ class Window {
                             "Delete", JOptionPane.YES_NO_OPTION);
 
                     if (answer == JOptionPane.YES_OPTION) {
-                        if (clientWorker.deleteConversation(conversationList.getSelectedValue())) {
-                            conversationModel.remove(conversationList.getSelectedIndex());
+                        if (clientWorker.deleteConversation(conversationListDisplay.removeSelected())) {
+
                             groupInfoLb.setText(null);
                         }
                     }
@@ -433,10 +536,21 @@ class Window {
             public void windowActivated(WindowEvent e) {
                 super.windowActivated(e);
                 //TODO update the model list that displays the conversation list
-                UUID[] newConversation_uuid = clientWorker.updateNewConversation();
-                if (newConversation_uuid != null) {
-                    conversationModel.addAll(Arrays.asList(newConversation_uuid));
+//                UUID[] newConversation_uuid = clientWorker.updateNewConversation();
+                GetEventFeedResponse response = clientWorker.getEventFeed();
+                for (Conversation conversation :
+                        response.new_conversations) {
+                    conversationListDisplay.add(conversation);
                 }
+                for (Conversation conversation :
+                        response.updated_conversations) {
+                    conversationListDisplay.update(conversation);
+                }
+                for (UUID uuid :
+                        response.removed_conversations) {
+                    conversationListDisplay.remove(uuid);
+                }
+
             }
         };
         mainFrame.addWindowListener(windowListener);
@@ -470,8 +584,8 @@ class Window {
                     user_uuids[i] = invitedUsers.get(i);
                 }
                 Conversation conversation = clientWorker.createConversation(groupName, user_uuids);
-                UUID newConversation_uuid = conversation.uuid;
-                conversationModel.addElement(newConversation_uuid); //add the conversation to the list displayed
+                conversationListDisplay.add(conversation);
+
                 chatWindow(conversation);
                 groupNameTfM.setText(null);
                 inviteTfM.setText(null);
@@ -663,7 +777,7 @@ class Window {
     }
 
     public void chatWindow(Conversation currentConversation) {
-        Message[] messagesList = clientWorker.getConversationMessages(currentConversation.uuid);
+        Message[] messages = clientWorker.getConversationMessages(currentConversation.uuid);
         final TextField inputTfChat = new TextField(30);
         final Button sendBtnChat = new Button("SEND");
         //final Button deleteBtnChat = new Button("Delete the group");
@@ -680,18 +794,16 @@ class Window {
         chatFrame.setLocationRelativeTo(null);
         chatFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
+        final ListDisplay<Message> messageListDisplay = new ListDisplay<>();
         //set display window
-        DefaultListModel<String> model = new DefaultListModel<>();
         //if there was exist messages, add them to model
-        if (messagesList != null) {
-            for (Message message : messagesList) {
-                model.addElement(clientWorker.messageString(message));
+        if (messages != null) {
+            for (Message message : messages) {
+                messageListDisplay.add(message, clientWorker.messageString(message));
             }
         }
-        JList<String> chatList = new JList<>(model);
-        JScrollPane jsp = new JScrollPane(chatList);
-        jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        jsp.setBounds(0, 50, 400, 250);
+
+        messageListDisplay.setBounds(0, 50, 400, 250);
 
         //set panels
         Box box = Box.createVerticalBox();
@@ -708,7 +820,7 @@ class Window {
         //topP.add(deleteBtnChat);
         topP.add(exportBtnChat);
         topP.add(backBtn);
-        midP.add(jsp);
+        midP.add(messageListDisplay.getJsp());
         bottomP.add(inputTfChat);
         bottomP.add(sendBtnChat);
 
@@ -734,7 +846,7 @@ class Window {
 
         //if left clicked, edit message.
         //if right clicked, delete message.
-        chatList.addMouseListener(new MouseAdapter() {
+        messageListDisplay.addListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
@@ -743,24 +855,22 @@ class Window {
                             "Are you sure to delete the selected message?",
                             "Alert", JOptionPane.YES_NO_OPTION);
                     if (answer == JOptionPane.YES_OPTION) {
-                        if (clientWorker.deleteMessage(chatList.getSelectedValue(), currentConversation.uuid)) {
-                            model.removeElement(chatList.getSelectedValue());
+                        UUID message_uuid = messageListDisplay.getSelectedUUID();
+                        if (clientWorker.deleteMessage(message_uuid, currentConversation.uuid)) {
+                            messageListDisplay.remove(message_uuid);
                         }
                     }
                 }
 
                 if (e.getClickCount() == 2) {
-                    String edit = JOptionPane.showInputDialog(chatFrame, "Edit the selected message:",
+                    String new_content = JOptionPane.showInputDialog(chatFrame, "Edit the selected message:",
                             "Edit", JOptionPane.INFORMATION_MESSAGE);
-                    Date date = clientWorker.editMessage(chatList.getSelectedValue(), edit);
+                    UUID message_uuid = messageListDisplay.getSelectedUUID();
+                    Date date = clientWorker.editMessage(message_uuid, new_content);
                     if (date != null) {
-                        String content = chatList.getSelectedValue();
-                        UUID message_uuid = UUID.fromString(content.substring(content.indexOf("(") + 1,
-                                content.indexOf(")")));
                         Message message = new Message(message_uuid, clientWorker.current_user.uuid,
-                                date, edit, currentConversation.uuid);
-                        String new_message = clientWorker.messageString(message);
-                        model.set(chatList.getSelectedIndex(), new_message);
+                                date, new_content, currentConversation.uuid);
+                        messageListDisplay.update(message, clientWorker.messageString(message));
                     }
                 }
             }
@@ -798,13 +908,13 @@ class Window {
                 message = clientWorker.postMessage(currentConversation.uuid, message);
                 if (message != null) { // post successful
                     String messageString = clientWorker.messageString(message);
-                    model.addElement(messageString);
+                    messageListDisplay.add(message, messageString);
                     inputTfChat.setText(null);
                 }
 
             }
             if (e.getSource() == exportBtnChat) {
-                if (messagesList != null) {
+                if (messages != null) {
                     clientWorker.export(currentConversation.uuid);
                 } else {
                     JOptionPane.showMessageDialog(chatFrame,
@@ -1121,7 +1231,7 @@ class ClientWorker {
     /**
      * Get all the conversation existed and add to the conversation_list.
      */
-    public void getAllConversation() {
+    public Conversation[] getAllConversation() {
         try {
             for (UUID uuid : getAllConversationUid()) {
                 GetConversationRequest getConversation = new GetConversationRequest(uuid);
@@ -1134,6 +1244,7 @@ class ClientWorker {
                     e.printStackTrace(); // shouldn't happen
                 }
             }
+            return conversationHashMap.values().toArray(new Conversation[0]);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "IO Exception",
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -1143,7 +1254,7 @@ class ClientWorker {
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
 
-
+        return null;
     }
 
     /**
@@ -1517,24 +1628,19 @@ class ClientWorker {
      * @return the message string
      */
     public String messageString(Message message) {
-        String name = getUser(message.sender_uuid).credential.usrName;
-        String date = message.time.toString();
-        String content = message.content;
-        String uuid = message.uuid.toString();
-        //return String.format("{(%s)%s at %s: <%s>}\n", uuid, name, date, content);
-        return String.format("{%s says: <%s> at %s (%s)}\n", name, content, date, uuid);
-
+        User user = getUser(message.sender_uuid);
+        return String.format("%s (sent by %s at %s)", message.content, user.credential.usrName, message.time.toString());
     }
 
     /**
      * The method sends a deleteMessage request and receives a response
      *
-     * @param messageString the content of the string
+     * @param message_uuid      the uuid of the message
+     * @param conversation_uuid the uuid of the conversation
      * @return true if the message was successfully deleted, false if
      * an error occurred
      */
-    public boolean deleteMessage(String messageString, UUID conversation_uuid) {
-        UUID message_uuid = UUID.fromString(messageString.substring(messageString.indexOf("(") + 1, messageString.indexOf(")")));
+    public boolean deleteMessage(UUID message_uuid, UUID conversation_uuid) {
         DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(message_uuid);
 
         try {
@@ -1563,8 +1669,7 @@ class ClientWorker {
         return false;
     }
 
-    public Date editMessage(String oldMessageString, String new_content) {
-        UUID message_uuid = UUID.fromString(oldMessageString.substring(oldMessageString.indexOf("(") + 1, oldMessageString.indexOf(")")));
+    public Date editMessage(UUID message_uuid, String new_content) {
         try {
             EditMessageResponse response = (EditMessageResponse) send(new EditMessageRequest(message_uuid, new_content));
             Date date = response.dateEdited;
@@ -1711,36 +1816,74 @@ class ClientWorker {
     }
 
 
-    public UUID[] updateNewConversation() {
+    public GetEventFeedResponse getEventFeed() {
         GetEventFeedRequest request = new GetEventFeedRequest();
         GetEventFeedResponse response;
 
         try {
             response = (GetEventFeedResponse) send(request);
-            if (response.new_conversations != null) {
-                Conversation[] newConversation = response.updated_conversations;
-                UUID[] conversation_uuids = new UUID[newConversation.length];
-                for (int i = 0; i < newConversation.length; i++) {
-                    conversationHashMap.putIfAbsent(newConversation[i].uuid, newConversation[i]);
-                    conversation_uuids[i] = newConversation[i].uuid;
-                }
 
-                return conversation_uuids;
+            for (User user :
+                    response.new_users) {
+                userHashMap.put(user.uuid, user);
+            }
+            for (Conversation conversation :
+                    response.new_conversations) {
+                conversationHashMap.put(conversation.uuid, conversation);
+            }
+            for (UUID conversation_uuid :
+                    response.new_messages.keySet()) {
+                for (Message message : response.new_messages.get(conversation_uuid)) {
+                    messageHashMap.put(message.uuid, message);
+                    conversationMessageHashmap.putIfAbsent(conversation_uuid, new ArrayList<>());
+                    conversationMessageHashmap.get(conversation_uuid).add(message.uuid);
+
+                }
+            }
+            for (User user :
+                    response.updated_users) {
+                userHashMap.put(user.uuid, user);
+            }
+            for (Conversation conversation :
+                    response.updated_conversations) {
+                conversationHashMap.put(conversation.uuid, conversation);
+
+            }
+            for (Message message :
+                    response.updated_messages) {
+                messageHashMap.put(message.uuid, message);
             }
 
-            } catch(NotLoggedInException e){
-                JOptionPane.showMessageDialog(null, "You have been logged out!",
-                        "Error", JOptionPane.ERROR_MESSAGE);
+            for (UUID uuid :
+                    response.removed_users) {
+                userHashMap.remove(uuid);
+            }
+            for (UUID uuid :
+                    response.removed_conversations) {
+                conversationHashMap.remove(uuid);
+            }
+            for (UUID uuid :
+                    response.removed_messages) {
+                for (ArrayList<UUID> uuids : conversationMessageHashmap.values()) {
+                    uuids.remove(uuid);
+                }
+            }
+            return response;
 
-            } catch(IOException e){
-                JOptionPane.showMessageDialog(null, "IO Exception",
-                        "Error", JOptionPane.ERROR_MESSAGE);
 
-            } catch(RequestFailedException e){
+        } catch (NotLoggedInException e) {
+            JOptionPane.showMessageDialog(null, "You have been logged out!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "IO Exception",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+        } catch (RequestFailedException e) {
 //                JOptionPane.showMessageDialog(null, "Request failed!",
 //                        "Error", JOptionPane.ERROR_MESSAGE);
             System.out.println("Nothing needs to be updated.");
-            }
+        }
 
 
         return null;
