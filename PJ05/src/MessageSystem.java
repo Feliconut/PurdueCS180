@@ -189,13 +189,11 @@ public class MessageSystem {
         return conversation;
     }
 
-    public void setAdmin(UUID admin_uuid, UUID conversation_uuid) throws AuthorizationException, ConversationNotFoundException, UserNotFoundException {
+    public void setAdmin(UUID admin_uuid, UUID conversation_uuid) throws ConversationNotFoundException, UserNotFoundException {
         Conversation conversation = getConversation(conversation_uuid);
 
         if (!Set.of(conversation.user_uuids).contains(admin_uuid)) {
             throw new UserNotFoundException();
-        } else if (!conversation_uuid.equals(admin_uuid)) {
-            throw new AuthorizationException();
         } else {
             conversation.admin_uuid = admin_uuid;
             conversationDatabase.put(conversation_uuid, conversation);
@@ -234,11 +232,17 @@ public class MessageSystem {
 
         ArrayList<UUID> user_uuids = new ArrayList<>(Arrays.asList(conversation.user_uuids));
 
-
         if (user_uuids.remove(user_uuid)) {
             conversation.user_uuids = user_uuids.toArray(new UUID[0]);
-            conversationDatabase.put(conversation_uuid, conversation);
-            eventBagHandler.update(conversation);
+            if (conversation.user_uuids.length == 0) {
+                deleteConversation(conversation.uuid);
+            } else {
+                if (user_uuid.equals(conversation.admin_uuid)) {
+                    setAdmin(conversation.user_uuids[0], conversation_uuid);
+                }
+                conversationDatabase.put(conversation_uuid, conversation);
+                eventBagHandler.update(conversation);
+            }
         } else {
             throw new UserNotFoundException();
         }

@@ -216,7 +216,7 @@ public class MessageSystemTest {
             String message = null; // Exception prompt.
             assertEquals(message, e.getMessage());
             throw e;
-        } catch (AuthorizationException | UserNotFoundException e) {
+        } catch (UserNotFoundException e) {
             e.printStackTrace();
         }
         fail("UserExistException did not throw when expected.");

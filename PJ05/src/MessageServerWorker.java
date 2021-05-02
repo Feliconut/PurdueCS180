@@ -300,11 +300,16 @@ public class MessageServerWorker extends Thread {
             throw new NotLoggedInException();
         }
         Conversation conversation = system.getConversation(deleteConversationRequest.conversation_uuid);
-        if (conversation.admin_uuid.equals(currentUser.uuid)) {
+        if (conversation.admin_uuid.equals(currentUser.uuid) && conversation.user_uuids.length == 1) {
             system.deleteConversation(deleteConversationRequest.conversation_uuid);
             return new Response(true, "", deleteConversationRequest.uuid);
         } else {
-            throw new AuthorizationException();
+            try {
+                system.quitConversation(currentUser.uuid, conversation.uuid);
+            } catch (UserNotFoundException e) {
+                e.printStackTrace();
+            }
+            return new Response(true, "", deleteConversationRequest.uuid);
         }
     }
 

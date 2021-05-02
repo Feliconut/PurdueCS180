@@ -1653,7 +1653,7 @@ class ClientWorker {
      */
     public String messageString(Message message) {
         User user = getUser(message.sender_uuid);
-        return String.format("%s (sent by %s at %s)", message.content, user.credential.usrName, message.time.toString());
+        return String.format("%s: %s (%s)", user.credential.usrName, message.content, message.time.toString());
     }
 
     /**
