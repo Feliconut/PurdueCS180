@@ -35,16 +35,76 @@ class ListDisplay<T extends Storable> {
     private final JList<String> displayList;
     private final ArrayList<UUID> uuids;
     private final JScrollPane jsp;
+    private final ArrayList<Boolean> notifyStates;
 
     public ListDisplay() {
         this.displayListModel = new DefaultListModel<>();
         this.displayList = new JList<>(displayListModel);
         this.uuids = new ArrayList<>();
+        this.notifyStates = new ArrayList<>();
         displayList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         jsp = new JScrollPane(displayList);
         jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
+    }
+
+    private String toggleStringNotify(String str, Boolean state) {
+        if (str.startsWith("(*)")) {
+            if (!state) {
+                return str.substring(3);
+            }
+        } else {
+            if (state) {
+                return "(*)" + str;
+            }
+        }
+        return str;
+    }
+
+    public void notifyAll(Iterable<UUID> uuids) {
+        for (UUID uuid : uuids) {
+            notify(uuid);
+        }
+    }
+
+    private void setNotify(int index, boolean state) {
+        if (index > -1 && index < notifyStates.size()) {
+            notifyStates.set(index, state);
+            displayListModel.set(index, toggleStringNotify(displayListModel.get(index), state));
+        }
+
+    }
+
+    private void setNotify(UUID uuid, boolean state) {
+        int index = uuids.indexOf(uuid);
+        setNotify(index, state);
+    }
+
+    public void notify(UUID uuid) {
+        setNotify(uuid, true);
+    }
+
+    public void notify(int index) {
+        setNotify(index, true);
+    }
+
+    public void disNotify(UUID uuid) {
+        setNotify(uuid, false);
+    }
+
+    public void disNotify(int index) {
+        setNotify(index, false);
+    }
+
+
+    public void disNotifyAll() {
+        for (int i = 0; i < notifyStates.size() - 1; i++) {
+            boolean state = notifyStates.get(i);
+            if (state) {
+                setNotify(i, false);
+            }
+        }
     }
 
     public JScrollPane getJsp() {
@@ -68,15 +128,6 @@ class ListDisplay<T extends Storable> {
         }
     }
 
-    public UUID removeSelected() {
-        int index = displayList.getSelectedIndex();
-        UUID uuid = uuids.get(index);
-
-        displayList.remove(index);
-        uuids.remove(index);
-
-        return uuid;
-    }
 
     public void add(T obj) {
         add(obj, null);
@@ -93,6 +144,7 @@ class ListDisplay<T extends Storable> {
         }
         displayListModel.addElement(display);
         uuids.add(obj.uuid);
+        notifyStates.add(false);
     }
 
     private String makeDisplay(T obj) {
@@ -139,6 +191,7 @@ class ListDisplay<T extends Storable> {
         if (index != -1) {
             uuids.remove(index);
             displayListModel.remove(index);
+            notifyStates.remove(index);
         }
     }
 
@@ -502,8 +555,10 @@ class Window {
             @Override
             public void mouseClicked(MouseEvent e) {
                 try {
+                    UUID selectedUUID = conversationListDisplay.getSelectedUUID();
+                    clientWorker.resolve(selectedUUID);
                     if (e.getClickCount() == 2) {
-                        Conversation conversation = clientWorker.getConversation(conversationListDisplay.getSelectedUUID());
+                        Conversation conversation = clientWorker.getConversation(selectedUUID);
                         //clientWorker.setToNewConversation(list.getSelectedValue());
                         chatWindow(conversation);
                         mainFrame.dispose();
@@ -511,11 +566,11 @@ class Window {
 
                     if (e.getClickCount() == 1) {
                         //display group name
-                        String groupName = clientWorker.getConversation(conversationListDisplay.getSelectedUUID()).name;
+                        String groupName = clientWorker.getConversation(selectedUUID).name;
                         groupInfoLb.setText(String.format("Group name: %s", groupName));
 
                         //display group members
-                        UUID[] members = clientWorker.getConversation(conversationListDisplay.getSelectedUUID()).user_uuids;
+                        UUID[] members = clientWorker.getConversation(selectedUUID).user_uuids;
                         StringBuilder memberString = new StringBuilder();
                         memberString.append("Group members: ");
 
@@ -534,7 +589,7 @@ class Window {
                                 "Delete", JOptionPane.YES_NO_OPTION);
 
                         if (answer == JOptionPane.YES_OPTION) {
-                            if (clientWorker.deleteConversation(conversationListDisplay.getSelectedUUID())) {
+                            if (clientWorker.deleteConversation(selectedUUID)) {
                                 groupInfoLb.setText(null);
                             }
                         }
@@ -549,7 +604,6 @@ class Window {
             @Override
             public void windowActivated(WindowEvent e) {
                 super.windowActivated(e);
-                //TODO update the model list that displays the conversation list
                 GetEventFeedResponse response = clientWorker.getEventFeed();
                 for (Conversation conversation :
                         response.new_conversations) {
@@ -564,6 +618,10 @@ class Window {
                     conversationListDisplay.remove(uuid);
                 }
 
+                for (UUID uuid : response.new_messages.keySet()) {
+                    conversationListDisplay.notify(uuid);
+                }
+                conversationListDisplay.notifyAll(clientWorker.getUnresolved());
             }
         };
         mainFrame.addWindowListener(windowListener);
@@ -869,6 +927,8 @@ class Window {
                         response.removed_messages) {
                     messageListDisplay.remove(uuid);
                 }
+                clientWorker.resolve(current_conversation_uuid);
+                messageListDisplay.notifyAll(clientWorker.getUnresolved());
 
             }
         };
@@ -880,24 +940,24 @@ class Window {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
+                UUID selectedUUID = messageListDisplay.getSelectedUUID();
+                clientWorker.resolve(selectedUUID);
+                messageListDisplay.disNotify(selectedUUID);
                 if (e.getButton() == MouseEvent.BUTTON3) {
                     int answer = JOptionPane.showConfirmDialog(chatFrame,
                             "Are you sure to delete the selected message?",
                             "Alert", JOptionPane.YES_NO_OPTION);
                     if (answer == JOptionPane.YES_OPTION) {
-                        UUID message_uuid = messageListDisplay.getSelectedUUID();
-                        clientWorker.deleteMessage(message_uuid, current_conversation_uuid);
-
+                        clientWorker.deleteMessage(selectedUUID, current_conversation_uuid);
                     }
                 }
 
                 if (e.getClickCount() == 2) {
                     String new_content = JOptionPane.showInputDialog(chatFrame, "Edit the selected message:",
                             "Edit", JOptionPane.INFORMATION_MESSAGE);
-                    UUID message_uuid = messageListDisplay.getSelectedUUID();
-                    Date date = clientWorker.editMessage(message_uuid, new_content);
+                    Date date = clientWorker.editMessage(selectedUUID, new_content);
                     if (date != null) {
-                        Message message = new Message(message_uuid, clientWorker.current_user.uuid,
+                        Message message = new Message(selectedUUID, clientWorker.current_user.uuid,
                                 date, new_content, current_conversation_uuid);
                         messageListDisplay.update(message, clientWorker.messageString(message));
                     }
@@ -971,12 +1031,12 @@ class ClientWorker {
     private final HashMap<UUID, User> userHashMap = new HashMap<>();
     private final HashMap<UUID, Message> messageHashMap = new HashMap<>();
     private final HashMap<UUID, ArrayList<UUID>> conversationMessageHashmap = new HashMap<>();
+    private final HashSet<UUID> unresolved = new HashSet<>();
     protected User current_user;
     private Socket socket;
     private Window window;
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
-
 
     public ClientWorker() {
         connectToSocket();
@@ -988,6 +1048,13 @@ class ClientWorker {
         this.window = window;
     }
 
+    public HashSet<UUID> getUnresolved() {
+        return unresolved;
+    }
+
+    public void resolve(UUID uuid) {
+        unresolved.remove(uuid);
+    }
 
     public UUID[] getConversation_uuid_list() {
         return conversationHashMap.keySet().toArray(new UUID[0]);
@@ -1838,6 +1905,10 @@ class ClientWorker {
             for (Conversation conversation :
                     response.new_conversations) {
                 conversationHashMap.put(conversation.uuid, conversation);
+
+                if (!conversation.admin_uuid.equals(current_user.uuid)) {
+                    unresolved.add(conversation.uuid);
+                }
             }
             for (UUID conversation_uuid :
                     response.new_messages.keySet()) {
@@ -1845,8 +1916,12 @@ class ClientWorker {
                     messageHashMap.put(message.uuid, message);
                     conversationMessageHashmap.putIfAbsent(conversation_uuid, new ArrayList<>());
                     conversationMessageHashmap.get(conversation_uuid).add(message.uuid);
-
+                    if (!message.sender_uuid.equals(current_user.uuid)) {
+                        unresolved.add(message.uuid);
+                        unresolved.add(conversation_uuid);
+                    }
                 }
+
             }
             for (User user :
                     response.updated_users) {
@@ -1855,11 +1930,13 @@ class ClientWorker {
             for (Conversation conversation :
                     response.updated_conversations) {
                 conversationHashMap.put(conversation.uuid, conversation);
-
+                unresolved.add(conversation.uuid);
             }
             for (Message message :
                     response.updated_messages) {
                 messageHashMap.put(message.uuid, message);
+                unresolved.add(message.uuid);
+                unresolved.add(message.conversation_uuid);
             }
 
             for (UUID uuid :
