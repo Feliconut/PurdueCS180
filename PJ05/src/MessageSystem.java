@@ -148,6 +148,13 @@ public class MessageSystem {
     }
 
     public Conversation createConversation(String conversation_name, UUID[] user_uuids, UUID admin_uuid) throws InvalidConversationNameException, UserNotFoundException {
+        // Make sure the name is valid
+        if (conversation_name == null) {
+            throw new InvalidConversationNameException();
+        } else if (conversation_name.length() > 20) {
+            throw new InvalidConversationNameException();
+        }
+
         // add admin to user_uuids
         ArrayList<UUID> user_uuid_array = new ArrayList<>(Arrays.asList(user_uuids));
         user_uuid_array.add(admin_uuid);
