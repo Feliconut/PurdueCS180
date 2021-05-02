@@ -56,6 +56,7 @@ public class EventBag {
                 db.remove(clazz.cast(storable));
             }
         }
+        db.add(clazz.cast(obj));
     }
 
     public void putNewUser(User user) {

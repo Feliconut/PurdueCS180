@@ -85,8 +85,8 @@ public class MessageSystemTest {
                     , "conversationFileTest.txt");
             User student1 = ms3.addUser(new Credential("std1", "0123"), new Profile("student1", 19));
             User student2 = ms3.addUser(new Credential("std2", "0123"), new Profile("student2", 19));
-            Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
-            Message message2 = new Message(student2.uuid, new Date(2022, 4, 26), "Hi");
+            Message message1 = new Message(student1.uuid, new Date(), "Hi");
+            Message message2 = new Message(student2.uuid, new Date(), "Hi");
             UUID[] group1 = {student1.uuid};
             UUID[] messageGroup = {message1.uuid, message2.uuid};
             Conversation conversationTest = new Conversation("Group1", group1, student1.uuid, messageGroup);
@@ -97,7 +97,7 @@ public class MessageSystemTest {
             message2 = ms3.addMessage(conversation.uuid, message2.sender_uuid, message2.content);
             // 修改了addMessage method，添加了特定conversation_uuid，等整个写完要确认此处没有问题
             assertEquals(conversation, ms3.getConversation(conversation.uuid));
-        } catch (UserNotFoundException | InvalidConversationNameException | ConversationNotFoundException | UserExistsException e) {
+        } catch (UserNotFoundException | InvalidConversationNameException | ConversationNotFoundException | UserExistsException | IllegalContentException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
         }
@@ -140,7 +140,7 @@ public class MessageSystemTest {
             MessageSystem ms5 = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
                     , "conversationFileTest.txt");
             User student1 = ms5.addUser(new Credential("std1", "0123"), new Profile("student1", 19));
-            Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
+            Message message1 = new Message(student1.uuid, new Date(), "Hi");
             UUID[] uuids = {student1.uuid};
             Conversation conversation = ms5.createConversation("group1", uuids, uuids[0]);
             ms5.deleteMessage(message1.uuid);
@@ -169,8 +169,8 @@ public class MessageSystemTest {
                     , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
             User student2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
-            Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
-            Message message2 = new Message(student2.uuid, new Date(2022, 4, 26), "Hi");
+            Message message1 = new Message(student1.uuid, new Date(), "Hi");
+            Message message2 = new Message(student2.uuid, new Date(), "Hi");
             UUID[] group1 = {student1.uuid, student2.uuid};
             UUID[] messageGroup = {message1.uuid, message2.uuid};
             Conversation conversationTest = new Conversation("Group1", group1, student1.uuid, messageGroup);
@@ -211,7 +211,7 @@ public class MessageSystemTest {
             MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
                     , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
-            Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
+            Message message1 = new Message(student1.uuid, new Date(), "Hi");
             UUID[] messageGroup = {message1.uuid};
             UUID[] uuids = {student1.uuid};
             Conversation conversationTest = new Conversation("Group1", uuids, student1.uuid, messageGroup);
@@ -385,6 +385,8 @@ public class MessageSystemTest {
             e.printStackTrace();
         } catch (InvalidConversationNameException e) {
             e.printStackTrace();
+        } catch (IllegalContentException e) {
+            e.printStackTrace();
         }
     }
 
@@ -394,7 +396,7 @@ public class MessageSystemTest {
             MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
                     , "conversationFileTest.txt");
             User student1 = ms.addUser(new Credential("std1", "0123"), new Profile("student1", 19));
-            Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
+            Message message1 = new Message(student1.uuid, new Date(), "Hi");
             UUID[] messageGroup = null;
             UUID[] uuids = {student1.uuid};
             Conversation conversationTest = ms.createConversation("Group1", uuids, student1.uuid);
@@ -430,6 +432,8 @@ public class MessageSystemTest {
             e.printStackTrace();
         } catch (InvalidConversationNameException e) {
             e.printStackTrace();
+        } catch (IllegalContentException e) {
+            e.printStackTrace();
         }
     }
 
@@ -439,7 +443,7 @@ public class MessageSystemTest {
             MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
                     , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
-            Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
+            Message message1 = new Message(student1.uuid, new Date(), "Hi");
             UUID[] messageGroup = {message1.uuid};
             UUID[] uuids = {student1.uuid};
             Conversation conversationTest = new Conversation("Group1", uuids, student1.uuid, messageGroup);
@@ -472,6 +476,8 @@ public class MessageSystemTest {
             e.printStackTrace();
         } catch (UserExistsException e) {
             e.printStackTrace();
+        } catch (IllegalContentException e) {
+            e.printStackTrace();
         }
     }
 
@@ -481,7 +487,7 @@ public class MessageSystemTest {
             MessageSystem ms = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
                     , "conversationFileTest.txt");
             User student1 = new User(new Credential("std1", "0123"), new Profile("student1", 19));
-            Message message1 = new Message(student1.uuid, new Date(2022, 4, 26), "Hi");
+            Message message1 = new Message(student1.uuid, new Date(), "Hi");
             message1 = ms.getMessage(message1.uuid);
         } catch (MessageNotFoundException e) {
             String message = null; // Exception prompt.

@@ -60,9 +60,12 @@ class ListDisplay<T extends Storable> {
     }
 
     public UUID getSelectedUUID() {
-
-        return uuids.get(displayList.getSelectedIndex());
-
+        int index = displayList.getSelectedIndex();
+        if (index == -1) {
+            return null;
+        } else {
+            return uuids.get(index);
+        }
     }
 
     public UUID removeSelected() {
@@ -133,8 +136,10 @@ class ListDisplay<T extends Storable> {
 
     public void remove(UUID uuid) {
         int index = uuids.indexOf(uuid);
-        uuids.remove(index);
-        displayListModel.remove(index);
+        if (index != -1) {
+            uuids.remove(index);
+            displayListModel.remove(index);
+        }
     }
 
 }
@@ -494,42 +499,46 @@ class Window {
         conversationListDisplay.addListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    Conversation conversation = clientWorker.getConversation(conversationListDisplay.getSelectedUUID());
-                    //clientWorker.setToNewConversation(list.getSelectedValue());
-                    chatWindow(conversation);
-                    mainFrame.dispose();
-                }
-
-                if (e.getClickCount() == 1) {
-                    //display group name
-                    String groupName = clientWorker.getConversation(conversationListDisplay.getSelectedUUID()).name;
-                    groupInfoLb.setText(String.format("Group name: %s", groupName));
-
-                    //display group members
-                    UUID[] members = clientWorker.getConversation(conversationListDisplay.getSelectedUUID()).user_uuids;
-                    StringBuilder memberString = new StringBuilder();
-                    memberString.append("Group members: ");
-
-                    for (int i = 0; i < members.length; i++) {
-                        memberString.append(clientWorker.getUser(members[i]).credential.usrName);
-                        memberString.append(" ");
+                try {
+                    if (e.getClickCount() == 2) {
+                        Conversation conversation = clientWorker.getConversation(conversationListDisplay.getSelectedUUID());
+                        //clientWorker.setToNewConversation(list.getSelectedValue());
+                        chatWindow(conversation);
+                        mainFrame.dispose();
                     }
 
-                    groupMemberLb.setText(String.valueOf(memberString));
+                    if (e.getClickCount() == 1) {
+                        //display group name
+                        String groupName = clientWorker.getConversation(conversationListDisplay.getSelectedUUID()).name;
+                        groupInfoLb.setText(String.format("Group name: %s", groupName));
 
-                }
+                        //display group members
+                        UUID[] members = clientWorker.getConversation(conversationListDisplay.getSelectedUUID()).user_uuids;
+                        StringBuilder memberString = new StringBuilder();
+                        memberString.append("Group members: ");
 
-                if (e.getButton() == MouseEvent.BUTTON3) {
-                    int answer = JOptionPane.showConfirmDialog(null,
-                            "Delete selected conversation from your list?",
-                            "Delete", JOptionPane.YES_NO_OPTION);
+                        for (int i = 0; i < members.length; i++) {
+                            memberString.append(clientWorker.getUser(members[i]).credential.usrName);
+                            memberString.append(" ");
+                        }
 
-                    if (answer == JOptionPane.YES_OPTION) {
-                        if (clientWorker.deleteConversation(conversationListDisplay.getSelectedUUID())) {
-                            groupInfoLb.setText(null);
+                        groupMemberLb.setText(String.valueOf(memberString));
+
+                    }
+
+                    if (e.getButton() == MouseEvent.BUTTON3) {
+                        int answer = JOptionPane.showConfirmDialog(null,
+                                "Delete selected conversation from your list?",
+                                "Delete", JOptionPane.YES_NO_OPTION);
+
+                        if (answer == JOptionPane.YES_OPTION) {
+                            if (clientWorker.deleteConversation(conversationListDisplay.getSelectedUUID())) {
+                                groupInfoLb.setText(null);
+                            }
                         }
                     }
+                } finally {
+
                 }
             }
         });
@@ -786,14 +795,14 @@ class Window {
         final Button sendBtnChat = new Button("SEND");
         //final Button deleteBtnChat = new Button("Delete the group");
         final Button renameBtnChat = new Button("Rename the group");
-        AtomicReference<String> groupNameChat = new AtomicReference<>("Chat");
+        AtomicReference<String> title = new AtomicReference<>(currentConversation.name);
         final Button addUserToChatBtn = new Button("Invite");
         final Button exportBtnChat = new Button("Export");
         final Button backBtn = new Button("Back");
         //JLabel groupMemberLb = new JLabel();
 
         //set frame
-        JFrame chatFrame = new JFrame("Chat");
+        JFrame chatFrame = new JFrame(title.get());
         chatFrame.setSize(600, 400);
         chatFrame.setLocationRelativeTo(null);
         chatFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -825,6 +834,7 @@ class Window {
         topP.add(exportBtnChat);
         topP.add(backBtn);
         midP.add(messageListDisplay.getJsp());
+        midP.add(addUserToChatBtn);
         bottomP.add(inputTfChat);
         bottomP.add(sendBtnChat);
 
@@ -833,6 +843,7 @@ class Window {
 
         chatFrame.pack();
         chatFrame.setVisible(true);
+
 
         WindowListener windowListener = new WindowAdapter() {
             @Override
@@ -894,12 +905,14 @@ class Window {
         });
 
         ActionListener actionListener = e -> {
-//            if (e.getSource() == addUserToChatBtn) {
-//                String invite_uuid_String = JOptionPane.showInputDialog(chatFrame, "Enter the uuid:",
-//                        "Invite", JOptionPane.INFORMATION_MESSAGE);
-//                UUID invited_uuid = UUID.fromString(invite_uuid_String);
-//                clientWorker.addUserToGroup(invited_uuid, clientWorker.getCurrentConversation_uuid());
-//            }
+            if (e.getSource() == addUserToChatBtn) {
+                String username = JOptionPane.showInputDialog(chatFrame, "Enter the username:",
+                        "Invite", JOptionPane.INFORMATION_MESSAGE);
+                try {
+                    clientWorker.addUserToGroup(clientWorker.getUser(username).uuid, current_conversation_uuid);
+                } catch (NullPointerException ignored) {
+                }
+            }
 //            if (e.getSource() == deleteBtnChat) {
 //                int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to delete" +
 //                        "the conversation?", "Delete", JOptionPane.OK_CANCEL_OPTION);
@@ -914,8 +927,8 @@ class Window {
                         "Rename", JOptionPane.PLAIN_MESSAGE);
                 if (!new_name.equals("")) {
                     if (clientWorker.renameConversation(new_name, current_conversation_uuid)) {
-                        groupNameChat.set(new_name);
-                        chatFrame.setTitle(groupNameChat.get());
+                        title.set(new_name);
+                        chatFrame.setTitle(title.get());
                     }
                 }
             }
@@ -946,6 +959,7 @@ class Window {
 
         };
         //deleteBtnChat.addActionListener(actionListener);
+        addUserToChatBtn.addActionListener(actionListener);
         renameBtnChat.addActionListener(actionListener);
         sendBtnChat.addActionListener(actionListener);
         exportBtnChat.addActionListener(actionListener);
@@ -969,6 +983,7 @@ class ClientWorker {
 
     public ClientWorker() {
         connectToSocket();
+
     }
 
     public ClientWorker(Window window) {
@@ -985,37 +1000,44 @@ class ClientWorker {
      * The method is used to send requests
      *
      * @param request some kind of request used
-     * @return a response
-     * @throws IOException
      * @throws RequestParsingException
      * @throws RequestFailedException
      */
-    private Response send(Request request) throws IOException, RequestParsingException,
+    private Response send(Request request) throws RequestParsingException,
             RequestFailedException {
-        if (objectOutputStream == null) {
-            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-        }
-        objectOutputStream.writeObject(request);
-        if (objectInputStream == null) {
-            objectInputStream = new ObjectInputStream(socket.getInputStream());
-        }
-        Response response;
         try {
-            response = (Response) objectInputStream.readObject();
-        } catch (ClassNotFoundException | ClassCastException e) {
-            e.printStackTrace();
-            throw new RequestParsingException();
-        }
-
-        if (response.state) {
-            return response;
-
-        } else {
-            if (response.exception != null) {
-                throw response.exception;
-            } else {
-                throw new RequestFailedException();
+            if (objectOutputStream == null) {
+                objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             }
+            objectOutputStream.writeObject(request);
+            if (objectInputStream == null) {
+                objectInputStream = new ObjectInputStream(socket.getInputStream());
+            }
+            Response response;
+            try {
+                response = (Response) objectInputStream.readObject();
+            } catch (ClassNotFoundException | ClassCastException e) {
+                e.printStackTrace();
+                throw new RequestParsingException();
+            }
+
+            if (response.state) {
+                return response;
+
+            } else {
+                if (response.exception != null) {
+                    throw response.exception;
+                } else {
+                    throw new RequestFailedException();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "IO exception! Reconnecting now.", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+
+            connectToSocket();
+            return null;
         }
     }
 
@@ -1024,14 +1046,15 @@ class ClientWorker {
      * The method sends an authenticate request and receives
      * a response
      */
-    public UUID
-
-    signIn(String username, String password) {
+    public UUID signIn(String username, String password) {
         AuthenticateResponse response;
         try {
             Credential credential = new Credential(username, password);
             AuthenticateRequest authenticateRequest = new AuthenticateRequest(credential);
             response = (AuthenticateResponse) send(authenticateRequest);
+            if (response == null) {
+                return null;
+            }
             current_user = getUser(response.user_uuid);
             getAllConversation(); //get all the conversations
             getExistMessageHistory();
@@ -1064,11 +1087,6 @@ class ClientWorker {
             e.printStackTrace();
             return null;
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "IO exception!", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return null;
         }
     }
 
@@ -1136,11 +1154,6 @@ class ClientWorker {
                     JOptionPane.ERROR_MESSAGE);
             return false;
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO exception!", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
-            return false;
 
         }
 
@@ -1157,6 +1170,7 @@ class ClientWorker {
         int port;
 
         try {
+            try {
 //            hostname = JOptionPane.showInputDialog(null, "Please enter the hostname:",
 //                    "Connecting...", JOptionPane.INFORMATION_MESSAGE);
 //            if (hostname == null) {
@@ -1168,17 +1182,21 @@ class ClientWorker {
 //            if (portString == null) {
 //                return;
 //            }
-            hostname = "localhost";
-            portString = "9866";
-            port = Integer.parseInt(portString);
 
-            socket = new Socket(hostname, port);
+                hostname = "localhost";
+                portString = "9866";
+                port = Integer.parseInt(portString);
+
+                socket = new Socket(hostname, port);
+            } catch (IOException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Cannot Connect! Try reopen the application!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+
+            }
 
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(null, "Invalid input!", "Connecting...",
-                    JOptionPane.ERROR_MESSAGE);
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Connection failed!", "Connecting...",
                     JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -1191,8 +1209,6 @@ class ClientWorker {
         try {
             send(logOutRequest);
             current_user = null;
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (RequestFailedException e) {
             e.printStackTrace();
         }
@@ -1207,9 +1223,6 @@ class ClientWorker {
         try {
             send(deleteAccountRequest);
             return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
         } catch (RequestFailedException e) {
             e.printStackTrace();
             return false;
@@ -1234,9 +1247,6 @@ class ClientWorker {
             JOptionPane.showMessageDialog(null, "You have been logged out!",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1262,9 +1272,6 @@ class ClientWorker {
                 }
             }
             return conversationHashMap.values().toArray(new Conversation[0]);
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1292,9 +1299,6 @@ class ClientWorker {
                     messageHashMap.put(message.uuid, message);
                 }
             }
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1323,6 +1327,7 @@ class ClientWorker {
             return true;
 
         } catch (NotLoggedInException e) {
+
             JOptionPane.showMessageDialog(null, "You have been logged out!",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
@@ -1330,9 +1335,6 @@ class ClientWorker {
             JOptionPane.showMessageDialog(null, "Conversation not found!",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1364,9 +1366,6 @@ class ClientWorker {
             JOptionPane.showMessageDialog(null, "Conversation not found!",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1402,9 +1401,6 @@ class ClientWorker {
             JOptionPane.showMessageDialog(null, "You have been logged out!",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1443,9 +1439,6 @@ class ClientWorker {
             JOptionPane.showMessageDialog(null, "User does not exist!",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1482,9 +1475,6 @@ class ClientWorker {
             JOptionPane.showMessageDialog(null, "You have been logged out!",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1517,9 +1507,6 @@ class ClientWorker {
             JOptionPane.showMessageDialog(null, "You have been logged out!",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1566,9 +1553,6 @@ class ClientWorker {
             JOptionPane.showMessageDialog(null, "You have logged out!",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1632,8 +1616,10 @@ class ClientWorker {
                     "export", JOptionPane.INFORMATION_MESSAGE);
 
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Export failed!",
-                    "export", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "IO exception!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+
         }
     }
 
@@ -1675,9 +1661,6 @@ class ClientWorker {
             JOptionPane.showMessageDialog(null, "You have been logged out!",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1704,9 +1687,6 @@ class ClientWorker {
             JOptionPane.showMessageDialog(null, "Message not found!", "Error",
                     JOptionPane.ERROR_MESSAGE);
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
         } catch (IllegalContentException e) {
             JOptionPane.showMessageDialog(null, "Illegal Content " + e.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -1745,9 +1725,6 @@ class ClientWorker {
         } catch (MessageNotFoundException e) {
             throw e;
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException ignored) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1776,9 +1753,6 @@ class ClientWorker {
                     JOptionPane.ERROR_MESSAGE);
             return null;
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1820,10 +1794,6 @@ class ClientWorker {
         } catch (IllegalContentException e) {
             e.printStackTrace();
             return null;
-
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
             JOptionPane.showMessageDialog(null, "Request failed!",
@@ -1892,9 +1862,6 @@ class ClientWorker {
             JOptionPane.showMessageDialog(null, "You have been logged out!",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "IO Exception",
-                    "Error", JOptionPane.ERROR_MESSAGE);
 
         } catch (RequestFailedException e) {
 //                JOptionPane.showMessageDialog(null, "Request failed!",

@@ -243,6 +243,8 @@ public class MessageServerWorker extends Thread {
 
         if (currentUser == null) {
             throw new NotLoggedInException();
+        } else if (content == null) {
+            throw new IllegalContentException("Message cannot be empty");
         } else if (content.length() > 1000 || content.equals("")) {
             throw new IllegalContentException("Message cannot be empty or too long");
         } else if (!message.sender_uuid.equals(currentUser.uuid)) {

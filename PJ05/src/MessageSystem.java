@@ -131,9 +131,18 @@ public class MessageSystem {
     }
 
 
-    public Message addMessage(UUID conversation_uuid, UUID sender_uuid, String content) throws ConversationNotFoundException {
+    public Message addMessage(UUID conversation_uuid, UUID sender_uuid, String content) throws ConversationNotFoundException, IllegalContentException {
         // want to add the a message to it's conversation and return the message
         Date date = new Date();
+        if (content == null) {
+            throw new IllegalContentException("content cannot be empty or too long");
+        }
+        content = content.strip();
+
+        if (content.equals("") || content.length() > 500) {
+            throw new IllegalContentException("content cannot be empty or too long");
+        }
+
         Message message = new Message(sender_uuid, date, content, conversation_uuid);
         messageDatabase.put(message.uuid, message);
         Conversation conversation = getConversation(conversation_uuid);
@@ -175,12 +184,15 @@ public class MessageSystem {
     public void setAdmin(UUID admin_uuid, UUID conversation_uuid) throws AuthorizationException, ConversationNotFoundException, UserNotFoundException {
         Conversation conversation = getConversation(conversation_uuid);
 
-        if (Set.of(conversation.user_uuids).contains(admin_uuid)) {
+        if (!Set.of(conversation.user_uuids).contains(admin_uuid)) {
+            throw new UserNotFoundException();
+        } else if (!conversation_uuid.equals(admin_uuid)) {
+            throw new AuthorizationException();
+        } else {
             conversation.admin_uuid = admin_uuid;
             conversationDatabase.put(conversation_uuid, conversation);
             eventBagHandler.update(conversation);
-        } else {
-            throw new AuthorizationException();
+
         }
 
     }
@@ -197,11 +209,11 @@ public class MessageSystem {
             ConversationNotFoundException {
         //拉user_uuid进入conversation_uuid这个群聊
         Conversation conversation = conversationDatabase.get(conversation_uuid);
-        User user = getUser(user_uuid);
-        UUID[] uuid = conversation.user_uuids;
-        ArrayList<UUID> modified_uuids = new ArrayList<>(Arrays.asList(uuid));
-        modified_uuids.add(user_uuid);
-        conversation.user_uuids = modified_uuids.toArray(new UUID[0]);
+        getUser(user_uuid);
+        UUID[] uuids = conversation.user_uuids;
+        ArrayList<UUID> uuidArrayList = new ArrayList<>(Arrays.asList(uuids));
+        uuidArrayList.add(user_uuid);
+        conversation.user_uuids = uuidArrayList.stream().distinct().toArray(UUID[]::new);
         conversationDatabase.put(conversation_uuid, conversation);
         eventBagHandler.update(conversation);
     }
