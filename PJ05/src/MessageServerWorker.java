@@ -240,7 +240,6 @@ public class MessageServerWorker extends Thread {
 
         Message message = system.getMessage(editMessageRequest.messsage_uuid);
         String content = editMessageRequest.content;
-        content = content.strip();
 
         if (currentUser == null) {
             throw new NotLoggedInException();
@@ -249,6 +248,7 @@ public class MessageServerWorker extends Thread {
         } else if (!message.sender_uuid.equals(currentUser.uuid)) {
             throw new AuthorizationException("You are not the author of this message");
         } else {
+            content = content.strip();
             Message replaced_message = system.editMessage(content, message.uuid);
             return new EditMessageResponse(true, "", editMessageRequest.uuid, replaced_message.time);
         }

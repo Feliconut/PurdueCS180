@@ -230,7 +230,11 @@ public class MessageSystem {
         message.content = content;
         message.time = new Date();
         messageDatabase.put(message.uuid, message);
-//        eventBagHandler.update(message); //TODO find the conversation of the message
+        try {
+            eventBagHandler.add(getConversation(message.conversation_uuid), message);
+        } catch (ConversationNotFoundException e) {
+            e.printStackTrace();
+        }
         return new Message(message);
     }
 

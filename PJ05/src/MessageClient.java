@@ -84,6 +84,10 @@ class ListDisplay<T extends Storable> {
         if (display == null) {
             display = makeDisplay(obj);
         }
+        try {
+            remove(obj.uuid);
+        } catch (IndexOutOfBoundsException ignored) {
+        }
         displayListModel.addElement(display);
         uuids.add(obj.uuid);
     }
@@ -108,7 +112,7 @@ class ListDisplay<T extends Storable> {
 
     public void update(T obj, String display) {
         int index = uuids.indexOf(obj.uuid);
-        if (index == 0) {
+        if (index == -1) {
             add(obj, display); // add the object if it does not exist
         } else {
             update(obj, display, index);
@@ -522,8 +526,7 @@ class Window {
                             "Delete", JOptionPane.YES_NO_OPTION);
 
                     if (answer == JOptionPane.YES_OPTION) {
-                        if (clientWorker.deleteConversation(conversationListDisplay.removeSelected())) {
-
+                        if (clientWorker.deleteConversation(conversationListDisplay.getSelectedUUID())) {
                             groupInfoLb.setText(null);
                         }
                     }
@@ -536,11 +539,10 @@ class Window {
             public void windowActivated(WindowEvent e) {
                 super.windowActivated(e);
                 //TODO update the model list that displays the conversation list
-//                UUID[] newConversation_uuid = clientWorker.updateNewConversation();
                 GetEventFeedResponse response = clientWorker.getEventFeed();
                 for (Conversation conversation :
                         response.new_conversations) {
-                    conversationListDisplay.add(conversation);
+                    conversationListDisplay.update(conversation);
                 }
                 for (Conversation conversation :
                         response.updated_conversations) {
@@ -777,7 +779,9 @@ class Window {
     }
 
     public void chatWindow(Conversation currentConversation) {
-        Message[] messages = clientWorker.getConversationMessages(currentConversation.uuid);
+
+        final UUID current_conversation_uuid = currentConversation.uuid;
+        Message[] messages = clientWorker.getConversationMessages(current_conversation_uuid);
         final TextField inputTfChat = new TextField(30);
         final Button sendBtnChat = new Button("SEND");
         //final Button deleteBtnChat = new Button("Delete the group");
@@ -832,14 +836,28 @@ class Window {
 
         WindowListener windowListener = new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent e) {
-                super.windowClosing(e);
-                //clientWorker.setToNewConversation();
-            }
-
             public void windowActivated(WindowEvent e) {
                 super.windowActivated(e);
-                //TODO get event feed and update messages
+                GetEventFeedResponse response = clientWorker.getEventFeed();
+                Message[] messages = response.new_messages.get(current_conversation_uuid);
+                if (messages != null) {
+                    for (Message message :
+                            messages) {
+                        messageListDisplay.update(message, clientWorker.messageString(message));
+                    }
+
+                }
+                for (Message message :
+                        response.updated_messages) {
+                    if (Set.of(clientWorker.getConversation(current_conversation_uuid).message_uuids).contains(message.uuid)) {
+                        messageListDisplay.update(message, clientWorker.messageString(message));
+                    }
+                }
+                for (UUID uuid :
+                        response.removed_messages) {
+                    messageListDisplay.remove(uuid);
+                }
+
             }
         };
         chatFrame.addWindowListener(windowListener);
@@ -856,9 +874,8 @@ class Window {
                             "Alert", JOptionPane.YES_NO_OPTION);
                     if (answer == JOptionPane.YES_OPTION) {
                         UUID message_uuid = messageListDisplay.getSelectedUUID();
-                        if (clientWorker.deleteMessage(message_uuid, currentConversation.uuid)) {
-                            messageListDisplay.remove(message_uuid);
-                        }
+                        clientWorker.deleteMessage(message_uuid, current_conversation_uuid);
+
                     }
                 }
 
@@ -869,7 +886,7 @@ class Window {
                     Date date = clientWorker.editMessage(message_uuid, new_content);
                     if (date != null) {
                         Message message = new Message(message_uuid, clientWorker.current_user.uuid,
-                                date, new_content, currentConversation.uuid);
+                                date, new_content, current_conversation_uuid);
                         messageListDisplay.update(message, clientWorker.messageString(message));
                     }
                 }
@@ -896,7 +913,7 @@ class Window {
                 String new_name = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
                         "Rename", JOptionPane.PLAIN_MESSAGE);
                 if (!new_name.equals("")) {
-                    if (clientWorker.renameConversation(new_name, currentConversation.uuid)) {
+                    if (clientWorker.renameConversation(new_name, current_conversation_uuid)) {
                         groupNameChat.set(new_name);
                         chatFrame.setTitle(groupNameChat.get());
                     }
@@ -904,8 +921,8 @@ class Window {
             }
             if (e.getSource() == sendBtnChat) {
                 Message message = new Message(clientWorker.current_user.uuid,
-                        new Date(), inputTfChat.getText(), currentConversation.uuid);
-                message = clientWorker.postMessage(currentConversation.uuid, message);
+                        new Date(), inputTfChat.getText(), current_conversation_uuid);
+                message = clientWorker.postMessage(current_conversation_uuid, message);
                 if (message != null) { // post successful
                     String messageString = clientWorker.messageString(message);
                     messageListDisplay.add(message, messageString);
@@ -915,7 +932,7 @@ class Window {
             }
             if (e.getSource() == exportBtnChat) {
                 if (messages != null) {
-                    clientWorker.export(currentConversation.uuid);
+                    clientWorker.export(current_conversation_uuid);
                 } else {
                     JOptionPane.showMessageDialog(chatFrame,
                             "No messages to export!", "Export",
