@@ -1,14 +1,13 @@
 package Field;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class User extends Storable {
-    public final Credential credential;
-    public final Profile profile;
+    public Credential credential;
+    public Profile profile;
 
     public User(Credential credential, Profile profile) {
-        super();
+        super(UUID.randomUUID());
         this.credential = credential;
         this.profile = profile;
     }
@@ -19,16 +18,11 @@ public class User extends Storable {
         this.profile = profile;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User)) return false;
-        User user = (User) o;
-        return credential.equals(user.credential) && profile.equals(user.profile);
-    }
+    public User(User user) {
+        this(
+                user.uuid,
+                user.credential,
+                user.profile);
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(credential, profile);
     }
 }

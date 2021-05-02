@@ -1,39 +1,36 @@
 package Field;
 
 import java.util.Date;
-import java.util.Objects;
 import java.util.UUID;
 
 public class Message extends Storable {
-    public final UUID sender_uuid;
-    public final Date time;
-    public final String content;
+    public UUID sender_uuid;
+    public Date time;
+    public String content;
+    public UUID conversation_uuid;
 
-
-    public Message(UUID uuid, UUID sender_uuid, Date time, String content) {
+    public Message(UUID uuid, UUID sender_uuid, Date time, String content, UUID conversation_uuid) {
         super(uuid);
         this.sender_uuid = sender_uuid;
         this.time = time;
         this.content = content;
+        this.conversation_uuid = conversation_uuid;
     }
 
-    public Message(UUID sender_uuid, Date time, String content) {
-        super();
+    public Message(UUID sender_uuid, Date time, String content, UUID conversation_uuid) {
+        super(UUID.randomUUID());
         this.sender_uuid = sender_uuid;
         this.time = time;
         this.content = content;
+        this.conversation_uuid = conversation_uuid;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Message)) return false;
-        Message message = (Message) o;
-        return sender_uuid.equals(message.sender_uuid) && time.equals(message.time) && content.equals(message.content);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(sender_uuid, time, content);
+    public Message(Message message) {
+        this(
+                message.uuid,
+                message.sender_uuid,
+                message.time,
+                message.content,
+                message.conversation_uuid);
     }
 }
