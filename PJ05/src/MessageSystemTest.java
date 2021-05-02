@@ -44,13 +44,7 @@ public class MessageSystemTest {
             assertEquals(student1, messageSystem.getUser(student1.credential.usrName));
             assertEquals(student1, messageSystem.getUser(student1.uuid));
             assertEquals(student1, messageSystem.getUser(student1.credential));
-        } catch (UserExistsException e) {
-            e.printStackTrace();
-            fail("Exception occurs when not expected.");
-        } catch (UserNotFoundException ex) {
-            ex.printStackTrace();
-            fail("Exception occurs when not expected.");
-        } catch (InvalidPasswordException e) {
+        } catch (UserExistsException | UserNotFoundException | InvalidUsernameException | InvalidPasswordException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
         }
@@ -58,7 +52,7 @@ public class MessageSystemTest {
 
     @Test(expected = UserNotFoundException.class)
     public void getUserExceptionExpected() throws UserNotFoundException {
-        // UserNotFoundException expected.
+        // UserNotFoundException| InvalidUsernameException expected.
         try {
             MessageSystem ms2 = new MessageSystem("userFileTest.txt", "messageFileTest.txt"
                     , "conversationFileTest.txt");
@@ -70,7 +64,7 @@ public class MessageSystemTest {
             String message = null; // Exception prompt.
             assertEquals(message, e.getMessage());
             throw e;
-        } catch (UserExistsException ex) {
+        } catch (UserExistsException | InvalidUsernameException ex) {
             ex.printStackTrace();
             fail("Exception occurs when not expected.");
         }
@@ -97,7 +91,7 @@ public class MessageSystemTest {
             message2 = ms3.addMessage(conversation.uuid, message2.sender_uuid, message2.content);
             // 修改了addMessage method，添加了特定conversation_uuid，等整个写完要确认此处没有问题
             assertEquals(conversation, ms3.getConversation(conversation.uuid));
-        } catch (UserNotFoundException | InvalidConversationNameException | ConversationNotFoundException | UserExistsException | IllegalContentException e) {
+        } catch (UserNotFoundException | InvalidConversationNameException | ConversationNotFoundException | UserExistsException | IllegalContentException | InvalidUsernameException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
         }
@@ -115,6 +109,8 @@ public class MessageSystemTest {
             String message = null; // Exception prompt.
             assertEquals(message, e.getMessage());
             throw e;
+        } catch (InvalidUsernameException e) {
+            e.printStackTrace();
         }
         fail("UserExistException did not throw when expected.");
     }
@@ -148,7 +144,7 @@ public class MessageSystemTest {
             String message = null; // Exception prompt.
             assertEquals(message, e.getMessage());
             throw e;
-        } catch (UserNotFoundException e) {
+        } catch (UserNotFoundException | InvalidUsernameException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
         } catch (InvalidConversationNameException e) {
@@ -196,7 +192,7 @@ public class MessageSystemTest {
             String message = null; // Exception prompt.
             assertEquals(message, e.getMessage());
             throw e;
-        } catch (UserNotFoundException e) {
+        } catch (UserNotFoundException | InvalidUsernameException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
         } catch (UserExistsException e) {
@@ -239,7 +235,7 @@ public class MessageSystemTest {
         } catch (ConversationNotFoundException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
-        } catch (UserNotFoundException e) {
+        } catch (UserNotFoundException | InvalidUsernameException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
         } catch (InvalidConversationNameException e) {
@@ -279,7 +275,7 @@ public class MessageSystemTest {
             UUID[] group1 = {student1.uuid};
             Conversation conversationTest = ms.createConversation("Group1", group1, group1[0]);
             ms.addUser2Conversation(student2.uuid, conversationTest.uuid);
-        } catch (UserNotFoundException e) {
+        } catch (UserNotFoundException | InvalidUsernameException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
         } catch (ConversationNotFoundException e) {
@@ -340,6 +336,8 @@ public class MessageSystemTest {
         } catch (ConversationNotFoundException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
+        } catch (InvalidUsernameException e) {
+            e.printStackTrace();
         }
         fail("UserExistException did not throw when expected.");
     }
@@ -357,7 +355,7 @@ public class MessageSystemTest {
         } catch (UserExistsException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
-        } catch (UserNotFoundException e) {
+        } catch (UserNotFoundException | InvalidUsernameException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
         } catch (InvalidConversationNameException e) {
@@ -381,7 +379,7 @@ public class MessageSystemTest {
         } catch (MessageNotFoundException | UserExistsException | ConversationNotFoundException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
-        } catch (UserNotFoundException e) {
+        } catch (UserNotFoundException | InvalidUsernameException e) {
             e.printStackTrace();
         } catch (InvalidConversationNameException e) {
             e.printStackTrace();
@@ -402,7 +400,7 @@ public class MessageSystemTest {
             Conversation conversationTest = ms.createConversation("Group1", uuids, student1.uuid);
 //            message1 = ms.addMessage(conversationTest.uuid, student1.uuid, message1.content);
             message1 = ms.editMessage("Hi", message1.uuid);
-        } catch (UserNotFoundException e) {
+        } catch (UserNotFoundException | InvalidUsernameException e) {
             e.printStackTrace();
         } catch (InvalidConversationNameException e) {
             e.printStackTrace();
@@ -428,7 +426,7 @@ public class MessageSystemTest {
         } catch (ConversationNotFoundException | UserExistsException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
-        } catch (UserNotFoundException e) {
+        } catch (UserNotFoundException | InvalidUsernameException e) {
             e.printStackTrace();
         } catch (InvalidConversationNameException e) {
             e.printStackTrace();
@@ -470,7 +468,7 @@ public class MessageSystemTest {
         } catch (ConversationNotFoundException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
-        } catch (UserNotFoundException e) {
+        } catch (UserNotFoundException | InvalidUsernameException e) {
             e.printStackTrace();
         } catch (InvalidConversationNameException e) {
             e.printStackTrace();
@@ -507,7 +505,7 @@ public class MessageSystemTest {
             student1 = ms.addUser(student1.credential, student1.profile);
             Profile profile1 = ms.editProfile(student1.uuid, profile);
             assertEquals(profile, profile1);
-        } catch (UserExistsException | UserNotFoundException e) {
+        } catch (UserExistsException | UserNotFoundException | InvalidUsernameException e) {
             e.printStackTrace();
             fail("Exception occurs when not expected.");
         }

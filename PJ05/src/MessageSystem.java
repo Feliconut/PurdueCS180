@@ -85,13 +85,21 @@ public class MessageSystem {
         }
     }
 
-    public User addUser(Credential credential, Profile profile) throws UserExistsException {
+    public User addUser(Credential credential, Profile profile) throws UserExistsException, InvalidUsernameException {
         //make sure the user not exist
         try {
             getUser(credential.usrName);
             throw new UserExistsException();
         } catch (UserNotFoundException ignored) {
 
+        }
+        String name = credential.usrName;
+        if (name == null) {
+            throw new InvalidUsernameException();
+        } else if (name.contains(" ")) {
+            throw new InvalidUsernameException();
+        } else if (name.length() > 20) {
+            throw new InvalidUsernameException();
         }
         User user = new User(credential, profile);
         userDatabase.put(user.uuid, user);

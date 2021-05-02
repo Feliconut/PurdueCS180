@@ -1,55 +1,35 @@
 package Field;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class EventBag {
-    private final ArrayList<User> new_users;
-    private final ArrayList<Conversation> new_conversations;
-    private final HashMap<UUID, ArrayList<Message>> new_messages;
-    private final ArrayList<User> updated_users;
-    private final ArrayList<Conversation> updated_conversations;
-    private final ArrayList<Message> updated_messages;
-    private final ArrayList<UUID> removed_users;
-    private final ArrayList<UUID> removed_conversations;
-    private final ArrayList<UUID> removed_messages;
+    private final CopyOnWriteArrayList<User> new_users;
+    private final CopyOnWriteArrayList<Conversation> new_conversations;
+    private final HashMap<UUID, CopyOnWriteArrayList<Message>> new_messages;
+    private final CopyOnWriteArrayList<User> updated_users;
+    private final CopyOnWriteArrayList<Conversation> updated_conversations;
+    private final CopyOnWriteArrayList<Message> updated_messages;
+    private final CopyOnWriteArrayList<UUID> removed_users;
+    private final CopyOnWriteArrayList<UUID> removed_conversations;
+    private final CopyOnWriteArrayList<UUID> removed_messages;
 
     public EventBag() {
-        this.new_users = new ArrayList<>();
-        this.new_conversations = new ArrayList<>();
+        this.new_users = new CopyOnWriteArrayList<>();
+        this.new_conversations = new CopyOnWriteArrayList<>();
         this.new_messages = new HashMap<>();
-        this.updated_users = new ArrayList<>();
-        this.updated_conversations = new ArrayList<>();
-        this.updated_messages = new ArrayList<>();
-        this.removed_users = new ArrayList<>();
-        this.removed_conversations = new ArrayList<>();
-        this.removed_messages = new ArrayList<>();
-    }
-
-    public EventBag(ArrayList<User> new_users,
-                    ArrayList<Conversation> new_conversations,
-                    HashMap<UUID, ArrayList<Message>> new_messages,
-                    ArrayList<User> updated_users,
-                    ArrayList<Conversation> updated_conversations,
-                    ArrayList<Message> updated_messages,
-                    ArrayList<UUID> removed_users,
-                    ArrayList<UUID> removed_conversations,
-                    ArrayList<UUID> removed_messages) {
-        this.new_users = new_users;
-        this.new_conversations = new_conversations;
-        this.new_messages = new_messages;
-        this.updated_users = updated_users;
-        this.updated_conversations = updated_conversations;
-        this.updated_messages = updated_messages;
-        this.removed_users = removed_users;
-        this.removed_conversations = removed_conversations;
-        this.removed_messages = removed_messages;
+        this.updated_users = new CopyOnWriteArrayList<>();
+        this.updated_conversations = new CopyOnWriteArrayList<>();
+        this.updated_messages = new CopyOnWriteArrayList<>();
+        this.removed_users = new CopyOnWriteArrayList<>();
+        this.removed_conversations = new CopyOnWriteArrayList<>();
+        this.removed_messages = new CopyOnWriteArrayList<>();
     }
 
     // adders
 
-    private synchronized static <T extends Storable> void putUpdatedObject(T obj, ArrayList<T> db, Class<T> clazz) {
+    private synchronized static <T extends Storable> void putUpdatedObject(T obj, CopyOnWriteArrayList<T> db, Class<T> clazz) {
         for (Storable storable :
                 db) {
             if (storable.uuid.equals(obj.uuid)) {
@@ -59,40 +39,40 @@ public class EventBag {
         db.add(clazz.cast(obj));
     }
 
-    public void putNewUser(User user) {
+    public synchronized void putNewUser(User user) {
         new_users.add(user);
     }
 
-    public void putNewConversation(Conversation conversation) {
+    public synchronized void putNewConversation(Conversation conversation) {
         new_conversations.add(conversation);
     }
 
-    public void putNewMessage(UUID conversation_uuid, Message message) {
-        new_messages.putIfAbsent(conversation_uuid, new ArrayList<>());
+    public synchronized void putNewMessage(UUID conversation_uuid, Message message) {
+        new_messages.putIfAbsent(conversation_uuid, new CopyOnWriteArrayList<>());
         new_messages.get(conversation_uuid).add(message);
     }
 
-    public void putUpdatedUser(User user) {
+    public synchronized void putUpdatedUser(User user) {
         putUpdatedObject(user, updated_users, User.class);
     }
 
-    public void putUpdatedConversation(Conversation conversation) {
+    public synchronized void putUpdatedConversation(Conversation conversation) {
         putUpdatedObject(conversation, updated_conversations, Conversation.class);
     }
 
-    public void putUpdatedMessage(Message message) {
+    public synchronized void putUpdatedMessage(Message message) {
         putUpdatedObject(message, updated_messages, Message.class);
     }
 
-    public void putRemovedUser(UUID user_uuid) {
+    public synchronized void putRemovedUser(UUID user_uuid) {
         removed_users.add(user_uuid);
     }
 
-    public void putRemovedConversation(UUID conversation_uuid) {
+    public synchronized void putRemovedConversation(UUID conversation_uuid) {
         removed_conversations.add(conversation_uuid);
     }
 
-    public void putRemovedMessage(UUID message_uuid) {
+    public synchronized void putRemovedMessage(UUID message_uuid) {
         removed_messages.add(message_uuid);
     }
 

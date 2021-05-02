@@ -383,7 +383,9 @@ class Window {
         // UUID name
         // display: <index> name (X users)
         // index --> UUID
-        my_uuid.setText(String.format("my uuid: %s", clientWorker.current_user.uuid));
+        my_uuid.setText(String.format("%s (%s)",
+                clientWorker.current_user.profile.name,
+                clientWorker.current_user.credential.usrName));
 
         //set up frame
         JFrame mainFrame = new JFrame("Main");
@@ -517,8 +519,8 @@ class Window {
                         StringBuilder memberString = new StringBuilder();
                         memberString.append("Group members: ");
 
-                        for (int i = 0; i < members.length; i++) {
-                            memberString.append(clientWorker.getUser(members[i]).credential.usrName);
+                        for (UUID member : members) {
+                            memberString.append(clientWorker.getUser(member).credential.usrName);
                             memberString.append(" ");
                         }
 
@@ -754,32 +756,29 @@ class Window {
         //add to frame
         profileFrame.add(box);
 
-        ActionListener actionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        ActionListener actionListener = e -> {
 
-                if (e.getSource() == okBtnProfile) {
-                    String name = nameTfProfile.getText();
-                    String age = ageTfProfile.getText();
-                    if (clientWorker.setProfile(name, age) != null) {
-                        JOptionPane.showMessageDialog(profileFrame,
-                                "Profile changed successfully!",
-                                "Manage Profile", JOptionPane.INFORMATION_MESSAGE);
-                        profileFrame.dispose();
-                        settingWindow();
-                        nameTfProfile.setText(null);
-                        ageTfProfile.setText(null);
-
-                    } else {
-                        nameTfProfile.setText(null);
-                        ageTfProfile.setText(null);
-                    }
-
-                }
-                if (e.getSource() == cancelBtnProfile) {
-                    settingWindow();
+            if (e.getSource() == okBtnProfile) {
+                String name = nameTfProfile.getText();
+                String age = ageTfProfile.getText();
+                if (clientWorker.setProfile(name, age) != null) {
+                    JOptionPane.showMessageDialog(profileFrame,
+                            "Profile changed successfully!",
+                            "Manage Profile", JOptionPane.INFORMATION_MESSAGE);
                     profileFrame.dispose();
+                    settingWindow();
+                    nameTfProfile.setText(null);
+                    ageTfProfile.setText(null);
+
+                } else {
+                    nameTfProfile.setText(null);
+                    ageTfProfile.setText(null);
                 }
+
+            }
+            if (e.getSource() == cancelBtnProfile) {
+                settingWindow();
+                profileFrame.dispose();
             }
         };
 
@@ -794,6 +793,7 @@ class Window {
         final TextField inputTfChat = new TextField(30);
         final Button sendBtnChat = new Button("SEND");
         //final Button deleteBtnChat = new Button("Delete the group");
+        final Button leaveBtnChat = new Button("Leave the group");
         final Button renameBtnChat = new Button("Rename the group");
         AtomicReference<String> title = new AtomicReference<>(currentConversation.name);
         final Button addUserToChatBtn = new Button("Invite");
@@ -832,6 +832,7 @@ class Window {
         topP.add(renameBtnChat);
         //topP.add(deleteBtnChat);
         topP.add(exportBtnChat);
+        topP.add(leaveBtnChat);
         topP.add(backBtn);
         midP.add(messageListDisplay.getJsp());
         midP.add(addUserToChatBtn);
@@ -904,66 +905,62 @@ class Window {
             }
         });
 
-        ActionListener actionListener = e -> {
-            if (e.getSource() == addUserToChatBtn) {
-                String username = JOptionPane.showInputDialog(chatFrame, "Enter the username:",
-                        "Invite", JOptionPane.INFORMATION_MESSAGE);
-                try {
-                    clientWorker.addUserToGroup(clientWorker.getUser(username).uuid, current_conversation_uuid);
-                } catch (NullPointerException ignored) {
-                }
+        addUserToChatBtn.addActionListener(e -> {
+            String username = JOptionPane.showInputDialog(chatFrame, "Enter the username:",
+                    "Invite", JOptionPane.INFORMATION_MESSAGE);
+            try {
+                clientWorker.addUserToGroup(clientWorker.getUser(username).uuid, current_conversation_uuid);
+            } catch (NullPointerException ignored) {
             }
-//            if (e.getSource() == deleteBtnChat) {
-//                int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to delete" +
-//                        "the conversation?", "Delete", JOptionPane.OK_CANCEL_OPTION);
-//                if (answer == JOptionPane.OK_OPTION) {
-//                    if (clientWorker.deleteConversation(clientWorker.getCurrentConversation_uuid())) {
-//                        chatFrame.dispose();
-//                    }
-//                }
-//            }
-            if (e.getSource() == renameBtnChat) {
-                String new_name = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
-                        "Rename", JOptionPane.PLAIN_MESSAGE);
-                if (!new_name.equals("")) {
-                    if (clientWorker.renameConversation(new_name, current_conversation_uuid)) {
-                        title.set(new_name);
-                        chatFrame.setTitle(title.get());
-                    }
+        });
+        leaveBtnChat.addActionListener(e -> {
+            int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to leave" +
+                    "the conversation?", "Leave", JOptionPane.OK_CANCEL_OPTION);
+            if (answer == JOptionPane.OK_OPTION) {
+                if (clientWorker.leaveConversation(current_conversation_uuid)) {
+                    chatFrame.dispose();
+                    mainWindow();
                 }
-            }
-            if (e.getSource() == sendBtnChat) {
-                Message message = new Message(clientWorker.current_user.uuid,
-                        new Date(), inputTfChat.getText(), current_conversation_uuid);
-                message = clientWorker.postMessage(current_conversation_uuid, message);
-                if (message != null) { // post successful
-                    String messageString = clientWorker.messageString(message);
-                    messageListDisplay.add(message, messageString);
-                    inputTfChat.setText(null);
-                }
-
-            }
-            if (e.getSource() == exportBtnChat) {
-                if (messages != null) {
-                    clientWorker.export(current_conversation_uuid);
-                } else {
-                    JOptionPane.showMessageDialog(chatFrame,
-                            "No messages to export!", "Export",
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-            if (e.getSource() == backBtn) {
-                chatFrame.dispose();
-                mainWindow();
             }
 
-        };
-        //deleteBtnChat.addActionListener(actionListener);
-        addUserToChatBtn.addActionListener(actionListener);
-        renameBtnChat.addActionListener(actionListener);
-        sendBtnChat.addActionListener(actionListener);
-        exportBtnChat.addActionListener(actionListener);
-        backBtn.addActionListener(actionListener);
+        });
+        renameBtnChat.addActionListener(e -> {
+            String new_name = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
+                    "Rename", JOptionPane.PLAIN_MESSAGE);
+            if (!new_name.equals("")) {
+                if (clientWorker.renameConversation(new_name, current_conversation_uuid)) {
+                    title.set(new_name);
+                    chatFrame.setTitle(title.get());
+                }
+            }
+
+        });
+        sendBtnChat.addActionListener(e -> {
+            Message message = new Message(clientWorker.current_user.uuid,
+                    new Date(), inputTfChat.getText(), current_conversation_uuid);
+            message = clientWorker.postMessage(current_conversation_uuid, message);
+            if (message != null) { // post successful
+                String messageString = clientWorker.messageString(message);
+                messageListDisplay.add(message, messageString);
+                inputTfChat.setText(null);
+            }
+
+        });
+        exportBtnChat.addActionListener(e -> {
+            if (messages != null) {
+                clientWorker.export(current_conversation_uuid);
+            } else {
+                JOptionPane.showMessageDialog(chatFrame,
+                        "No messages to export!", "Export",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+
+        });
+        backBtn.addActionListener(e -> {
+            chatFrame.dispose();
+            mainWindow();
+
+        });
     }
 
 
@@ -1000,8 +997,8 @@ class ClientWorker {
      * The method is used to send requests
      *
      * @param request some kind of request used
-     * @throws RequestParsingException
-     * @throws RequestFailedException
+     * @throws RequestParsingException Error regarding parsing a request.
+     * @throws RequestFailedException  Error because the request failed.
      */
     private Response send(Request request) throws RequestParsingException,
             RequestFailedException {
@@ -1037,7 +1034,7 @@ class ClientWorker {
                     JOptionPane.ERROR_MESSAGE);
 
             connectToSocket();
-            return null;
+            throw new RequestParsingException();
         }
     }
 
@@ -1052,9 +1049,6 @@ class ClientWorker {
             Credential credential = new Credential(username, password);
             AuthenticateRequest authenticateRequest = new AuthenticateRequest(credential);
             response = (AuthenticateResponse) send(authenticateRequest);
-            if (response == null) {
-                return null;
-            }
             current_user = getUser(response.user_uuid);
             getAllConversation(); //get all the conversations
             getExistMessageHistory();
@@ -1322,6 +1316,33 @@ class ClientWorker {
             send(dr);
             JOptionPane.showMessageDialog(null, "Successfully deleted",
                     "Delete Conversation", JOptionPane.INFORMATION_MESSAGE);
+            conversationHashMap.remove(conversation_uuid);
+            conversationMessageHashmap.remove(conversation_uuid);
+            return true;
+
+        } catch (NotLoggedInException e) {
+
+            JOptionPane.showMessageDialog(null, "You have been logged out!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+        } catch (ConversationNotFoundException e) {
+            JOptionPane.showMessageDialog(null, "Conversation not found!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+
+        } catch (RequestFailedException e) {
+            JOptionPane.showMessageDialog(null, "Request failed!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return false;
+    }
+
+    public boolean leaveConversation(UUID conversation_uuid) {
+        QuitConversationRequest request = new QuitConversationRequest(conversation_uuid);
+        try {
+            send(request);
+            JOptionPane.showMessageDialog(null, "Successfully leaved",
+                    "Leave Conversation", JOptionPane.INFORMATION_MESSAGE);
             conversationHashMap.remove(conversation_uuid);
             conversationMessageHashmap.remove(conversation_uuid);
             return true;

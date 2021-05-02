@@ -106,6 +106,9 @@ public class MessageServerWorker extends Thread {
                     // exceptions are regarding handling of a specific request
                 } catch (RequestFailedException e) {
                     response = new Response(false, "", request.uuid, e);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response = new Response(false, "", request.uuid, new RequestFailedException());
                 }
 
                 if (objectOutputStream == null) {
@@ -393,7 +396,7 @@ public class MessageServerWorker extends Thread {
         } else {
             UUID uuid = quitConversationRequest.conversation_uuid;
             if (conversation.admin_uuid != currentUser.uuid) {
-                system.quitConversation(uuid, quitConversationRequest.conversation_uuid);
+                system.quitConversation(currentUser.uuid, quitConversationRequest.conversation_uuid);
                 return new Response(true, "", quitConversationRequest.uuid);
             } else {
                 throw new AuthorizationException();
