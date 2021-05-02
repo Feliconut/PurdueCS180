@@ -959,6 +959,12 @@ class ClientWorker {
             return false;
         }
 
+        if (Integer.parseInt(ageString) < 0 || Integer.parseInt(ageString) > 120) {
+            JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
         try {
             Credential rgCredential = new Credential(username, password);
 
@@ -1669,6 +1675,11 @@ class ClientWorker {
         if (name.equals("") || ageString.equals("")) {
             JOptionPane.showMessageDialog(null,
                     "Text Fields cannot be blank!");
+            return null;
+        }
+        if (Integer.parseInt(ageString) < 0 || Integer.parseInt(ageString) > 120) {
+            JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
             return null;
         }
 
