@@ -42,6 +42,8 @@ public class Database<V extends Storable> {
                             break;
                         }
                     }
+                } catch (EOFException ignored) {
+
                 }
             }
 
@@ -77,7 +79,9 @@ public class Database<V extends Storable> {
     }
 
     public V put(UUID uuid, V value) {
-        return map.put(uuid, value);
+        V res = map.put(uuid, value);
+        write();
+        return clazz.cast(res);
     }
 
     public boolean containsKey(UUID uuid) {
@@ -89,7 +93,9 @@ public class Database<V extends Storable> {
     }
 
     public V remove(UUID uuid) {
-        return map.remove(uuid);
+        V res = map.remove(uuid);
+        write();
+        return clazz.cast(res);
     }
 
 

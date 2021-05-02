@@ -3,8 +3,7 @@ package Field;
 import java.util.Arrays;
 import java.util.UUID;
 
-public class Conversation extends Storable
-{
+public class Conversation extends Storable {
     public String name;
     public UUID[] user_uuids;
     public UUID admin_uuid;
@@ -26,6 +25,15 @@ public class Conversation extends Storable
         this.admin_uuid = admin_uuid;
         this.message_uuids = message_uuids;
         assert Arrays.asList(user_uuids).contains(admin_uuid);
+    }
+
+    public Conversation(Conversation conversation) {
+        this(
+                conversation.uuid,
+                conversation.name,
+                conversation.user_uuids,
+                conversation.admin_uuid,
+                conversation.message_uuids);
     }
 
 

@@ -1,26 +1,25 @@
 package Request;
 
+import Exceptions.RequestFailedException;
+
 import java.util.UUID;
 
-/**
- * Project5-- RegisterResponse
- * <p>
- * It is the response of when register
- *
- * @author team 84
- * @version 04/30/2021
- */
-public class RegisterResponse extends Response {
+public class AuthenticateResponse extends Response {
     public final UUID user_uuid;
 
-    public RegisterResponse(boolean state, String msg, UUID request_uuid, UUID user_uuid) {
+    public AuthenticateResponse(boolean state, String msg, UUID request_uuid, UUID user_uuid) {
         super(state, msg, request_uuid);
+        this.user_uuid = user_uuid;
+    }
+
+    public AuthenticateResponse(boolean state, String msg, UUID request_uuid, RequestFailedException exception, UUID user_uuid) {
+        super(state, msg, request_uuid, exception);
         this.user_uuid = user_uuid;
     }
 
     @Override
     public String toString() {
-        return "RegisterResponse{" +
+        return "AuthenticateResponse{" +
                 "user_uuid=" + user_uuid +
                 ", uuid=" + uuid +
                 ", state=" + state +
