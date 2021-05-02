@@ -1086,13 +1086,13 @@ class ClientWorker {
             return false;
         }
 
-        if (Integer.parseInt(ageString) < 0 || Integer.parseInt(ageString) > 120) {
-            JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
 
         try {
+            if (Integer.parseInt(ageString) < 0 || Integer.parseInt(ageString) > 120) {
+                JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
             Credential rgCredential = new Credential(username, password);
 
             Profile rgProfile = new Profile(name, Integer.parseInt(ageString));
@@ -1799,13 +1799,13 @@ class ClientWorker {
                     "Text Fields cannot be blank!");
             return null;
         }
-        if (Integer.parseInt(ageString) < 0 || Integer.parseInt(ageString) > 120) {
-            JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
 
         try {
+            if (Integer.parseInt(ageString) < 0 || Integer.parseInt(ageString) > 120) {
+                JOptionPane.showMessageDialog(null, "Invalid age!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return null;
+            }
             Profile profile = new Profile(name, Integer.parseInt(ageString));
             send(new EditProfileRequest(profile));
             current_user.profile = profile;
