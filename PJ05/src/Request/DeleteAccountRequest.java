@@ -21,9 +21,6 @@ public class DeleteAccountRequest extends Request {
 
     @Override
     public String toString() {
-        return "DeleteAccountRequest{" +
-                "credential=" + credential +
-                ", uuid=" + uuid +
-                '}';
+        return "DeleteAccountRequest{" + "credential=" + credential + ", uuid=" + uuid + '}';
     }
 }

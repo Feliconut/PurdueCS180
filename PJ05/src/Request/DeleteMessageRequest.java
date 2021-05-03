@@ -21,10 +21,7 @@ public class DeleteMessageRequest extends Request {
 
     @Override
     public String toString() {
-        return "DeleteMessageRequest{" +
-                "messageUUID=" + messageUUID +
-                ", uuid=" + uuid +
-                '}';
+        return "DeleteMessageRequest{" + "messageUUID=" + messageUUID + ", uuid=" + uuid + '}';
     }
 
 

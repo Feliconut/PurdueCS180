@@ -19,10 +19,7 @@ public class GetConversationRequest extends Request {
 
     @Override
     public String toString() {
-        return "GetConversationRequest{" +
-                "conversationUUID=" + conversationUUID +
-                ", uuid=" + uuid +
-                '}';
+        return "GetConversationRequest{" + "conversationUUID=" + conversationUUID + ", uuid=" + uuid + '}';
     }
 }
 

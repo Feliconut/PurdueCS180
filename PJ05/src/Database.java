@@ -1,7 +1,9 @@
-import Field.*;
+import Field.Storable;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Database
@@ -80,8 +82,7 @@ public class Database<V extends Storable> {
             try (FileOutputStream fos = new FileOutputStream(file);
                  ObjectOutputStream objectOutputStream = new ObjectOutputStream(fos)) {
 
-                for (UUID uuid :
-                        map.keySet()) {
+                for (UUID uuid : map.keySet()) {
                     Storable storable = map.get(uuid);
                     objectOutputStream.writeObject(clazz.cast(storable));
                 }

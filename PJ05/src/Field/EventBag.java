@@ -1,7 +1,8 @@
 package Field;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.HashMap;
+import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class EventBag {
     private final CopyOnWriteArrayList<User> newUsers;
@@ -28,17 +29,6 @@ public class EventBag {
 
     // adders
 
-    private synchronized static <T extends Storable> void putUpdatedObject(T obj, CopyOnWriteArrayList<T> db,
-                                                                           Class<T> clazz) {
-        for (Storable storable :
-                db) {
-            if (storable.uuid.equals(obj.uuid)) {
-                db.remove(clazz.cast(storable));
-            }
-        }
-        db.add(clazz.cast(obj));
-    }
-
     public synchronized void putNewUser(User user) {
         newUsers.add(user);
     }
@@ -54,6 +44,16 @@ public class EventBag {
 
     public synchronized void putUpdatedUser(User user) {
         putUpdatedObject(user, updatedUsers, User.class);
+    }
+
+    private synchronized static <T extends Storable> void putUpdatedObject(T obj, CopyOnWriteArrayList<T> db,
+                                                                           Class<T> clazz) {
+        for (Storable storable : db) {
+            if (storable.uuid.equals(obj.uuid)) {
+                db.remove(clazz.cast(storable));
+            }
+        }
+        db.add(clazz.cast(obj));
     }
 
     public synchronized void putUpdatedConversation(Conversation conversation) {
@@ -88,8 +88,7 @@ public class EventBag {
 
     public HashMap<UUID, Message[]> getNewMessages() {
         HashMap<UUID, Message[]> res = new HashMap<>();
-        for (UUID uuid :
-                newMessages.keySet()) {
+        for (UUID uuid : newMessages.keySet()) {
             res.put(uuid, newMessages.get(uuid).toArray(new Message[0]));
         }
         return res;

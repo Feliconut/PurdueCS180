@@ -22,10 +22,7 @@ public class RenameConversationRequest extends Request {
 
     @Override
     public String toString() {
-        return "RenameConversationRequest{" +
-                "conversationUUID=" + conversationUUID +
-                ", name='" + name + '\'' +
-                ", uuid=" + uuid +
-                '}';
+        return "RenameConversationRequest{" + "conversationUUID=" + conversationUUID + ", name='" + name + '\'' +
+                ", uuid=" + uuid + '}';
     }
 }

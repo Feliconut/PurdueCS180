@@ -22,13 +22,7 @@ public class GetUserResponse extends Response {
 
     @Override
     public String toString() {
-        return "GetUserResponse{" +
-                "user=" + user +
-                ", uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "GetUserResponse{" + "user=" + user + ", uuid=" + uuid + ", state=" + state + ", msg='" + msg + '\'' +
+                ", requestUUID=" + requestUUID + ", exception=" + exception + '}';
     }
 }

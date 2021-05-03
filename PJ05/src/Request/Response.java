@@ -36,12 +36,7 @@ public class Response extends Request {
 
     @Override
     public String toString() {
-        return "Response{" +
-                "uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "Response{" + "uuid=" + uuid + ", state=" + state + ", msg='" + msg + '\'' + ", requestUUID=" +
+                requestUUID + ", exception=" + exception + '}';
     }
 }

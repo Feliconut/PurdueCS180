@@ -1,8 +1,8 @@
 package Request;
 
-import Exceptions.*;
+import Exceptions.RequestFailedException;
 
-import java.util.*;
+import java.util.UUID;
 
 public class AuthenticateResponse extends Response {
     public final UUID userUUID;
@@ -20,13 +20,7 @@ public class AuthenticateResponse extends Response {
 
     @Override
     public String toString() {
-        return "AuthenticateResponse{" +
-                "userUUID=" + userUUID +
-                ", uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "AuthenticateResponse{" + "userUUID=" + userUUID + ", uuid=" + uuid + ", state=" + state + ", msg='" +
+                msg + '\'' + ", requestUUID=" + requestUUID + ", exception=" + exception + '}';
     }
 }

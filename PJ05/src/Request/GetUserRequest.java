@@ -21,9 +21,6 @@ public class GetUserRequest extends Request {
 
     @Override
     public String toString() {
-        return "GetUserRequest{" +
-                "userUUID=" + userUUID +
-                ", uuid=" + uuid +
-                '}';
+        return "GetUserRequest{" + "userUUID=" + userUUID + ", uuid=" + uuid + '}';
     }
 }

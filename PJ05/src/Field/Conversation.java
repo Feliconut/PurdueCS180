@@ -9,15 +9,6 @@ public class Conversation extends Storable {
     public UUID adminUUID;
     public UUID[] messageUUIDs;
 
-    public Conversation(UUID uuid, String name, UUID[] userUUIDs, UUID adminUUID, UUID[] messageUUIDs) {
-        super(uuid);
-        this.name = name;
-        this.userUUIDs = userUUIDs;
-        this.adminUUID = adminUUID;
-        this.messageUUIDs = messageUUIDs;
-        assert Arrays.asList(userUUIDs).contains(adminUUID);
-    }
-
     public Conversation(String name, UUID[] userUUIDs, UUID adminUUID, UUID[] messageUUIDs) {
         super(UUID.randomUUID());
         this.name = name;
@@ -28,12 +19,17 @@ public class Conversation extends Storable {
     }
 
     public Conversation(Conversation conversation) {
-        this(
-                conversation.uuid,
-                conversation.name,
-                conversation.userUUIDs,
-                conversation.adminUUID,
+        this(conversation.uuid, conversation.name, conversation.userUUIDs, conversation.adminUUID,
                 conversation.messageUUIDs);
+    }
+
+    public Conversation(UUID uuid, String name, UUID[] userUUIDs, UUID adminUUID, UUID[] messageUUIDs) {
+        super(uuid);
+        this.name = name;
+        this.userUUIDs = userUUIDs;
+        this.adminUUID = adminUUID;
+        this.messageUUIDs = messageUUIDs;
+        assert Arrays.asList(userUUIDs).contains(adminUUID);
     }
 
 

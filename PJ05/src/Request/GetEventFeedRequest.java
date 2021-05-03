@@ -16,8 +16,6 @@ public class GetEventFeedRequest extends Request {
 
     @Override
     public String toString() {
-        return "GetEventFeedRequest{" +
-                ", uuid=" + uuid +
-                '}';
+        return "GetEventFeedRequest{" + ", uuid=" + uuid + '}';
     }
 }

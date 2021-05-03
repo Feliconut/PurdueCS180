@@ -23,14 +23,8 @@ public class PostMessageResponse extends Response {
 
     @Override
     public String toString() {
-        return "PostMessageResponse{" +
-                "date=" + date +
-                ", messageUUID=" + messageUUID +
-                ", uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "PostMessageResponse{" + "date=" + date + ", messageUUID=" + messageUUID + ", uuid=" + uuid +
+                ", state=" + state + ", msg='" + msg + '\'' + ", requestUUID=" + requestUUID + ", exception=" +
+                exception + '}';
     }
 }

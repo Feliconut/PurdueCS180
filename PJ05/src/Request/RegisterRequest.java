@@ -24,11 +24,7 @@ public class RegisterRequest extends Request {
 
     @Override
     public String toString() {
-        return "RegisterRequest{" +
-                "credential=" + credential +
-                ", profile=" + profile +
-                ", uuid=" + uuid +
-                '}';
+        return "RegisterRequest{" + "credential=" + credential + ", profile=" + profile + ", uuid=" + uuid + '}';
     }
 
 

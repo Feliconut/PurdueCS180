@@ -22,10 +22,7 @@ public class GetMessageHistoryRequest extends Request {
 
     @Override
     public String toString() {
-        return "GetMessageHistoryRequest{" +
-                "conversationUUID=" + conversationUUID +
-                ", uuid=" + uuid +
-                '}';
+        return "GetMessageHistoryRequest{" + "conversationUUID=" + conversationUUID + ", uuid=" + uuid + '}';
     }
 
 

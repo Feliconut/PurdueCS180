@@ -23,13 +23,7 @@ public class GetMessageHistoryResponse extends Response {
 
     @Override
     public String toString() {
-        return "GetMessageHistoryResponse{" +
-                "messages=" + Arrays.toString(messages) +
-                ", uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "GetMessageHistoryResponse{" + "messages=" + Arrays.toString(messages) + ", uuid=" + uuid + ", state=" +
+                state + ", msg='" + msg + '\'' + ", requestUUID=" + requestUUID + ", exception=" + exception + '}';
     }
 }

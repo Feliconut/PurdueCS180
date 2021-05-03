@@ -22,13 +22,7 @@ public class ListAllUsersResponse extends Response {
 
     @Override
     public String toString() {
-        return "ListAllUsersResponse{" +
-                "userUUIDs=" + Arrays.toString(userUUIDs) +
-                ", uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "ListAllUsersResponse{" + "userUUIDs=" + Arrays.toString(userUUIDs) + ", uuid=" + uuid + ", state=" +
+                state + ", msg='" + msg + '\'' + ", requestUUID=" + requestUUID + ", exception=" + exception + '}';
     }
 }

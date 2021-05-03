@@ -21,13 +21,7 @@ public class EditMessageResponse extends Response {
 
     @Override
     public String toString() {
-        return "EditMessageResponse{" +
-                "dateEdited=" + dateEdited +
-                ", uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "EditMessageResponse{" + "dateEdited=" + dateEdited + ", uuid=" + uuid + ", state=" + state + ", msg='" +
+                msg + '\'' + ", requestUUID=" + requestUUID + ", exception=" + exception + '}';
     }
 }

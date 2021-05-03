@@ -21,10 +21,7 @@ public class RemoveUserFromConversationRequest extends Request {
 
     @Override
     public String toString() {
-        return "RemoveUserFromConversationRequest{" +
-                "userUUID=" + userUUID +
-                ", conversationUUID=" + conversationUUID +
-                ", uuid=" + uuid +
-                '}';
+        return "RemoveUserFromConversationRequest{" + "userUUID=" + userUUID + ", conversationUUID=" +
+                conversationUUID + ", uuid=" + uuid + '}';
     }
 }

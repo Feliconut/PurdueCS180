@@ -19,9 +19,6 @@ public class QuitConversationRequest extends Request {
 
     @Override
     public String toString() {
-        return "QuitConversationRequest{" +
-                "conversationUUID=" + conversationUUID +
-                ", uuid=" + uuid +
-                '}';
+        return "QuitConversationRequest{" + "conversationUUID=" + conversationUUID + ", uuid=" + uuid + '}';
     }
 }

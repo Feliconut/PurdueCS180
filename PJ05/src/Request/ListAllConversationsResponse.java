@@ -22,14 +22,9 @@ public class ListAllConversationsResponse extends Response {
 
     @Override
     public String toString() {
-        return "ListAllConversationsResponse{" +
-                "conversationUUIDs=" + Arrays.toString(conversationUUIDs) +
-                ", uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "ListAllConversationsResponse{" + "conversationUUIDs=" + Arrays.toString(conversationUUIDs) + ", uuid=" +
+                uuid + ", state=" + state + ", msg='" + msg + '\'' + ", requestUUID=" + requestUUID + ", exception=" +
+                exception + '}';
     }
 
 }

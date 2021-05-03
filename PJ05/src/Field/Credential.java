@@ -1,7 +1,7 @@
 package Field;
 
-import java.io.*;
-import java.util.*;
+import java.io.Serializable;
+import java.util.Objects;
 
 public class Credential implements Serializable {
     public final String usrName;
@@ -10,6 +10,11 @@ public class Credential implements Serializable {
     public Credential(String usrName, String passwd) {
         this.usrName = usrName;
         this.passwd = passwd;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(usrName, passwd);
     }
 
     @Override
@@ -22,10 +27,5 @@ public class Credential implements Serializable {
         }
         Credential that = (Credential) o;
         return Objects.equals(usrName, that.usrName) && Objects.equals(passwd, that.passwd);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(usrName, passwd);
     }
 }

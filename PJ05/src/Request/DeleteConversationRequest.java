@@ -21,9 +21,6 @@ public class DeleteConversationRequest extends Request {
 
     @Override
     public String toString() {
-        return "DeleteConversationRequest{" +
-                "conversationUUID=" + conversationUUID +
-                ", uuid=" + uuid +
-                '}';
+        return "DeleteConversationRequest{" + "conversationUUID=" + conversationUUID + ", uuid=" + uuid + '}';
     }
 }

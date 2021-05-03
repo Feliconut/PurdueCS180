@@ -1,5 +1,5 @@
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.ServerSocket;
 
 /**
  * Project5-- server master

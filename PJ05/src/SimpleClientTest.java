@@ -10,8 +10,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class SimpleClientTest {
-    public static Response send(Request request, Socket socket) throws IOException,
-            RequestFailedException {
+    public static Response send(Request request, Socket socket) throws IOException, RequestFailedException {
         Response response;
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         oos.writeObject(request);
@@ -50,7 +49,7 @@ public class SimpleClientTest {
         for (int i = 0; i < 10; i++) {
             objectOutputStream.writeObject(new LogOutRequest());
             objectOutputStream.flush();
-//        objectInputStream.wait();
+            //        objectInputStream.wait();
             Response response = (Response) objectInputStream.readObject();
             System.out.println(response);
         }

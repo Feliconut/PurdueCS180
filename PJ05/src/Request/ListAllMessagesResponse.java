@@ -21,13 +21,8 @@ public class ListAllMessagesResponse extends Response {
 
     @Override
     public String toString() {
-        return "ListAllMessagesResponse{" +
-                "userMessages=" + Arrays.toString(userMessages) +
-                ", uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "ListAllMessagesResponse{" + "userMessages=" + Arrays.toString(userMessages) + ", uuid=" + uuid +
+                ", state=" + state + ", msg='" + msg + '\'' + ", requestUUID=" + requestUUID + ", exception=" +
+                exception + '}';
     }
 }

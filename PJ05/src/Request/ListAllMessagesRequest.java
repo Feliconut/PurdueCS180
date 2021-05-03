@@ -34,11 +34,7 @@ public class ListAllMessagesRequest extends Request {
 
     @Override
     public String toString() {
-        return "ListAllMessagesRequest{" +
-                "conversationUUID=" + conversationUUID +
-                ", start=" + start +
-                ", end=" + end +
-                ", uuid=" + uuid +
-                '}';
+        return "ListAllMessagesRequest{" + "conversationUUID=" + conversationUUID + ", start=" + start + ", end=" +
+                end + ", uuid=" + uuid + '}';
     }
 }

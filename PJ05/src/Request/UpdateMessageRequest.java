@@ -20,10 +20,7 @@ public class UpdateMessageRequest extends Request {
 
     @Override
     public String toString() {
-        return "UpdateMessageRequest{" +
-                "uuid=" + uuid +
-                ", messageUID='" + messageUID + '\'' +
-                ", newContent='" + newContent + '\'' +
-                '}';
+        return "UpdateMessageRequest{" + "uuid=" + uuid + ", messageUID='" + messageUID + '\'' + ", newContent='" +
+                newContent + '\'' + '}';
     }
 }

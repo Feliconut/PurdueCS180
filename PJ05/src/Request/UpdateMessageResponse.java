@@ -24,14 +24,8 @@ public class UpdateMessageResponse extends Response {
 
     @Override
     public String toString() {
-        return "UpdateMessageResponse{" +
-                "uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                ", message=" + message +
-                ", uuid=" + uuid +
-                '}';
+        return "UpdateMessageResponse{" + "uuid=" + uuid + ", state=" + state + ", msg='" + msg + '\'' +
+                ", requestUUID=" + requestUUID + ", exception=" + exception + ", message=" + message + ", uuid=" +
+                uuid + '}';
     }
 }

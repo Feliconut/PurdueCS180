@@ -20,9 +20,6 @@ public class GetMessageRequest extends Request {
 
     @Override
     public String toString() {
-        return "GetMessageRequest{" +
-                "messageUUID=" + messageUUID +
-                ", uuid=" + uuid +
-                '}';
+        return "GetMessageRequest{" + "messageUUID=" + messageUUID + ", uuid=" + uuid + '}';
     }
 }

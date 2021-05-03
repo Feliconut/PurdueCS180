@@ -23,10 +23,7 @@ public class CreateConversationRequest extends Request {
 
     @Override
     public String toString() {
-        return "CreateConversationRequest{" +
-                "userUUIDs=" + Arrays.toString(userUUIDs) +
-                ", name='" + name + '\'' +
-                ", uuid=" + uuid +
-                '}';
+        return "CreateConversationRequest{" + "userUUIDs=" + Arrays.toString(userUUIDs) + ", name='" + name + '\'' +
+                ", uuid=" + uuid + '}';
     }
 }

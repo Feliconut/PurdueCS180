@@ -23,10 +23,7 @@ public class AddUser2ConversationRequest extends Request {
 
     @Override
     public String toString() {
-        return "AddUser2ConversationRequest{" +
-                "userUUID=" + userUUID +
-                ", conversationUUID=" + conversationUUID +
-                ", uuid=" + uuid +
-                '}';
+        return "AddUser2ConversationRequest{" + "userUUID=" + userUUID + ", conversationUUID=" + conversationUUID +
+                ", uuid=" + uuid + '}';
     }
 }

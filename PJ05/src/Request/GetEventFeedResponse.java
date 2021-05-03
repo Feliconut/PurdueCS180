@@ -30,9 +30,8 @@ public class GetEventFeedResponse extends Response {
 
     public GetEventFeedResponse(boolean state, String msg, UUID requestUUID, User[] newUsers,
                                 Conversation[] newConversations, HashMap<UUID, Message[]> newMessages,
-                                User[] updatedUsers, Conversation[] updatedConversations,
-                                Message[] updatedMessages, UUID[] removedUsers,
-                                UUID[] removedConversations, UUID[] removedMessages) {
+                                User[] updatedUsers, Conversation[] updatedConversations, Message[] updatedMessages,
+                                UUID[] removedUsers, UUID[] removedConversations, UUID[] removedMessages) {
         super(state, msg, requestUUID);
         this.newUsers = newUsers;
         this.newConversations = newConversations;
@@ -62,21 +61,12 @@ public class GetEventFeedResponse extends Response {
 
     @Override
     public String toString() {
-        return "GetEventFeedResponse{" +
-                "users=" + Arrays.toString(newUsers) +
-                ", conversations=" + Arrays.toString(newConversations) +
-                ", newMessages=" + newMessages +
-                ", updatedUsers=" + Arrays.toString(updatedUsers) +
-                ", updatedConversations=" + Arrays.toString(updatedConversations) +
-                ", updatedMessages=" + Arrays.toString(updatedMessages) +
-                ", removedUsers=" + Arrays.toString(removedUsers) +
-                ", removedConversations=" + Arrays.toString(removedConversations) +
-                ", removedMessages=" + Arrays.toString(removedMessages) +
-                ", uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "GetEventFeedResponse{" + "users=" + Arrays.toString(newUsers) + ", conversations=" +
+                Arrays.toString(newConversations) + ", newMessages=" + newMessages + ", updatedUsers=" +
+                Arrays.toString(updatedUsers) + ", updatedConversations=" + Arrays.toString(updatedConversations) +
+                ", updatedMessages=" + Arrays.toString(updatedMessages) + ", removedUsers=" +
+                Arrays.toString(removedUsers) + ", removedConversations=" + Arrays.toString(removedConversations) +
+                ", removedMessages=" + Arrays.toString(removedMessages) + ", uuid=" + uuid + ", state=" + state +
+                ", msg='" + msg + '\'' + ", requestUUID=" + requestUUID + ", exception=" + exception + '}';
     }
 }

@@ -20,13 +20,7 @@ public class CreateConversationResponse extends Response {
 
     @Override
     public String toString() {
-        return "CreateConversationResponse{" +
-                "conversationUUID=" + conversationUUID +
-                ", uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "CreateConversationResponse{" + "conversationUUID=" + conversationUUID + ", uuid=" + uuid + ", state=" +
+                state + ", msg='" + msg + '\'' + ", requestUUID=" + requestUUID + ", exception=" + exception + '}';
     }
 }

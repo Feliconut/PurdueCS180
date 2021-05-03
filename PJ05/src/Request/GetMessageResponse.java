@@ -22,13 +22,7 @@ public class GetMessageResponse extends Response {
 
     @Override
     public String toString() {
-        return "GetMessageResponse{" +
-                "message=" + message +
-                ", uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "GetMessageResponse{" + "message=" + message + ", uuid=" + uuid + ", state=" + state + ", msg='" + msg +
+                '\'' + ", requestUUID=" + requestUUID + ", exception=" + exception + '}';
     }
 }

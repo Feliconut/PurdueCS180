@@ -24,10 +24,7 @@ public class PostMessageRequest extends Request {
 
     @Override
     public String toString() {
-        return "PostMessageRequest{" +
-                "conversationUUID=" + conversationUUID +
-                ", message=" + message +
-                ", uuid=" + uuid +
-                '}';
+        return "PostMessageRequest{" + "conversationUUID=" + conversationUUID + ", message=" + message + ", uuid=" +
+                uuid + '}';
     }
 }

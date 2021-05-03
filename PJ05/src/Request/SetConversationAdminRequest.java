@@ -22,10 +22,7 @@ public class SetConversationAdminRequest extends Request {
 
     @Override
     public String toString() {
-        return "SetConversationAdminRequest{" +
-                "uuid=" + uuid +
-                ", adminUUID=" + adminUUID +
-                ", conversationUUID=" + conversationUUID +
-                '}';
+        return "SetConversationAdminRequest{" + "uuid=" + uuid + ", adminUUID=" + adminUUID + ", conversationUUID=" +
+                conversationUUID + '}';
     }
 }

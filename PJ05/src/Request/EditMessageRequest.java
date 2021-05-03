@@ -25,10 +25,7 @@ public class EditMessageRequest extends Request {
 
     @Override
     public String toString() {
-        return "EditMessageRequest{" +
-                "messsageUUID=" + messsageUUID +
-                ", content='" + content + '\'' +
-                ", uuid=" + uuid +
-                '}';
+        return "EditMessageRequest{" + "messsageUUID=" + messsageUUID + ", content='" + content + '\'' + ", uuid=" +
+                uuid + '}';
     }
 }

@@ -104,6 +104,16 @@ public class MessageSystem {
         eventBagHandler.remove(message, getConversation(message.conversationUUID));
     }
 
+    public Conversation getConversation(UUID conversationUUID) throws ConversationNotFoundException {
+        Conversation conversation;
+        conversation = conversationDatabase.get(conversationUUID);
+        if (conversation == null) {
+            throw new ConversationNotFoundException();
+        } else {
+            return new Conversation(conversation);
+        }
+    }
+
     public Message addMessage(UUID conversationUUID, UUID senderUUID, String content)
             throws ConversationNotFoundException, IllegalContentException {
         // want to add the a message to it's conversation and return the message
@@ -130,16 +140,6 @@ public class MessageSystem {
         return message;
     }
 
-    public Conversation getConversation(UUID conversationUUID) throws ConversationNotFoundException {
-        Conversation conversation;
-        conversation = conversationDatabase.get(conversationUUID);
-        if (conversation == null) {
-            throw new ConversationNotFoundException();
-        } else {
-            return new Conversation(conversation);
-        }
-    }
-
     public Conversation createConversation(String conversationName, UUID[] userUUIDs, UUID adminUUID)
             throws InvalidConversationNameException, UserNotFoundException {
         // Make sure the name is valid
@@ -155,8 +155,7 @@ public class MessageSystem {
         // make distinct
         userUUIDs = userUUIDArray.stream().distinct().toArray(UUID[]::new); // make userUUIDs distinct
         // check user exists
-        for (UUID userUUID :
-                userUUIDs) {
+        for (UUID userUUID : userUUIDs) {
             getUser(userUUID);
         }
         // create conversation
@@ -188,8 +187,8 @@ public class MessageSystem {
         eventBagHandler.update(conversation);
     }
 
-    public void addUser2Conversation(UUID userUUID, UUID conversationUUID) throws UserNotFoundException,
-            ConversationNotFoundException {
+    public void addUser2Conversation(UUID userUUID, UUID conversationUUID)
+            throws UserNotFoundException, ConversationNotFoundException {
         //拉userUUID进入conversationUUID这个群聊
         Conversation conversation = conversationDatabase.get(conversationUUID);
         getUser(userUUID);
@@ -306,8 +305,7 @@ public class MessageSystem {
             throw new ConversationNotFoundException();
         } else {
             UUID[] messageUUIDs = conversation.messageUUIDs;
-            for (UUID messageUUID :
-                    messageUUIDs) {
+            for (UUID messageUUID : messageUUIDs) {
                 try {
                     messages.add(getMessage(messageUUID));
                 } catch (MessageNotFoundException e) {
@@ -327,8 +325,7 @@ public class MessageSystem {
         for (UUID uuid : conversationDatabase.uuids()) {
             try {
                 Conversation conversation = getConversation(uuid);
-                for (UUID conversationUserUUID :
-                        conversation.userUUIDs) {
+                for (UUID conversationUserUUID : conversation.userUUIDs) {
                     if (conversationUserUUID.equals(userUUID)) {
                         uuids.add(conversation.uuid);
                     }
@@ -395,8 +392,7 @@ class EventBagHandler {
 
     public synchronized void add(User newUser) {
         // everyone should know.
-        for (EventBag bag :
-                currentBags.values()) {
+        for (EventBag bag : currentBags.values()) {
             bag.putNewUser(newUser);
         }
     }
@@ -428,8 +424,7 @@ class EventBagHandler {
 
     public synchronized void update(User user) {
         // everyone should know.
-        for (EventBag bag :
-                currentBags.values()) {
+        for (EventBag bag : currentBags.values()) {
             bag.putUpdatedUser(user);
         }
 
@@ -465,8 +460,7 @@ class EventBagHandler {
 
     public synchronized void removeUser(UUID userUUID) {
         // everyone should know.
-        for (EventBag bag :
-                currentBags.values()) {
+        for (EventBag bag : currentBags.values()) {
             bag.putRemovedUser(userUUID);
         }
     }

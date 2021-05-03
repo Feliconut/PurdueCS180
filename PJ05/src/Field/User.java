@@ -12,17 +12,14 @@ public class User extends Storable {
         this.profile = profile;
     }
 
+    public User(User user) {
+        this(user.uuid, user.credential, user.profile);
+
+    }
+
     public User(UUID uuid, Credential credential, Profile profile) {
         super(uuid);
         this.credential = credential;
         this.profile = profile;
-    }
-
-    public User(User user) {
-        this(
-                user.uuid,
-                user.credential,
-                user.profile);
-
     }
 }

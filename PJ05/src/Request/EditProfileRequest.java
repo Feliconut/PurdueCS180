@@ -19,9 +19,6 @@ public class EditProfileRequest extends Request {
 
     @Override
     public String toString() {
-        return "EditProfileRequest{" +
-                "profile=" + profile +
-                ", uuid=" + uuid +
-                '}';
+        return "EditProfileRequest{" + "profile=" + profile + ", uuid=" + uuid + '}';
     }
 }

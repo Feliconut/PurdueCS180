@@ -21,9 +21,6 @@ public class AuthenticateRequest extends Request {
 
     @Override
     public String toString() {
-        return "AuthenticateRequest{" +
-                "credential=" + credential +
-                ", uuid=" + uuid +
-                '}';
+        return "AuthenticateRequest{" + "credential=" + credential + ", uuid=" + uuid + '}';
     }
 }

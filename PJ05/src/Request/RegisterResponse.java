@@ -20,13 +20,7 @@ public class RegisterResponse extends Response {
 
     @Override
     public String toString() {
-        return "RegisterResponse{" +
-                "userUUID=" + userUUID +
-                ", uuid=" + uuid +
-                ", state=" + state +
-                ", msg='" + msg + '\'' +
-                ", requestUUID=" + requestUUID +
-                ", exception=" + exception +
-                '}';
+        return "RegisterResponse{" + "userUUID=" + userUUID + ", uuid=" + uuid + ", state=" + state + ", msg='" + msg +
+                '\'' + ", requestUUID=" + requestUUID + ", exception=" + exception + '}';
     }
 }
