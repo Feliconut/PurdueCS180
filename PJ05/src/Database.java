@@ -54,7 +54,7 @@ public class Database<V extends Storable> {
                         }
                     }
                 } catch (EOFException ignored) {
-
+                    return;
                 }
             }
 

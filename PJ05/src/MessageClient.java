@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Silvia Yang, lab sec OL3
  * @version April
  */
-
 public class MessageClient {
 
     public static void main(String[] args) {
@@ -30,6 +29,13 @@ public class MessageClient {
 
 }
 
+/**
+ * ListDisplay
+ * This class encapsulates some UI utils for producing a list.
+ *
+ * @author Xiaoyu Liu, lab sec OL3
+ * @version April
+ */
 class ListDisplay<T extends Storable> {
 
     final DefaultListModel<String> displayListModel;
@@ -123,11 +129,12 @@ class ListDisplay<T extends Storable> {
         }
         try {
             remove(obj.uuid);
+            displayListModel.addElement(display);
+            objectUUIDs.add(obj.uuid);
+            notifyStates.add(false);
         } catch (IndexOutOfBoundsException ignored) {
+            return;
         }
-        displayListModel.addElement(display);
-        objectUUIDs.add(obj.uuid);
-        notifyStates.add(false);
     }
 
     private String makeDisplay(T obj) {
@@ -181,6 +188,13 @@ class ListDisplay<T extends Storable> {
 
 }
 
+/**
+ * Window
+ * This class implements main windows for the UI.
+ *
+ * @author Silvia Yang, lab sec OL3
+ * @version April
+ */
 class Window {
     private final ClientWorker clientWorker = new ClientWorker();
 
@@ -567,6 +581,7 @@ class Window {
                         }
                     }
                 } catch (Exception ignored) {
+                    return;
                 }
             }
         });
@@ -936,6 +951,7 @@ class Window {
                 try {
                     clientWorker.addUserToGroup(clientWorker.getUser(username).uuid, currentConversationUUID);
                 } catch (NullPointerException ignored) {
+                    return;
                 }
             }
         });
@@ -1006,6 +1022,13 @@ class Window {
 
 }
 
+/**
+ * ClientWorker
+ * This class handles communication with the server.
+ *
+ * @author Silvia Yang, lab sec OL3
+ * @version April
+ */
 class ClientWorker {
     private final HashMap<UUID, Conversation> conversationHashMap = new HashMap<>();
     private final HashMap<UUID, User> userHashMap = new HashMap<>();

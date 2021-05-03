@@ -69,21 +69,20 @@ public class MessageSystem {
             getUser(credential.usrName);
             throw new UserExistsException();
         } catch (UserNotFoundException ignored) {
+            String name = credential.usrName;
+            if (name == null) {
+                throw new InvalidUsernameException();
+            } else if (name.contains(" ")) {
+                throw new InvalidUsernameException();
+            } else if (name.length() > 20) {
+                throw new InvalidUsernameException();
+            }
+            User user = new User(credential, profile);
+            userDatabase.put(user.uuid, user);
+            eventBagHandler.add(user);
+            return user;
 
         }
-        String name = credential.usrName;
-        if (name == null) {
-            throw new InvalidUsernameException();
-        } else if (name.contains(" ")) {
-            throw new InvalidUsernameException();
-        } else if (name.length() > 20) {
-            throw new InvalidUsernameException();
-        }
-        User user = new User(credential, profile);
-        userDatabase.put(user.uuid, user);
-        eventBagHandler.add(user);
-        return user;
-
     }
 
     public void deleteUser(UUID uuid) throws UserNotFoundException {
@@ -352,6 +351,13 @@ public class MessageSystem {
 
 }
 
+/**
+ * EventBagHandler
+ * This class encapsulates functions to produce event feed for users.
+ *
+ * @author Xiaoyu Liu, lab sec OL3
+ * @version April
+ */
 class EventBagHandler {
     private final HashMap<UUID, EventBag> currentBags;
 
