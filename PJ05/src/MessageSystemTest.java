@@ -10,6 +10,13 @@ import java.util.UUID;
 
 import static org.junit.Assert.*;
 
+/**
+ * PJ5-MessageSystemTest
+ * This class enables Testing of message system.
+ *
+ * @author Yihan Huang, Xiaoyu Liu, lab sec OL3
+ * @version April
+ */
 public class MessageSystemTest {
 
     @Before

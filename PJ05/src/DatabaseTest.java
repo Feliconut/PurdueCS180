@@ -10,6 +10,13 @@ import java.util.Arrays;
 
 import static org.junit.Assert.*;
 
+/**
+ * PJ5-DatabaseTest
+ * This class enables Testing of database.
+ *
+ * @author Jiaqi Chen, Xiaoyu Liu, lab sec OL3
+ * @version April
+ */
 public class DatabaseTest {
 
     @Before

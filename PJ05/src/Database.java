@@ -13,6 +13,8 @@ import java.util.UUID;
  * function that can let Message System use the information which saves in the hashmap easily.
  *
  * @param <V> The type of object that this database stores.
+ * @author Jiaqi Chen, Xiaoyu Liu, lab sec OL3
+ * @version April
  */
 public class Database<V extends Storable> {
     private final HashMap<UUID, V> map; // This is used as a cache.
