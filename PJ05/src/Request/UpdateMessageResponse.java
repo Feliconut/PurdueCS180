@@ -16,8 +16,8 @@ public class UpdateMessageResponse extends Response {
     public final Message message;
     public final UUID uuid;
 
-    public UpdateMessageResponse(boolean state, String msg, UUID request_uuid, Message message, UUID uuid) {
-        super(state, msg, request_uuid);
+    public UpdateMessageResponse(boolean state, String msg, UUID requestUUID, Message message, UUID uuid) {
+        super(state, msg, requestUUID);
         this.message = message;
         this.uuid = uuid;
     }
@@ -28,7 +28,7 @@ public class UpdateMessageResponse extends Response {
                 "uuid=" + uuid +
                 ", state=" + state +
                 ", msg='" + msg + '\'' +
-                ", request_uuid=" + request_uuid +
+                ", requestUUID=" + requestUUID +
                 ", exception=" + exception +
                 ", message=" + message +
                 ", uuid=" + uuid +

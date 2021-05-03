@@ -11,19 +11,19 @@ import java.util.UUID;
  * @version 04/30/2021
  */
 public class RemoveUserFromConversationRequest extends Request {
-    public final UUID user_uuid;
-    public final UUID conversation_uuid;
+    public final UUID userUUID;
+    public final UUID conversationUUID;
 
-    public RemoveUserFromConversationRequest(UUID user_uuid, UUID conversation_uuid) {
-        this.user_uuid = user_uuid;
-        this.conversation_uuid = conversation_uuid;
+    public RemoveUserFromConversationRequest(UUID userUUID, UUID conversationUUID) {
+        this.userUUID = userUUID;
+        this.conversationUUID = conversationUUID;
     }
 
     @Override
     public String toString() {
         return "RemoveUserFromConversationRequest{" +
-                "user_uuid=" + user_uuid +
-                ", conversation_uuid=" + conversation_uuid +
+                "userUUID=" + userUUID +
+                ", conversationUUID=" + conversationUUID +
                 ", uuid=" + uuid +
                 '}';
     }

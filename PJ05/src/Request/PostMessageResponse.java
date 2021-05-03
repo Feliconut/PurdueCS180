@@ -13,23 +13,23 @@ import java.util.UUID;
  */
 public class PostMessageResponse extends Response {
     public final Date date;
-    public final UUID message_uuid;
+    public final UUID messageUUID;
 
-    public PostMessageResponse(boolean state, String msg, UUID request_uuid, Date date, UUID message_uuid) {
-        super(state, msg, request_uuid);
+    public PostMessageResponse(boolean state, String msg, UUID requestUUID, Date date, UUID messageUUID) {
+        super(state, msg, requestUUID);
         this.date = date;
-        this.message_uuid = message_uuid;
+        this.messageUUID = messageUUID;
     }
 
     @Override
     public String toString() {
         return "PostMessageResponse{" +
                 "date=" + date +
-                ", message_uuid=" + message_uuid +
+                ", messageUUID=" + messageUUID +
                 ", uuid=" + uuid +
                 ", state=" + state +
                 ", msg='" + msg + '\'' +
-                ", request_uuid=" + request_uuid +
+                ", requestUUID=" + requestUUID +
                 ", exception=" + exception +
                 '}';
     }

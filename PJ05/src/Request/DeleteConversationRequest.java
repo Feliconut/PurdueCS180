@@ -12,17 +12,17 @@ import java.util.UUID;
  */
 public class DeleteConversationRequest extends Request {
 
-    public final UUID conversation_uuid;
+    public final UUID conversationUUID;
 
-    public DeleteConversationRequest(UUID conversation_uuid) {
+    public DeleteConversationRequest(UUID conversationUUID) {
         super();
-        this.conversation_uuid = conversation_uuid;
+        this.conversationUUID = conversationUUID;
     }
 
     @Override
     public String toString() {
         return "DeleteConversationRequest{" +
-                "conversation_uuid=" + conversation_uuid +
+                "conversationUUID=" + conversationUUID +
                 ", uuid=" + uuid +
                 '}';
     }

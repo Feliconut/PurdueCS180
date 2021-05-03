@@ -5,35 +5,35 @@ import java.util.UUID;
 
 public class Conversation extends Storable {
     public String name;
-    public UUID[] user_uuids;
-    public UUID admin_uuid;
-    public UUID[] message_uuids;
+    public UUID[] userUUIDs;
+    public UUID adminUUID;
+    public UUID[] messageUUIDs;
 
-    public Conversation(UUID uuid, String name, UUID[] user_uuids, UUID admin_uuid, UUID[] message_uuids) {
+    public Conversation(UUID uuid, String name, UUID[] userUUIDs, UUID adminUUID, UUID[] messageUUIDs) {
         super(uuid);
         this.name = name;
-        this.user_uuids = user_uuids;
-        this.admin_uuid = admin_uuid;
-        this.message_uuids = message_uuids;
-        assert Arrays.asList(user_uuids).contains(admin_uuid);
+        this.userUUIDs = userUUIDs;
+        this.adminUUID = adminUUID;
+        this.messageUUIDs = messageUUIDs;
+        assert Arrays.asList(userUUIDs).contains(adminUUID);
     }
 
-    public Conversation(String name, UUID[] user_uuids, UUID admin_uuid, UUID[] message_uuids) {
+    public Conversation(String name, UUID[] userUUIDs, UUID adminUUID, UUID[] messageUUIDs) {
         super(UUID.randomUUID());
         this.name = name;
-        this.user_uuids = user_uuids;
-        this.admin_uuid = admin_uuid;
-        this.message_uuids = message_uuids;
-        assert Arrays.asList(user_uuids).contains(admin_uuid);
+        this.userUUIDs = userUUIDs;
+        this.adminUUID = adminUUID;
+        this.messageUUIDs = messageUUIDs;
+        assert Arrays.asList(userUUIDs).contains(adminUUID);
     }
 
     public Conversation(Conversation conversation) {
         this(
                 conversation.uuid,
                 conversation.name,
-                conversation.user_uuids,
-                conversation.admin_uuid,
-                conversation.message_uuids);
+                conversation.userUUIDs,
+                conversation.adminUUID,
+                conversation.messageUUIDs);
     }
 
 

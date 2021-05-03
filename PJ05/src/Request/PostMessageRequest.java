@@ -13,19 +13,19 @@ import java.util.UUID;
  * @version 04/30/2021
  */
 public class PostMessageRequest extends Request {
-    public final UUID conversation_uuid;
+    public final UUID conversationUUID;
     public final Message message;
 
-    public PostMessageRequest(UUID conversation_uuid, Message message) {
+    public PostMessageRequest(UUID conversationUUID, Message message) {
         super();
-        this.conversation_uuid = conversation_uuid;
+        this.conversationUUID = conversationUUID;
         this.message = message;
     }
 
     @Override
     public String toString() {
         return "PostMessageRequest{" +
-                "conversation_uuid=" + conversation_uuid +
+                "conversationUUID=" + conversationUUID +
                 ", message=" + message +
                 ", uuid=" + uuid +
                 '}';

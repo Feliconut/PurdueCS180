@@ -11,21 +11,21 @@ import java.util.UUID;
  * @version 04/30/2021
  */
 public class CreateConversationResponse extends Response {
-    public final UUID conversation_uuid;
+    public final UUID conversationUUID;
 
-    public CreateConversationResponse(boolean state, String msg, UUID request_uuid, UUID conversation_uuid) {
-        super(state, msg, request_uuid);
-        this.conversation_uuid = conversation_uuid;
+    public CreateConversationResponse(boolean state, String msg, UUID requestUUID, UUID conversationUUID) {
+        super(state, msg, requestUUID);
+        this.conversationUUID = conversationUUID;
     }
 
     @Override
     public String toString() {
         return "CreateConversationResponse{" +
-                "conversation_uuid=" + conversation_uuid +
+                "conversationUUID=" + conversationUUID +
                 ", uuid=" + uuid +
                 ", state=" + state +
                 ", msg='" + msg + '\'' +
-                ", request_uuid=" + request_uuid +
+                ", requestUUID=" + requestUUID +
                 ", exception=" + exception +
                 '}';
     }

@@ -4,38 +4,38 @@ import java.util.Date;
 import java.util.UUID;
 
 public class Message extends Storable {
-    public UUID sender_uuid;
+    public UUID senderUUID;
     public Date time;
     public String content;
-    public UUID conversation_uuid;
+    public UUID conversationUUID;
 
-    public Message(UUID uuid, UUID sender_uuid, Date time, String content, UUID conversation_uuid) {
+    public Message(UUID uuid, UUID senderUUID, Date time, String content, UUID conversationUUID) {
         super(uuid);
-        this.sender_uuid = sender_uuid;
+        this.senderUUID = senderUUID;
         this.time = time;
         this.content = content;
-        this.conversation_uuid = conversation_uuid;
+        this.conversationUUID = conversationUUID;
     }
 
-    public Message(UUID sender_uuid, Date time, String content, UUID conversation_uuid) {
+    public Message(UUID senderUUID, Date time, String content, UUID conversationUUID) {
         super(UUID.randomUUID());
-        this.sender_uuid = sender_uuid;
+        this.senderUUID = senderUUID;
         this.time = time;
         this.content = content;
-        this.conversation_uuid = conversation_uuid;
+        this.conversationUUID = conversationUUID;
     }
 
-    public Message(UUID sender_uuid, Date time, String content) {
-        this(sender_uuid, time, content, null);
+    public Message(UUID senderUUID, Date time, String content) {
+        this(senderUUID, time, content, null);
     }
 
 
     public Message(Message message) {
         this(
                 message.uuid,
-                message.sender_uuid,
+                message.senderUUID,
                 message.time,
                 message.content,
-                message.conversation_uuid);
+                message.conversationUUID);
     }
 }

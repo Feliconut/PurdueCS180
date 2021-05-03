@@ -12,19 +12,19 @@ import java.util.UUID;
  * @version 04/30/2021
  */
 public class CreateConversationRequest extends Request {
-    public UUID[] user_uuids;
+    public UUID[] userUUIDs;
     public String name;
 
-    public CreateConversationRequest(UUID[] user_uuids, String name) {
+    public CreateConversationRequest(UUID[] userUUIDs, String name) {
         super();
-        this.user_uuids = user_uuids;
+        this.userUUIDs = userUUIDs;
         this.name = name;
     }
 
     @Override
     public String toString() {
         return "CreateConversationRequest{" +
-                "user_uuids=" + Arrays.toString(user_uuids) +
+                "userUUIDs=" + Arrays.toString(userUUIDs) +
                 ", name='" + name + '\'' +
                 ", uuid=" + uuid +
                 '}';

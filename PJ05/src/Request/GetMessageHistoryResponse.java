@@ -16,8 +16,8 @@ import java.util.UUID;
 public class GetMessageHistoryResponse extends Response {
     public final Message[] messages;
 
-    public GetMessageHistoryResponse(boolean state, String msg, UUID request_uuid, Message[] messages) {
-        super(state, msg, request_uuid);
+    public GetMessageHistoryResponse(boolean state, String msg, UUID requestUUID, Message[] messages) {
+        super(state, msg, requestUUID);
         this.messages = messages;
     }
 
@@ -28,7 +28,7 @@ public class GetMessageHistoryResponse extends Response {
                 ", uuid=" + uuid +
                 ", state=" + state +
                 ", msg='" + msg + '\'' +
-                ", request_uuid=" + request_uuid +
+                ", requestUUID=" + requestUUID +
                 ", exception=" + exception +
                 '}';
     }

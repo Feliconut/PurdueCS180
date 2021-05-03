@@ -12,18 +12,18 @@ import java.util.UUID;
  */
 public class GetMessageHistoryRequest extends Request {
 
-    public final UUID conversation_uuId;
+    public final UUID conversationUUID;
 
     public GetMessageHistoryRequest(UUID conversattionId) {
         super();
-        this.conversation_uuId = conversattionId;
+        this.conversationUUID = conversattionId;
 
     }
 
     @Override
     public String toString() {
         return "GetMessageHistoryRequest{" +
-                "conversation_uuId=" + conversation_uuId +
+                "conversationUUID=" + conversationUUID +
                 ", uuid=" + uuid +
                 '}';
     }

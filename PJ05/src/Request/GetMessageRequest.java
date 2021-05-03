@@ -11,17 +11,17 @@ import java.util.UUID;
  * @version 04/30/2021
  */
 public class GetMessageRequest extends Request {
-    public final UUID message_uuid;
+    public final UUID messageUUID;
 
     public GetMessageRequest(UUID uuid) {
         super();
-        this.message_uuid = uuid;
+        this.messageUUID = uuid;
     }
 
     @Override
     public String toString() {
         return "GetMessageRequest{" +
-                "message_uuid=" + message_uuid +
+                "messageUUID=" + messageUUID +
                 ", uuid=" + uuid +
                 '}';
     }

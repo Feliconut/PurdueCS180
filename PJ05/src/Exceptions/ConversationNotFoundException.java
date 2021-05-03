@@ -3,7 +3,7 @@ package Exceptions;
 /**
  * Project5-- ConversationNotFoundException
  * <p>
- * This exception will be called if the system find your provided conversation_uuid could not be found
+ * This exception will be called if the system find your provided conversationUUID could not be found
  *
  * @author team 84
  * @version 04/30/2021

@@ -12,21 +12,21 @@ import java.util.UUID;
  * @version 04/30/2021
  */
 public class ListAllMessagesResponse extends Response {
-    public final UUID[] user_messages;
+    public final UUID[] userMessages;
 
-    public ListAllMessagesResponse(boolean state, String msg, UUID request_uuid, UUID[] user_messages) {
-        super(state, msg, request_uuid);
-        this.user_messages = user_messages;
+    public ListAllMessagesResponse(boolean state, String msg, UUID requestUUID, UUID[] userMessages) {
+        super(state, msg, requestUUID);
+        this.userMessages = userMessages;
     }
 
     @Override
     public String toString() {
         return "ListAllMessagesResponse{" +
-                "user_messages=" + Arrays.toString(user_messages) +
+                "userMessages=" + Arrays.toString(userMessages) +
                 ", uuid=" + uuid +
                 ", state=" + state +
                 ", msg='" + msg + '\'' +
-                ", request_uuid=" + request_uuid +
+                ", requestUUID=" + requestUUID +
                 ", exception=" + exception +
                 '}';
     }

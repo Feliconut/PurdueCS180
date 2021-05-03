@@ -13,16 +13,16 @@ import java.util.UUID;
  */
 public class GetUserRequest extends Request {
 
-    public final UUID user_uuid;
+    public final UUID userUUID;
 
-    public GetUserRequest(UUID user_uuid) {
-        this.user_uuid = user_uuid;
+    public GetUserRequest(UUID userUUID) {
+        this.userUUID = userUUID;
     }
 
     @Override
     public String toString() {
         return "GetUserRequest{" +
-                "user_uuid=" + user_uuid +
+                "userUUID=" + userUUID +
                 ", uuid=" + uuid +
                 '}';
     }

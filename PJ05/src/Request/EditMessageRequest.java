@@ -12,13 +12,13 @@ import java.util.UUID;
  */
 public class EditMessageRequest extends Request {
 
-    public final UUID messsage_uuid;
+    public final UUID messsageUUID;
     public final String content;
 
 
-    public EditMessageRequest(UUID messsage_uuid, String content) {
+    public EditMessageRequest(UUID messsageUUID, String content) {
         super();
-        this.messsage_uuid = messsage_uuid;
+        this.messsageUUID = messsageUUID;
         this.content = content;
 
     }
@@ -26,7 +26,7 @@ public class EditMessageRequest extends Request {
     @Override
     public String toString() {
         return "EditMessageRequest{" +
-                "messsage_uuid=" + messsage_uuid +
+                "messsageUUID=" + messsageUUID +
                 ", content='" + content + '\'' +
                 ", uuid=" + uuid +
                 '}';

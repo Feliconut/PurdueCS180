@@ -15,8 +15,8 @@ import java.util.UUID;
 public class GetUserResponse extends Response {
     public final User user;
 
-    public GetUserResponse(boolean state, String msg, UUID request_uuid, User user) {
-        super(state, msg, request_uuid);
+    public GetUserResponse(boolean state, String msg, UUID requestUUID, User user) {
+        super(state, msg, requestUUID);
         this.user = user;
     }
 
@@ -27,7 +27,7 @@ public class GetUserResponse extends Response {
                 ", uuid=" + uuid +
                 ", state=" + state +
                 ", msg='" + msg + '\'' +
-                ", request_uuid=" + request_uuid +
+                ", requestUUID=" + requestUUID +
                 ", exception=" + exception +
                 '}';
     }

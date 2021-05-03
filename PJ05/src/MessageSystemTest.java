@@ -83,9 +83,9 @@ public class MessageSystemTest {
             // expected successful test case for addUser, addMessage, and remove method.
             Conversation conversation = ms3.createConversation("group1", group1, group1[0]);
             ms3.addUser2Conversation(student2.uuid, conversation.uuid);
-            ms3.addMessage(conversation.uuid, message1.sender_uuid, message1.content);
-            ms3.addMessage(conversation.uuid, message2.sender_uuid, message2.content);
-            // 修改了addMessage method，添加了特定conversation_uuid，等整个写完要确认此处没有问题
+            ms3.addMessage(conversation.uuid, message1.senderUUID, message1.content);
+            ms3.addMessage(conversation.uuid, message2.senderUUID, message2.content);
+            // 修改了addMessage method，添加了特定conversationUUID，等整个写完要确认此处没有问题
             assertEquals(conversation, ms3.getConversation(conversation.uuid));
         } catch (UserNotFoundException | InvalidConversationNameException | ConversationNotFoundException | UserExistsException | IllegalContentException | InvalidUsernameException e) {
             e.printStackTrace();

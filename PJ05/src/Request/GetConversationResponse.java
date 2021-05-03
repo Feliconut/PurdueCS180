@@ -15,8 +15,8 @@ import java.util.UUID;
 public class GetConversationResponse extends Response {
     public final Conversation conversation;
 
-    public GetConversationResponse(boolean state, String msg, UUID request_uuid, Conversation conversation) {
-        super(state, msg, request_uuid);
+    public GetConversationResponse(boolean state, String msg, UUID requestUUID, Conversation conversation) {
+        super(state, msg, requestUUID);
         this.conversation = conversation;
     }
 
@@ -27,7 +27,7 @@ public class GetConversationResponse extends Response {
                 ", uuid=" + uuid +
                 ", state=" + state +
                 ", msg='" + msg + '\'' +
-                ", request_uuid=" + request_uuid +
+                ", requestUUID=" + requestUUID +
                 ", exception=" + exception +
                 '}';
     }

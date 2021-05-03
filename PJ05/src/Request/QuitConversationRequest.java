@@ -11,16 +11,16 @@ import java.util.UUID;
  * @version 04/30/2021
  */
 public class QuitConversationRequest extends Request {
-    public final UUID conversation_uuid;
+    public final UUID conversationUUID;
 
-    public QuitConversationRequest(UUID conversation_uuid) {
-        this.conversation_uuid = conversation_uuid;
+    public QuitConversationRequest(UUID conversationUUID) {
+        this.conversationUUID = conversationUUID;
     }
 
     @Override
     public String toString() {
         return "QuitConversationRequest{" +
-                "conversation_uuid=" + conversation_uuid +
+                "conversationUUID=" + conversationUUID +
                 ", uuid=" + uuid +
                 '}';
     }

@@ -13,21 +13,21 @@ import java.util.UUID;
  */
 public class ListAllMessagesRequest extends Request {
 
-    public final UUID conversation_uuid;
+    public final UUID conversationUUID;
     public final Date start;
     public final Date end;
 
-    public ListAllMessagesRequest(UUID conversation_Id) {
-        this(conversation_Id, null);
+    public ListAllMessagesRequest(UUID conversationId) {
+        this(conversationId, null);
     }
 
 
-    public ListAllMessagesRequest(UUID conversation_Id, Date start) {
-        this(conversation_Id, start, null);
+    public ListAllMessagesRequest(UUID conversationId, Date start) {
+        this(conversationId, start, null);
     }
 
-    public ListAllMessagesRequest(UUID conversation_Id, Date start, Date end) {
-        this.conversation_uuid = conversation_Id;
+    public ListAllMessagesRequest(UUID conversationId, Date start, Date end) {
+        this.conversationUUID = conversationId;
         this.start = start;
         this.end = end;
     }
@@ -35,7 +35,7 @@ public class ListAllMessagesRequest extends Request {
     @Override
     public String toString() {
         return "ListAllMessagesRequest{" +
-                "conversation_uuid=" + conversation_uuid +
+                "conversationUUID=" + conversationUUID +
                 ", start=" + start +
                 ", end=" + end +
                 ", uuid=" + uuid +

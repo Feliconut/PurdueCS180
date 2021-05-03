@@ -5,27 +5,27 @@ import Exceptions.*;
 import java.util.*;
 
 public class AuthenticateResponse extends Response {
-    public final UUID user_uuid;
+    public final UUID userUUID;
 
-    public AuthenticateResponse(boolean state, String msg, UUID request_uuid, UUID user_uuid) {
-        super(state, msg, request_uuid);
-        this.user_uuid = user_uuid;
+    public AuthenticateResponse(boolean state, String msg, UUID requestUUID, UUID userUUID) {
+        super(state, msg, requestUUID);
+        this.userUUID = userUUID;
     }
 
-    public AuthenticateResponse(boolean state, String msg, UUID request_uuid, RequestFailedException exception,
-                                UUID user_uuid) {
-        super(state, msg, request_uuid, exception);
-        this.user_uuid = user_uuid;
+    public AuthenticateResponse(boolean state, String msg, UUID requestUUID, RequestFailedException exception,
+                                UUID userUUID) {
+        super(state, msg, requestUUID, exception);
+        this.userUUID = userUUID;
     }
 
     @Override
     public String toString() {
         return "AuthenticateResponse{" +
-                "user_uuid=" + user_uuid +
+                "userUUID=" + userUUID +
                 ", uuid=" + uuid +
                 ", state=" + state +
                 ", msg='" + msg + '\'' +
-                ", request_uuid=" + request_uuid +
+                ", requestUUID=" + requestUUID +
                 ", exception=" + exception +
                 '}';
     }

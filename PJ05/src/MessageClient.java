@@ -131,7 +131,7 @@ class ListDisplay<T extends Storable> {
         String display;
         if (obj instanceof Conversation) {
             Conversation conversation = (Conversation) obj;
-            display = String.format("%s (%d people)", conversation.name, conversation.user_uuids.length);
+            display = String.format("%s (%d people)", conversation.name, conversation.userUUIDs.length);
         } else if (obj instanceof Message) {
             Message message = (Message) obj;
             display = String.format("%s (sent by <unknown> at %s)", message.content, message.time.toString());
@@ -270,8 +270,8 @@ class Window {
                 if (e.getSource() == okButtonSign) {
                     String username = usernameTfSign.getText();
                     String password = Arrays.toString(passwordTfSign.getPassword());
-                    UUID my_uuid = clientWorker.signIn(username, password);
-                    if (my_uuid != null) {
+                    UUID myUUID = clientWorker.signIn(username, password);
+                    if (myUUID != null) {
                         Window.this.mainWindow();
                         frame.dispose();
                     } else {
@@ -407,7 +407,7 @@ class Window {
 
         final Button logOutBtnM = new Button("LOG OUT");
         final Button settingBtnM = new Button("SETTING");
-        final JLabel my_uuid = new JLabel();
+        final JLabel myUUID = new JLabel();
         final JLabel chatroomLbM = new JLabel("Chat Rooms");
         chatroomLbM.setFont(new Font("Serif", Font.BOLD, 15));
         final JLabel newChatLbM = new JLabel("New Chat");
@@ -420,9 +420,9 @@ class Window {
         final Button startBtnM = new Button("CREATE");
         final JLabel groupInfoLb = new JLabel();
         final JLabel groupMemberLb = new JLabel();
-        my_uuid.setText(String.format("%s (%s)",
-                clientWorker.current_user.profile.name,
-                clientWorker.current_user.credential.usrName));
+        myUUID.setText(String.format("%s (%s)",
+                clientWorker.currentUser.profile.name,
+                clientWorker.currentUser.credential.usrName));
 
         //set up frame
         JFrame mainFrame = new JFrame("Main");
@@ -439,7 +439,7 @@ class Window {
         topP.setLayout(new FlowLayout(FlowLayout.LEFT));
         topP.add(logOutBtnM);
         topP.add(settingBtnM);
-        topP.add(my_uuid);
+        topP.add(myUUID);
         bigPanel.add(topP);
 
         //set up middle panel
@@ -541,7 +541,7 @@ class Window {
                         groupInfoLb.setText(String.format("Group name: %s", groupName));
 
                         //display group members
-                        UUID[] members = clientWorker.getConversation(selectedUUID).user_uuids;
+                        UUID[] members = clientWorker.getConversation(selectedUUID).userUUIDs;
                         StringBuilder memberString = new StringBuilder();
                         memberString.append("Group members: ");
 
@@ -576,19 +576,19 @@ class Window {
                 super.windowActivated(e);
                 GetEventFeedResponse response = clientWorker.getEventFeed();
                 for (Conversation conversation :
-                        response.new_conversations) {
+                        response.newConversations) {
                     conversationListDisplay.update(conversation);
                 }
                 for (Conversation conversation :
-                        response.updated_conversations) {
+                        response.updatedConversations) {
                     conversationListDisplay.update(conversation);
                 }
                 for (UUID uuid :
-                        response.removed_conversations) {
+                        response.removedConversations) {
                     conversationListDisplay.remove(uuid);
                 }
 
-                for (UUID uuid : response.new_messages.keySet()) {
+                for (UUID uuid : response.newMessages.keySet()) {
                     conversationListDisplay.notify(uuid);
                 }
                 conversationListDisplay.notifyAll(clientWorker.getUnresolved());
@@ -621,11 +621,11 @@ class Window {
                     //get the group name and usernames
                     String groupName = groupNameTfM.getText();
                     //create a new conversation
-                    UUID[] user_uuids = new UUID[invitedUsers.size()];
+                    UUID[] userUUIDs = new UUID[invitedUsers.size()];
                     for (int i = 0; i < invitedUsers.size(); i++) {
-                        user_uuids[i] = invitedUsers.get(i);
+                        userUUIDs[i] = invitedUsers.get(i);
                     }
-                    Conversation conversation = clientWorker.createConversation(groupName, user_uuids);
+                    Conversation conversation = clientWorker.createConversation(groupName, userUUIDs);
                     conversationListDisplay.add(conversation);
 
                     Window.this.chatWindow(conversation);
@@ -641,9 +641,9 @@ class Window {
                     String username = inviteTfM.getText();
                     User user = clientWorker.getUser(username);
                     if (user != null) {
-                        UUID user_uuid = user.uuid;
+                        UUID userUUID = user.uuid;
                         showUsernameTa.append(String.format("%s ", username));
-                        invitedUsers.add(user_uuid);
+                        invitedUsers.add(userUUID);
                     }
                     inviteTfM.setText(null);
                 }
@@ -720,7 +720,7 @@ class Window {
                 }
 
                 if (e.getSource() == profileBtnSetting) {
-                    Profile profile = clientWorker.current_user.profile;
+                    Profile profile = clientWorker.currentUser.profile;
 
                     String name = profile.name;
                     int age = profile.age;
@@ -814,8 +814,8 @@ class Window {
 
     public void chatWindow(Conversation currentConversation) {
 
-        final UUID current_conversation_uuid = currentConversation.uuid;
-        Message[] messages = clientWorker.getConversationMessages(current_conversation_uuid);
+        final UUID currentConversationUUID = currentConversation.uuid;
+        Message[] messages = clientWorker.getConversationMessages(currentConversationUUID);
         final TextField inputTfChat = new TextField(30);
         final Button sendBtnChat = new Button("SEND");
         //final Button deleteBtnChat = new Button("Delete the group");
@@ -877,7 +877,7 @@ class Window {
             public void windowActivated(WindowEvent e) {
                 super.windowActivated(e);
                 GetEventFeedResponse response = clientWorker.getEventFeed();
-                Message[] messages = response.new_messages.get(current_conversation_uuid);
+                Message[] messages = response.newMessages.get(currentConversationUUID);
                 if (messages != null) {
                     for (Message message :
                             messages) {
@@ -886,17 +886,17 @@ class Window {
 
                 }
                 for (Message message :
-                        response.updated_messages) {
-                    if (Set.of(clientWorker.getConversation(current_conversation_uuid).message_uuids)
+                        response.updatedMessages) {
+                    if (Set.of(clientWorker.getConversation(currentConversationUUID).messageUUIDs)
                             .contains(message.uuid)) {
                         messageListDisplay.update(message, clientWorker.messageString(message));
                     }
                 }
                 for (UUID uuid :
-                        response.removed_messages) {
+                        response.removedMessages) {
                     messageListDisplay.remove(uuid);
                 }
-                clientWorker.resolve(current_conversation_uuid);
+                clientWorker.resolve(currentConversationUUID);
                 messageListDisplay.notifyAll(clientWorker.getUnresolved());
 
             }
@@ -917,17 +917,17 @@ class Window {
                             "Are you sure to delete the selected message?",
                             "Alert", JOptionPane.YES_NO_OPTION);
                     if (answer == JOptionPane.YES_OPTION) {
-                        clientWorker.deleteMessage(selectedUUID, current_conversation_uuid);
+                        clientWorker.deleteMessage(selectedUUID, currentConversationUUID);
                     }
                 }
 
                 if (e.getClickCount() == 2) {
-                    String new_content = JOptionPane.showInputDialog(chatFrame, "Edit the selected message:",
+                    String newContent = JOptionPane.showInputDialog(chatFrame, "Edit the selected message:",
                             "Edit", JOptionPane.INFORMATION_MESSAGE);
-                    Date date = clientWorker.editMessage(selectedUUID, new_content);
+                    Date date = clientWorker.editMessage(selectedUUID, newContent);
                     if (date != null) {
-                        Message message = new Message(selectedUUID, clientWorker.current_user.uuid,
-                                date, new_content, current_conversation_uuid);
+                        Message message = new Message(selectedUUID, clientWorker.currentUser.uuid,
+                                date, newContent, currentConversationUUID);
                         messageListDisplay.update(message, clientWorker.messageString(message));
                     }
                 }
@@ -940,7 +940,7 @@ class Window {
                 String username = JOptionPane.showInputDialog(chatFrame, "Enter the username:",
                         "Invite", JOptionPane.INFORMATION_MESSAGE);
                 try {
-                    clientWorker.addUserToGroup(clientWorker.getUser(username).uuid, current_conversation_uuid);
+                    clientWorker.addUserToGroup(clientWorker.getUser(username).uuid, currentConversationUUID);
                 } catch (NullPointerException ignored) {
                 }
             }
@@ -951,7 +951,7 @@ class Window {
                 int answer = JOptionPane.showConfirmDialog(chatFrame, "Are you sure to leave" +
                         "the conversation?", "Leave", JOptionPane.OK_CANCEL_OPTION);
                 if (answer == JOptionPane.OK_OPTION) {
-                    if (clientWorker.leaveConversation(current_conversation_uuid)) {
+                    if (clientWorker.leaveConversation(currentConversationUUID)) {
                         chatFrame.dispose();
                         Window.this.mainWindow();
                     }
@@ -962,11 +962,11 @@ class Window {
         renameBtnChat.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String new_name = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
+                String newName = JOptionPane.showInputDialog(chatFrame, "Enter new group name:",
                         "Rename", JOptionPane.PLAIN_MESSAGE);
-                if (!new_name.equals("")) {
-                    if (clientWorker.renameConversation(new_name, current_conversation_uuid)) {
-                        title.set(new_name);
+                if (!newName.equals("")) {
+                    if (clientWorker.renameConversation(newName, currentConversationUUID)) {
+                        title.set(newName);
                         chatFrame.setTitle(title.get());
                     }
                 }
@@ -976,9 +976,9 @@ class Window {
         sendBtnChat.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Message message = new Message(clientWorker.current_user.uuid,
-                        new Date(), inputTfChat.getText(), current_conversation_uuid);
-                message = clientWorker.postMessage(current_conversation_uuid, message);
+                Message message = new Message(clientWorker.currentUser.uuid,
+                        new Date(), inputTfChat.getText(), currentConversationUUID);
+                message = clientWorker.postMessage(currentConversationUUID, message);
                 if (message != null) { // post successful
                     String messageString = clientWorker.messageString(message);
                     messageListDisplay.add(message, messageString);
@@ -991,7 +991,7 @@ class Window {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (messages != null) {
-                    clientWorker.export(current_conversation_uuid);
+                    clientWorker.export(currentConversationUUID);
                 } else {
                     JOptionPane.showMessageDialog(chatFrame,
                             "No messages to export!", "Export",
@@ -1019,7 +1019,7 @@ class ClientWorker {
     private final HashMap<UUID, Message> messageHashMap = new HashMap<>();
     private final HashMap<UUID, ArrayList<UUID>> conversationMessageHashmap = new HashMap<>();
     private final HashSet<UUID> unresolved = new HashSet<>();
-    protected User current_user;
+    protected User currentUser;
     private Socket socket;
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
@@ -1115,10 +1115,10 @@ class ClientWorker {
             Credential credential = new Credential(username, password);
             AuthenticateRequest authenticateRequest = new AuthenticateRequest(credential);
             response = (AuthenticateResponse) send(authenticateRequest);
-            current_user = getUser(response.user_uuid);
+            currentUser = getUser(response.userUUID);
             getAllConversation(); //get all the conversations
             getExistMessageHistory();
-            return current_user.uuid;
+            return currentUser.uuid;
 
         } catch (UserNotFoundException e) {
             JOptionPane.showMessageDialog(null, "User does not exist!",
@@ -1242,7 +1242,7 @@ class ClientWorker {
         LogOutRequest logOutRequest = new LogOutRequest();
         try {
             send(logOutRequest);
-            current_user = null;
+            currentUser = null;
         } catch (RequestFailedException e) {
             e.printStackTrace();
         }
@@ -1253,7 +1253,7 @@ class ClientWorker {
      * send a delete account request
      */
     public boolean deleteAccount() {
-        DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(current_user.credential);
+        DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(currentUser.credential);
         try {
             send(deleteAccountRequest);
             return true;
@@ -1266,7 +1266,7 @@ class ClientWorker {
     /**
      * get all the existed conversation uid of a user, if the user
      * has any existed conversations, add the conversations to
-     * conversation_uuid_list and return true. If the user does
+     * conversationUUID_list and return true. If the user does
      * not have any conversations, return false.
      */
     public UUID[] getAllConversationUid() {
@@ -1275,7 +1275,7 @@ class ClientWorker {
 
         try {
             response = (ListAllConversationsResponse) send(listAllConversationsRequest);
-            return response.conversation_uuids;
+            return response.conversationUUIDs;
 
         } catch (NotLoggedInException e) {
             JOptionPane.showMessageDialog(null, "You have been logged out!",
@@ -1325,11 +1325,11 @@ class ClientWorker {
                 GetMessageHistoryResponse response = (GetMessageHistoryResponse) send(
                         new GetMessageHistoryRequest(conversation.uuid));
                 conversationMessageHashmap.putIfAbsent(conversation.uuid, new ArrayList<>());
-                ArrayList<UUID> message_uuids = conversationMessageHashmap.get(conversation.uuid);
+                ArrayList<UUID> messageUUIDs = conversationMessageHashmap.get(conversation.uuid);
                 for (Message message :
                         response.messages) {
-                    if (!message_uuids.contains(message.uuid)) {
-                        message_uuids.add(message.uuid);
+                    if (!messageUUIDs.contains(message.uuid)) {
+                        messageUUIDs.add(message.uuid);
                     }
                     messageHashMap.put(message.uuid, message);
                 }
@@ -1348,17 +1348,17 @@ class ClientWorker {
      * Sends a request abd delete both from
      * the UI and the data stored in client
      *
-     * @param conversation_uuid the uuid of the conversation
+     * @param conversationUUID the uuid of the conversation
      * @return return true if success
      */
-    public boolean deleteConversation(UUID conversation_uuid) {
-        DeleteConversationRequest dr = new DeleteConversationRequest(conversation_uuid);
+    public boolean deleteConversation(UUID conversationUUID) {
+        DeleteConversationRequest dr = new DeleteConversationRequest(conversationUUID);
         try {
             send(dr);
             JOptionPane.showMessageDialog(null, "Successfully deleted",
                     "Delete Conversation", JOptionPane.INFORMATION_MESSAGE);
-            conversationHashMap.remove(conversation_uuid);
-            conversationMessageHashmap.remove(conversation_uuid);
+            conversationHashMap.remove(conversationUUID);
+            conversationMessageHashmap.remove(conversationUUID);
             return true;
 
         } catch (NotLoggedInException e) {
@@ -1378,14 +1378,14 @@ class ClientWorker {
         return false;
     }
 
-    public boolean leaveConversation(UUID conversation_uuid) {
-        QuitConversationRequest request = new QuitConversationRequest(conversation_uuid);
+    public boolean leaveConversation(UUID conversationUUID) {
+        QuitConversationRequest request = new QuitConversationRequest(conversationUUID);
         try {
             send(request);
             JOptionPane.showMessageDialog(null, "Successfully left",
                     "Leave Conversation", JOptionPane.INFORMATION_MESSAGE);
-            conversationHashMap.remove(conversation_uuid);
-            conversationMessageHashmap.remove(conversation_uuid);
+            conversationHashMap.remove(conversationUUID);
+            conversationMessageHashmap.remove(conversationUUID);
             return true;
 
         } catch (NotLoggedInException e) {
@@ -1408,11 +1408,11 @@ class ClientWorker {
     /**
      * Sends an add user request and receives a response
      *
-     * @param user_uuid         the user's uuid that you want to add
-     * @param conversation_uuid the uuid of the conversation
+     * @param userUUID         the user's uuid that you want to add
+     * @param conversationUUID the uuid of the conversation
      */
-    public void addUserToGroup(UUID user_uuid, UUID conversation_uuid) {
-        AddUser2ConversationRequest addRequest = new AddUser2ConversationRequest(user_uuid, conversation_uuid);
+    public void addUserToGroup(UUID userUUID, UUID conversationUUID) {
+        AddUser2ConversationRequest addRequest = new AddUser2ConversationRequest(userUUID, conversationUUID);
         try {
             send(addRequest);
 
@@ -1443,13 +1443,13 @@ class ClientWorker {
      * @param groupName the name of the conversation
      * @return the uuid of the group
      */
-    public Conversation createConversation(String groupName, UUID[] user_uuids) {
-        CreateConversationRequest createRequest = new CreateConversationRequest(user_uuids, groupName);
+    public Conversation createConversation(String groupName, UUID[] userUUIDs) {
+        CreateConversationRequest createRequest = new CreateConversationRequest(userUUIDs, groupName);
         CreateConversationResponse response;
 
         try {
             response = (CreateConversationResponse) send(createRequest);
-            Conversation conversation = getConversation(response.conversation_uuid);
+            Conversation conversation = getConversation(response.conversationUUID);
             conversationHashMap.put(conversation.uuid, conversation);
             return conversation;
 
@@ -1474,23 +1474,23 @@ class ClientWorker {
     }
 
     /**
-     * @param conversation_uuid the uuid of the conversation
+     * @param conversationUUID the uuid of the conversation
      * @return return the conversation
      */
-    public Conversation getConversation(UUID conversation_uuid) {
+    public Conversation getConversation(UUID conversationUUID) {
         // try local
-        Conversation conversation = conversationHashMap.get(conversation_uuid);
+        Conversation conversation = conversationHashMap.get(conversationUUID);
         if (conversation != null) {
             return new Conversation(conversation);
         }
 
 
         // try fetch
-        GetConversationRequest getConversationRequest = new GetConversationRequest(conversation_uuid);
+        GetConversationRequest getConversationRequest = new GetConversationRequest(conversationUUID);
         try {
             GetConversationResponse response = (GetConversationResponse) send(getConversationRequest);
             conversation = response.conversation;
-            conversationHashMap.put(conversation_uuid, conversation);
+            conversationHashMap.put(conversationUUID, conversation);
             return conversation;
 
         } catch (ConversationNotFoundException e) {
@@ -1515,13 +1515,13 @@ class ClientWorker {
      * @param name the name of the conversation
      * @return return true if success
      */
-    public boolean renameConversation(String name, UUID conversation_uuid) {
-        RenameConversationRequest renameRequest = new RenameConversationRequest(conversation_uuid, name);
+    public boolean renameConversation(String name, UUID conversationUUID) {
+        RenameConversationRequest renameRequest = new RenameConversationRequest(conversationUUID, name);
         try {
             send(renameRequest);
-            Conversation conversation = new Conversation(getConversation(conversation_uuid));
+            Conversation conversation = new Conversation(getConversation(conversationUUID));
             conversation.name = name;
-            conversationHashMap.put(conversation_uuid, conversation);
+            conversationHashMap.put(conversationUUID, conversation);
             return true;
 
         } catch (ConversationNotFoundException e) {
@@ -1544,27 +1544,27 @@ class ClientWorker {
     /**
      * The method sends a postMessageRequest and receives a response.
      *
-     * @param conversation_uuid uuid of the conversation
+     * @param conversationUUID uuid of the conversation
      * @param message           the message that was send
      * @return return true if message was successfully send, false
      * if the message was not send
      */
-    public Message postMessage(UUID conversation_uuid, Message message) {
-        PostMessageRequest postMessageRequest = new PostMessageRequest(conversation_uuid, message);
+    public Message postMessage(UUID conversationUUID, Message message) {
+        PostMessageRequest postMessageRequest = new PostMessageRequest(conversationUUID, message);
         PostMessageResponse response;
 
         try {
             response = (PostMessageResponse) send(postMessageRequest);
             //currentMessageList.add(message);
-            Message new_message = new Message(response.message_uuid, message.sender_uuid,
-                    response.date, message.content, message.conversation_uuid);
+            Message newMessage = new Message(response.messageUUID, message.senderUUID,
+                    response.date, message.content, message.conversationUUID);
 
-            messageHashMap.put(new_message.uuid, new_message);
-            conversationMessageHashmap.putIfAbsent(conversation_uuid, new ArrayList<>());
-            ArrayList<UUID> message_uuids = conversationMessageHashmap.get(conversation_uuid);
-            message_uuids.add(new_message.uuid);
-            conversationMessageHashmap.put(conversation_uuid, message_uuids);
-            return new_message;
+            messageHashMap.put(newMessage.uuid, newMessage);
+            conversationMessageHashmap.putIfAbsent(conversationUUID, new ArrayList<>());
+            ArrayList<UUID> messageUUIDs = conversationMessageHashmap.get(conversationUUID);
+            messageUUIDs.add(newMessage.uuid);
+            conversationMessageHashmap.put(conversationUUID, messageUUIDs);
+            return newMessage;
 
         } catch (IllegalContentException e) {
             JOptionPane.showMessageDialog(null, "Illegal content!",
@@ -1593,19 +1593,19 @@ class ClientWorker {
      *
      * @return return the chat history
      */
-    public Message[] getConversationMessages(UUID conversation_uuid) {
-        conversationMessageHashmap.putIfAbsent(conversation_uuid, new ArrayList<>());
-        ArrayList<UUID> message_uuids = conversationMessageHashmap.get(conversation_uuid);
+    public Message[] getConversationMessages(UUID conversationUUID) {
+        conversationMessageHashmap.putIfAbsent(conversationUUID, new ArrayList<>());
+        ArrayList<UUID> messageUUIDs = conversationMessageHashmap.get(conversationUUID);
         ArrayList<Message> messages = new ArrayList<>();
         for (UUID uuid :
-                message_uuids) {
+                messageUUIDs) {
             Message message;
             try {
                 message = getMessage(uuid); // might throw
                 messages.add(message);
             } catch (MessageNotFoundException e) {
                 // sometimes the message is removed but its uuid still links to the conversation.
-                message_uuids.remove(uuid);
+                messageUUIDs.remove(uuid);
             }
         }
         return messages.toArray(new Message[0]);
@@ -1614,20 +1614,20 @@ class ClientWorker {
     /**
      * Search for a user by the uuid.
      *
-     * @param user_uuid the uuid of the user
+     * @param userUUID the uuid of the user
      * @return return the user
      */
-    public User getUser(UUID user_uuid) {
+    public User getUser(UUID userUUID) {
         // try local cache
-        User user = userHashMap.get(user_uuid);
+        User user = userHashMap.get(userUUID);
         if (user != null) {
             return user;
         }
 
         // try remote fetch
         try {
-            GetUserResponse response = (GetUserResponse) send(new GetUserRequest(user_uuid));
-            userHashMap.put(user_uuid, response.user);
+            GetUserResponse response = (GetUserResponse) send(new GetUserRequest(userUUID));
+            userHashMap.put(userUUID, response.user);
             return response.user;
 
         } catch (UserNotFoundException e) {
@@ -1649,12 +1649,12 @@ class ClientWorker {
     /**
      * Export the current conversation history
      */
-    public void export(UUID conversation_uuid) {
+    public void export(UUID conversationUUID) {
         //get messages from map
-        ArrayList<UUID> messages_uuids = conversationMessageHashmap.get(conversation_uuid);
-        Message[] message = new Message[messages_uuids.size()];
-        for (int i = 0; i < messages_uuids.size(); i++) {
-            message[i] = messageHashMap.get(messages_uuids.get(i));
+        ArrayList<UUID> messagesUUIDs = conversationMessageHashmap.get(conversationUUID);
+        Message[] message = new Message[messagesUUIDs.size()];
+        for (int i = 0; i < messagesUUIDs.size(); i++) {
+            message[i] = messageHashMap.get(messagesUUIDs.get(i));
         }
 
         try (PrintWriter pw = new PrintWriter("Conversation_History")) {
@@ -1663,7 +1663,7 @@ class ClientWorker {
             pw.write("contents\n");
 
             for (Message value : message) {
-                String sender = getUser(value.sender_uuid).credential.usrName;
+                String sender = getUser(value.senderUUID).credential.usrName;
                 pw.write(String.format("%s,", sender));
                 String time = value.time.toString();
                 pw.write(String.format("%s,", time));
@@ -1684,18 +1684,18 @@ class ClientWorker {
     /**
      * The method sends a deleteMessage request and receives a response
      *
-     * @param message_uuid      the uuid of the message
-     * @param conversation_uuid the uuid of the conversation
+     * @param messageUUID      the uuid of the message
+     * @param conversationUUID the uuid of the conversation
      */
-    public void deleteMessage(java.util.UUID message_uuid, java.util.UUID conversation_uuid) {
-        DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(message_uuid);
+    public void deleteMessage(java.util.UUID messageUUID, java.util.UUID conversationUUID) {
+        DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(messageUUID);
 
         try {
             send(deleteMessageRequest);
-            messageHashMap.remove(message_uuid);
-            ArrayList<UUID> message_uuids = conversationMessageHashmap.get(conversation_uuid);
-            message_uuids.remove(message_uuid);
-            conversationMessageHashmap.put(conversation_uuid, message_uuids);
+            messageHashMap.remove(messageUUID);
+            ArrayList<UUID> messageUUIDs = conversationMessageHashmap.get(conversationUUID);
+            messageUUIDs.remove(messageUUID);
+            conversationMessageHashmap.put(conversationUUID, messageUUIDs);
         } catch (MessageNotFoundException e) {
             JOptionPane.showMessageDialog(null, "Message not found!", "Error",
                     JOptionPane.ERROR_MESSAGE);
@@ -1719,20 +1719,20 @@ class ClientWorker {
      * @return the message string
      */
     public String messageString(Message message) {
-        User user = getUser(message.sender_uuid);
+        User user = getUser(message.senderUUID);
         return String.format("%s: %s (%s)", user.credential.usrName, message.content, message.time.toString());
     }
 
-    public Date editMessage(UUID message_uuid, String new_content) {
+    public Date editMessage(UUID messageUUID, String newContent) {
         try {
             EditMessageResponse response = (EditMessageResponse) send(
-                    new EditMessageRequest(message_uuid, new_content));
+                    new EditMessageRequest(messageUUID, newContent));
             Date date = response.dateEdited;
 
-            Message message = getMessage(message_uuid);
-            message.content = new_content;
+            Message message = getMessage(messageUUID);
+            message.content = newContent;
             message.time = date;
-            messageHashMap.put(message_uuid, message);
+            messageHashMap.put(messageUUID, message);
             return date;
         } catch (NotLoggedInException e) {
             JOptionPane.showMessageDialog(null, "You have been logged out!",
@@ -1754,15 +1754,15 @@ class ClientWorker {
         return null;
     }
 
-    private Message getMessage(UUID message_uuid) throws MessageNotFoundException {
+    private Message getMessage(UUID messageUUID) throws MessageNotFoundException {
         // try local
-        Message message = messageHashMap.get(message_uuid);
+        Message message = messageHashMap.get(messageUUID);
         if (message != null) {
             return message;
         }
 
         // try remote
-        GetMessageRequest request = new GetMessageRequest(message_uuid);
+        GetMessageRequest request = new GetMessageRequest(messageUUID);
         try {
             GetMessageResponse response = (GetMessageResponse) send(request);
             message = response.message;
@@ -1836,7 +1836,7 @@ class ClientWorker {
             }
             Profile profile = new Profile(name, Integer.parseInt(ageString));
             send(new EditProfileRequest(profile));
-            current_user.profile = profile;
+            currentUser.profile = profile;
             return profile;
 
         } catch (NumberFormatException e) {
@@ -1865,56 +1865,56 @@ class ClientWorker {
             response = (GetEventFeedResponse) send(request);
 
             for (User user :
-                    response.new_users) {
+                    response.newUsers) {
                 userHashMap.put(user.uuid, user);
             }
             for (Conversation conversation :
-                    response.new_conversations) {
+                    response.newConversations) {
                 conversationHashMap.put(conversation.uuid, conversation);
 
-                if (!conversation.admin_uuid.equals(current_user.uuid)) {
+                if (!conversation.adminUUID.equals(currentUser.uuid)) {
                     unresolved.add(conversation.uuid);
                 }
             }
-            for (UUID conversation_uuid :
-                    response.new_messages.keySet()) {
-                for (Message message : response.new_messages.get(conversation_uuid)) {
+            for (UUID conversationUUID :
+                    response.newMessages.keySet()) {
+                for (Message message : response.newMessages.get(conversationUUID)) {
                     messageHashMap.put(message.uuid, message);
-                    conversationMessageHashmap.putIfAbsent(conversation_uuid, new ArrayList<>());
-                    conversationMessageHashmap.get(conversation_uuid).add(message.uuid);
-                    if (!message.sender_uuid.equals(current_user.uuid)) {
+                    conversationMessageHashmap.putIfAbsent(conversationUUID, new ArrayList<>());
+                    conversationMessageHashmap.get(conversationUUID).add(message.uuid);
+                    if (!message.senderUUID.equals(currentUser.uuid)) {
                         unresolved.add(message.uuid);
-                        unresolved.add(conversation_uuid);
+                        unresolved.add(conversationUUID);
                     }
                 }
 
             }
             for (User user :
-                    response.updated_users) {
+                    response.updatedUsers) {
                 userHashMap.put(user.uuid, user);
             }
             for (Conversation conversation :
-                    response.updated_conversations) {
+                    response.updatedConversations) {
                 conversationHashMap.put(conversation.uuid, conversation);
                 unresolved.add(conversation.uuid);
             }
             for (Message message :
-                    response.updated_messages) {
+                    response.updatedMessages) {
                 messageHashMap.put(message.uuid, message);
                 unresolved.add(message.uuid);
-                unresolved.add(message.conversation_uuid);
+                unresolved.add(message.conversationUUID);
             }
 
             for (UUID uuid :
-                    response.removed_users) {
+                    response.removedUsers) {
                 userHashMap.remove(uuid);
             }
             for (UUID uuid :
-                    response.removed_conversations) {
+                    response.removedConversations) {
                 conversationHashMap.remove(uuid);
             }
             for (UUID uuid :
-                    response.removed_messages) {
+                    response.removedMessages) {
                 for (ArrayList<UUID> uuids : conversationMessageHashmap.values()) {
                     uuids.remove(uuid);
                 }
