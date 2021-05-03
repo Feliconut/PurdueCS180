@@ -14,7 +14,10 @@ public class MessageServerMaster {
 
 
         //Starts the system.
-        MessageSystem messageSystem = new MessageSystem("users.txt", "messages.txt", "conversations.txt");
+        MessageSystem messageSystem = new MessageSystem(
+                "users.txt",
+                "messages.txt",
+                "conversations.txt");
 
 
         // port number
