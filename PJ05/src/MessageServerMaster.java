@@ -1,6 +1,5 @@
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 
 /**
  * Project5-- server master
@@ -25,7 +24,7 @@ public class MessageServerMaster {
         //disadvantage: needs a lot memory
         try {
             while (true) {
-                Socket socket;
+                java.net.Socket socket;
                 socket = serverSocket.accept();
                 MessageServerWorker requestHandler = new MessageServerWorker(socket, messageSystem);
                 requestHandler.start();

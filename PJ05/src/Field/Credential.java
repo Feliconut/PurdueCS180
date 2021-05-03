@@ -1,7 +1,7 @@
 package Field;
 
-import java.io.Serializable;
-import java.util.Objects;
+import java.io.*;
+import java.util.*;
 
 public class Credential implements Serializable {
     public final String usrName;
@@ -14,8 +14,12 @@ public class Credential implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Credential)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Credential)) {
+            return false;
+        }
         Credential that = (Credential) o;
         return Objects.equals(usrName, that.usrName) && Objects.equals(passwd, that.passwd);
     }

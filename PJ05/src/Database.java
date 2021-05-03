@@ -1,10 +1,17 @@
-import Field.Storable;
+import Field.*;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
+/**
+ * Database
+ * <p>
+ * This class will save all the messages from the Message System, check if there is a txt, read the data and save it
+ * into hashmap, then refresh the file, wait for the next message from the Message System, and it should have a
+ * function that can let Message System use the information which saves in the hashmap easily.
+ *
+ * @param <V> The type of object that this database stores.
+ */
 public class Database<V extends Storable> {
     private final HashMap<UUID, V> map; // This is used as a cache.
     private final Class<V> clazz;
@@ -54,6 +61,16 @@ public class Database<V extends Storable> {
         }
     }
 
+    public V get(UUID uuid) {
+        return map.get(uuid);
+    }
+
+    public V put(UUID uuid, V value) {
+        V res = map.put(uuid, value);
+        write();
+        return clazz.cast(res);
+    }
+
     public void write() {
         try {
             // we refresh the file.
@@ -72,16 +89,6 @@ public class Database<V extends Storable> {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public V get(UUID uuid) {
-        return map.get(uuid);
-    }
-
-    public V put(UUID uuid, V value) {
-        V res = map.put(uuid, value);
-        write();
-        return clazz.cast(res);
     }
 
     public boolean containsKey(UUID uuid) {

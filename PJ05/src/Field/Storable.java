@@ -1,8 +1,7 @@
 package Field;
 
-import java.io.Serializable;
-import java.util.Objects;
-import java.util.UUID;
+import java.io.*;
+import java.util.*;
 
 public abstract class Storable implements Serializable {
 
@@ -18,8 +17,12 @@ public abstract class Storable implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Storable)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Storable)) {
+            return false;
+        }
         Storable storable = (Storable) o;
         return uuid.equals(storable.uuid);
     }

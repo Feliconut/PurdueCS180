@@ -1,8 +1,7 @@
 package Field;
 
-import java.util.HashMap;
-import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.*;
+import java.util.concurrent.*;
 
 public class EventBag {
     private final CopyOnWriteArrayList<User> new_users;
@@ -29,7 +28,8 @@ public class EventBag {
 
     // adders
 
-    private synchronized static <T extends Storable> void putUpdatedObject(T obj, CopyOnWriteArrayList<T> db, Class<T> clazz) {
+    private synchronized static <T extends Storable> void putUpdatedObject(T obj, CopyOnWriteArrayList<T> db,
+                                                                           Class<T> clazz) {
         for (Storable storable :
                 db) {
             if (storable.uuid.equals(obj.uuid)) {

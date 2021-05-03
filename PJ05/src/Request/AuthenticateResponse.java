@@ -1,8 +1,8 @@
 package Request;
 
-import Exceptions.RequestFailedException;
+import Exceptions.*;
 
-import java.util.UUID;
+import java.util.*;
 
 public class AuthenticateResponse extends Response {
     public final UUID user_uuid;
@@ -12,7 +12,8 @@ public class AuthenticateResponse extends Response {
         this.user_uuid = user_uuid;
     }
 
-    public AuthenticateResponse(boolean state, String msg, UUID request_uuid, RequestFailedException exception, UUID user_uuid) {
+    public AuthenticateResponse(boolean state, String msg, UUID request_uuid, RequestFailedException exception,
+                                UUID user_uuid) {
         super(state, msg, request_uuid, exception);
         this.user_uuid = user_uuid;
     }

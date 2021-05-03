@@ -1,24 +1,20 @@
-import Field.Credential;
-import Field.Profile;
-import Field.User;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import Field.*;
+import org.junit.*;
 
-import java.io.File;
-import java.util.Arrays;
+import java.io.*;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
 public class DatabaseTest {
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         System.out.println("Test begins.");
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         System.out.println("Test ends.");
         (new File("testWriteFile.txt")).delete();
     }
@@ -32,7 +28,7 @@ public class DatabaseTest {
             User user2 = new User(new Credential("std2", "0123"), new Profile("student2", 19));
             User user3 = new User(new Credential("std3", "0123"), new Profile("student3", 19));
 
-            Database<User> db1 = (new Database<User>("testWriteFile.txt", User.class));
+            Database<User> db1 = (new Database<>("testWriteFile.txt", User.class));
             db1.put(user1.uuid, user1);
             db1.put(user2.uuid, user2);
             db1.put(user3.uuid, user3);
@@ -40,7 +36,7 @@ public class DatabaseTest {
             // read
             Database<User> db2 = new Database<>("testWriteFile.txt", User.class);
             // get
-            assertEquals(db2.get(user1.uuid),user1);
+            assertEquals(db2.get(user1.uuid), user1);
             // containsKey
             assertTrue(db2.containsKey(user1.uuid));
             assertTrue(db2.containsKey(user2.uuid));
