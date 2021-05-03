@@ -33,6 +33,7 @@ public class MessageClient {
  * ListDisplay
  * This class encapsulates some UI utils for producing a list.
  *
+ * @param <T> The type of display.
  * @author Xiaoyu Liu, lab sec OL3
  * @version April
  */
