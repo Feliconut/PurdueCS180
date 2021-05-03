@@ -725,10 +725,8 @@ class Window {
                     String name = profile.name;
                     int age = profile.age;
 
-                    String message = String.format("""
-                            Name: %s
-                            Age: %d
-                            """, name, age);
+                    String message = String.format("Name: %s\n" +
+                                                   "Age: %d\n", name, age);
 
                     JOptionPane.showMessageDialog(settingFrame, message, "Profile",
                             JOptionPane.INFORMATION_MESSAGE);
