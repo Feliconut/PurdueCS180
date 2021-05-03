@@ -1,10 +1,12 @@
 # EasyChat Documentation
 
-Team 95
+Team 84
 
 Purdue CS 180
 
 May 3rd, 2021
+
+**Contributors:** Felix Liu, Jiaqi Chen, Paul Fang, Silvia Yang, Teresa Huang.
 
 ## Submission
 
@@ -810,3 +812,5 @@ Note: this test case can be found at`MessageSystemTest.java`in the root folder.
 |Log out then log back in, enter the conversation.|The message history is retained.|Successfully shows.|
 |Delete a conversation from A's list.|The deletion does not impact B's conversation list.|Successfully shows.|
 
+
+**Contributors:** Felix Liu, Jiaqi Chen, Paul Fang, Silvia Yang, Teresa Huang.
